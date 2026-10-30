@@ -25,10 +25,9 @@ Angular 22 (standalone, zoneless, signals) + Ionic 9 + Supabase. Deploy en Verce
 
 ## Estado
 
-Hecho: login con magic link, registro de comidas con score diario, schema completo con RLS.
+Hecho: login con magic link, registro de comidas con score diario, schema completo con RLS, cardio (meta semanal 150 min) y peso/cintura en la pestaña Actividad, tabs Comidas/Actividad.
 
 Pendiente (en orden):
-1. Cardio (`workout` type `cardio`) y peso (`body_metric`)
-2. Rutinas de fuerza con `workout_set` y progresión de cargas
-3. Carga de laboratorio (`lab_result`) y gráficos de tendencia
-4. Dashboard semanal, notificaciones push, foto + IA para clasificar comidas
+1. Rutinas de fuerza con `workout_set` y progresión de cargas
+2. Carga de laboratorio (`lab_result`) y gráficos de tendencia
+3. Dashboard semanal, notificaciones push, foto + IA para clasificar comidas

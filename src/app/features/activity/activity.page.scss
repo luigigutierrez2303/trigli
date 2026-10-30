@@ -1,0 +1,33 @@
+.date-title {
+  text-transform: capitalize;
+}
+
+.week-card {
+  margin: 0 0 16px;
+  text-align: center;
+  border-top: 6px solid var(--ion-color-warning);
+
+  &.done { border-top-color: var(--ion-color-success); }
+}
+
+.week-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ion-color-medium);
+}
+
+.week-value {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.2;
+
+  small { font-size: 1rem; font-weight: 400; color: var(--ion-color-medium); }
+}
+
+.week-sub,
+.muted {
+  color: var(--ion-color-medium);
+}
+
+.week-sub { margin-top: 8px; }

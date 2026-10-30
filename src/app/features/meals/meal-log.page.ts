@@ -7,16 +7,12 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, logOutOutline, addCircleOutline } from 'ionicons/icons';
+import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import {
   FLAG_DEFS, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
 import { MealLog, MealService } from './meal.service';
-
-const toIsoDate = (d: Date) => {
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
-};
 
 @Component({
   selector: 'app-meal-log',

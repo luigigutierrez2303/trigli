@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="shiftDay(-1)" aria-label="Día anterior">
+        <ion-icon slot="icon-only" name="chevron-back" />
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="date-title">{{ isToday() ? 'Hoy' : dateLabel() }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente">
+        <ion-icon slot="icon-only" name="chevron-forward" />
+      </ion-button>
+      <ion-button (click)="logout()" aria-label="Salir">
+        <ion-icon slot="icon-only" name="log-out-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="week-card" [class.done]="progress().done">
+    <ion-card-content>
+      <div class="week-label">Aeróbico de la semana</div>
+      <div class="week-value">{{ progress().minutes }}<small> / {{ weeklyGoal }} min</small></div>
+      <ion-progress-bar [value]="progress().pct / 100" />
+      <div class="week-sub">
+        @if (progress().done) {
+          Meta cumplida
+        } @else {
+          Faltan {{ progress().remaining }} min
+        }
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Cardio</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @if (dayCardio().length) {
+        <ion-list lines="full">
+          @for (w of dayCardio(); track w.id) {
+            <ion-item>
+              <ion-label>
+                <h2>{{ w.duration_min }} min</h2>
+                @if (w.notes) { <p>{{ w.notes }}</p> }
+              </ion-label>
+              <ion-button slot="end" fill="clear" color="danger" (click)="removeCardio(w.id)" aria-label="Borrar">
+                <ion-icon slot="icon-only" name="trash-outline" />
+              </ion-button>
+            </ion-item>
+          }
+        </ion-list>
+      } @else {
+        <p class="muted">Sin cardio registrado este día</p>
+      }
+
+      <ion-item>
+        <ion-input label="Minutos" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="30"
+          [value]="minutesRaw()" (ionInput)="minutesRaw.set($any($event.target).value ?? '')" />
+      </ion-item>
+      <ion-item>
+        <ion-input label="Qué hiciste" labelPlacement="stacked" placeholder="Caminata, bici… (opcional)"
+          [value]="cardioNotes()" (ionInput)="cardioNotes.set($any($event.target).value ?? '')" />
+      </ion-item>
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="addCardio()">
+        Agregar cardio
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Peso y cintura</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @if (metric()?.weight_kg != null) {
+        <p class="muted">
+          Peso registrado: {{ metric()!.weight_kg }} kg
+          @if (delta() !== null) {
+            <ion-badge [color]="delta()! <= 0 ? 'success' : 'warning'">
+              {{ delta()! > 0 ? '+' : '' }}{{ delta() }} kg
+            </ion-badge>
+          }
+        </p>
+      }
+      <ion-item>
+        <ion-input label="Peso (kg)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="82,5"
+          [value]="weightRaw()" (ionInput)="weightRaw.set($any($event.target).value ?? '')" />
+      </ion-item>
+      <ion-item>
+        <ion-input label="Cintura (cm)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="95"
+          [value]="waistRaw()" (ionInput)="waistRaw.set($any($event.target).value ?? '')" />
+      </ion-item>
+      @if (!canSaveMetric() && (weightRaw() || waistRaw())) {
+        <ion-note color="danger">Revisá los valores: peso 20–300 kg, cintura 30–250 cm.</ion-note>
+      }
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!canSaveMetric() || saving()" (click)="saveMetric()">
+        Guardar
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -6,7 +6,18 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/meals/meal-log.page').then((m) => m.MealLogPage),
+    loadComponent: () => import('./features/tabs/tabs.page').then((m) => m.TabsPage),
+    children: [
+      {
+        path: 'comidas',
+        loadComponent: () => import('./features/meals/meal-log.page').then((m) => m.MealLogPage),
+      },
+      {
+        path: 'actividad',
+        loadComponent: () => import('./features/activity/activity.page').then((m) => m.ActivityPage),
+      },
+      { path: '', redirectTo: 'comidas', pathMatch: 'full' },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];
