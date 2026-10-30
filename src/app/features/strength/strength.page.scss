@@ -1,0 +1,15 @@
+.suggestion {
+  margin: 8px 16px;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.muted {
+  color: var(--ion-color-medium);
+}

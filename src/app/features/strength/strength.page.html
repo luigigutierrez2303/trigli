@@ -1,0 +1,88 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Fuerza</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" aria-label="Salir">
+        <ion-icon slot="icon-only" name="log-out-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header><ion-card-title>Sesión de hoy</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-select label="Ejercicio" labelPlacement="stacked" placeholder="Elegí uno" interface="action-sheet"
+          [value]="exerciseId()" (ionChange)="selectExercise($event.detail.value)">
+          @for (e of exercises(); track e.id) {
+            <ion-select-option [value]="e.id">{{ e.name }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+
+      @if (suggestionText()) {
+        <p class="suggestion">{{ suggestionText() }}</p>
+      }
+
+      <div class="set-row">
+        <ion-item>
+          <ion-input label="Reps" labelPlacement="stacked" type="number" inputmode="numeric"
+            [value]="repsRaw()" (ionInput)="repsRaw.set($any($event.target).value ?? '')" />
+        </ion-item>
+        <ion-item>
+          <ion-input label="Kg (c/mancuerna)" labelPlacement="stacked" type="text" inputmode="decimal"
+            [value]="weightRaw()" (ionInput)="weightRaw.set($any($event.target).value ?? '')" />
+        </ion-item>
+      </div>
+      <ion-button expand="block" fill="outline" [disabled]="!canAddSet()" (click)="addSet()">Agregar serie</ion-button>
+
+      @if (draftGroups().length) {
+        <ion-list lines="full" class="ion-margin-top">
+          @for (g of draftGroups(); track g.name) {
+            <ion-item>
+              <ion-label>
+                <h2>{{ g.name }}</h2>
+                <p>
+                  @for (s of g.sets; track s.set_number) {
+                    {{ s.reps }}×{{ s.weight_kg ?? 'pc' }}{{ $last ? '' : ' · ' }}
+                  }
+                </p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+        <p class="muted">Volumen: {{ draftVolume() }} kg</p>
+        <ion-button fill="clear" color="danger" size="small" (click)="removeLastSet()">Quitar última serie</ion-button>
+
+        <ion-item>
+          <ion-input label="Duración (min)" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="45"
+            [value]="durationRaw()" (ionInput)="durationRaw.set($any($event.target).value ?? '')" />
+        </ion-item>
+        <ion-button expand="block" class="ion-margin-top" [disabled]="!canSave() || saving()" (click)="saveSession()">
+          Guardar sesión
+        </ion-button>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Últimas sesiones</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @for (s of sessions(); track s.id) {
+        <ion-item>
+          <ion-label>
+            <h2>{{ s.date }} <ion-badge color="medium">{{ s.duration_min }} min</ion-badge></h2>
+            <p>{{ summarize(s) }}</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" color="danger" (click)="removeSession(s.id)" aria-label="Borrar">
+            <ion-icon slot="icon-only" name="trash-outline" />
+          </ion-button>
+        </ion-item>
+      } @empty {
+        <p class="muted">Todavía no registraste sesiones</p>
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

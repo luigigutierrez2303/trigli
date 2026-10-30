@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Laboratorio</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" aria-label="Salir">
+        <ion-icon slot="icon-only" name="log-out-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header><ion-card-title>Triglicéridos</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @if (latestTg() !== null) {
+        <div class="latest">
+          <span class="value">{{ latestTg() }}</span><small> mg/dL</small>
+          <ion-badge [attr.data-level]="classifyTg(latestTg()!)">{{ levelLabels[classifyTg(latestTg()!)] }}</ion-badge>
+        </div>
+        @if (tgChange() !== null) {
+          <p class="muted">{{ tgChange()! > 0 ? '+' : '' }}{{ tgChange() }}% desde la primera medición</p>
+        }
+      }
+      <app-line-chart [points]="tgPoints()" [refs]="tgRefs" ariaLabel="Evolución de triglicéridos" />
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Nuevo análisis</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-input label="Fecha" labelPlacement="stacked" type="date" [max]="dateRaw()"
+          [value]="dateRaw()" (ionInput)="dateRaw.set($any($event.target).value ?? '')" />
+      </ion-item>
+      @for (f of fields; track f.key) {
+        <ion-item>
+          <ion-input [label]="f.label" labelPlacement="stacked" type="number" inputmode="numeric"
+            [value]="raw()[f.key]" (ionInput)="setField(f.key, $any($event.target).value ?? '')" />
+        </ion-item>
+      }
+      <ion-note>Cargá solo lo que midieron; enteros en mg/dL.</ion-note>
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!canSave() || saving()" (click)="save()">
+        Guardar análisis
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Historial</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @for (r of newestFirst(); track r.id) {
+        <ion-item>
+          <ion-label>
+            <h2>{{ r.date }}</h2>
+            <p>{{ summary(r) }}</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" color="danger" (click)="remove(r.id)" aria-label="Borrar">
+            <ion-icon slot="icon-only" name="trash-outline" />
+          </ion-button>
+        </ion-item>
+      } @empty {
+        <p class="muted">Todavía no cargaste análisis</p>
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

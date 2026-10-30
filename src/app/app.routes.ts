@@ -9,6 +9,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
       {
+        path: 'resumen',
+        loadComponent: () => import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage),
+      },
+      {
         path: 'comidas',
         loadComponent: () => import('./features/meals/meal-log.page').then((m) => m.MealLogPage),
       },
@@ -16,7 +20,15 @@ export const routes: Routes = [
         path: 'actividad',
         loadComponent: () => import('./features/activity/activity.page').then((m) => m.ActivityPage),
       },
-      { path: '', redirectTo: 'comidas', pathMatch: 'full' },
+      {
+        path: 'fuerza',
+        loadComponent: () => import('./features/strength/strength.page').then((m) => m.StrengthPage),
+      },
+      {
+        path: 'laboratorio',
+        loadComponent: () => import('./features/labs/labs.page').then((m) => m.LabsPage),
+      },
+      { path: '', redirectTo: 'resumen', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: '' },
