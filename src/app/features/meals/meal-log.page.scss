@@ -1,0 +1,61 @@
+.date-title {
+  text-transform: capitalize;
+}
+
+[data-level='good'] { --level: var(--ion-color-success); }
+[data-level='warn'] { --level: var(--ion-color-warning); }
+[data-level='bad']  { --level: var(--ion-color-danger); }
+
+.score-card {
+  margin: 0 0 16px;
+  text-align: center;
+  border-top: 6px solid var(--level, var(--ion-color-medium));
+}
+
+.score-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ion-color-medium);
+}
+
+.score-value {
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--level, var(--ion-text-color));
+}
+
+.score-sub {
+  color: var(--ion-color-medium);
+}
+
+.meal-score {
+  --background: var(--level);
+  min-width: 2rem;
+  font-size: 1rem;
+}
+
+.muted {
+  color: var(--ion-color-medium);
+}
+
+.draft-score {
+  text-align: center;
+  font-weight: 700;
+  color: var(--level);
+
+  span { font-size: 3rem; }
+  small { font-size: 1.2rem; color: var(--ion-color-medium); }
+}
+
+.group-title {
+  display: block;
+  margin: 16px 16px 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ion-color-danger);
+
+  &.good { color: var(--ion-color-success); }
+}
