@@ -1,6 +1,5 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Laboratorio</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="logout()" aria-label="Salir">
         <ion-icon slot="icon-only" name="log-out-outline" />
@@ -10,6 +9,9 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="page-head">
+    <h1>Laboratorio</h1>
+  </div>
   <ion-card>
     <ion-card-header><ion-card-title>Triglicéridos</ion-card-title></ion-card-header>
     <ion-card-content>
@@ -60,7 +62,7 @@
           </ion-button>
         </ion-item>
       } @empty {
-        <p class="muted">Todavía no cargaste análisis</p>
+        <div class="empty-state"><div class="icon"><ion-icon name="flask-outline" /></div><h3>Cargá tu primer análisis</h3><p>Con el primer valor de triglicéridos arranca el gráfico.</p></div>
       }
     </ion-card-content>
   </ion-card>

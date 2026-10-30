@@ -1,0 +1,111 @@
+/* Ionic con la forma de Trigli: tarjetas, items, botones, badges, barras, niveles. */
+
+/* Niveles semáforo: cualquier elemento con data-level expone --level (sólido), --level-soft y --level-text. */
+[data-level='good'], [data-level='normal'] {
+  --level: var(--ion-color-success); --level-soft: var(--trigli-ok-soft); --level-text: var(--trigli-ok-text);
+}
+[data-level='warn'], [data-level='borderline'] {
+  --level: var(--ion-color-warning); --level-soft: var(--trigli-warn-soft); --level-text: var(--trigli-warn-text);
+}
+[data-level='bad'], [data-level='high'], [data-level='very-high'] {
+  --level: var(--ion-color-danger); --level-soft: var(--trigli-bad-soft); --level-text: var(--trigli-bad-text);
+}
+
+ion-content { --background: var(--ion-background-color); }
+ion-toolbar { --border-width: 0; }
+ion-title { font-weight: 700; letter-spacing: -0.015em; }
+
+ion-card {
+  margin: 0 0 16px;
+  border-radius: var(--trigli-radius-xl);
+  border: 1px solid var(--ion-border-color);
+  box-shadow: var(--trigli-shadow);
+}
+ion-card-header { padding-bottom: 0; }
+ion-card-title { font-size: 1.125rem; font-weight: 650; color: var(--ion-text-color); }
+ion-card-content { font-size: 1rem; color: var(--ion-text-color); }
+
+ion-list { background: transparent; border-radius: var(--trigli-radius-xl); overflow: hidden; }
+ion-item { --border-color: var(--ion-border-color); --min-height: 56px; }
+ion-item h2 { font-weight: 600; }
+
+ion-button { --border-radius: 14px; font-weight: 700; --box-shadow: none; text-transform: none; }
+ion-button:not([fill='clear']):not([fill='outline']) { min-height: 48px; }
+
+ion-input, ion-textarea { --border-radius: var(--trigli-radius-md); }
+
+ion-badge {
+  --padding-start: 12px; --padding-end: 12px; --padding-top: 6px; --padding-bottom: 6px;
+  border-radius: 999px; font-weight: 700;
+  &[data-level] { --background: var(--level-soft); --color: var(--level-text); }
+}
+
+ion-progress-bar {
+  height: 10px; border-radius: 999px; --background: var(--trigli-surface-2); --progress-background: var(--ion-color-success);
+}
+
+ion-modal { --border-radius: var(--trigli-radius-sheet); }
+ion-tab-bar { --border: 1px solid var(--ion-border-color); }
+ion-toast { --border-radius: 16px; font-weight: 600; }
+
+/* Helpers */
+.metric { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.metric small { font-size: 1rem; font-weight: 600; color: var(--ion-color-medium); letter-spacing: 0; }
+.muted { color: var(--ion-color-medium); }
+.eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ion-color-medium); }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 20px 8px;
+  .icon { width: 72px; height: 72px; border-radius: 24px; background: var(--trigli-primary-soft); color: var(--trigli-primary-text);
+    display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  h3 { margin: 0; font-size: 1.125rem; font-weight: 650; }
+  p { margin: 0; max-width: 300px; color: var(--ion-color-medium); }
+}
+
+/* Desktop: dos columnas para tarjetas del Resumen */
+.cards-2 { display: block; }
+@media (min-width: 992px) {
+  .cards-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; ion-card { margin: 0; } .span-2 { grid-column: 1 / -1; } }
+}
+
+/* Campos dentro de tarjetas: relleno suave y esquinas redondeadas */
+ion-card ion-item, ion-modal ion-item:has(ion-input, ion-textarea) {
+  --background: var(--trigli-surface-2);
+  --border-radius: var(--trigli-radius-md);
+  --border-width: 0;
+  --inner-border-width: 0;
+  margin-bottom: 10px;
+}
+ion-card ion-list ion-item { margin-bottom: 0; --background: transparent; --border-radius: 0; --inner-border-width: 0 0 1px 0; }
+ion-card ion-button { margin-top: 8px; }
+ion-menu { --background: var(--ion-card-background); --border: 1px solid var(--ion-border-color); }
+ion-menu ion-toolbar, ion-menu ion-content { --background: var(--ion-card-background); }
+
+/* Desktop: barra superior alineada con la columna de 720 px */
+@media (min-width: 768px) {
+  ion-header ion-toolbar { padding-inline: max(8px, calc((100% - 720px) / 2 - 8px)); }
+}
+
+/* Título grande de pantalla + navegación de día/semana */
+.page-head {
+  margin-bottom: 16px;
+  h1 { margin: 0; font-size: 1.875rem; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+  .page-nav {
+    display: flex; align-items: center; margin-top: 2px; margin-left: -8px; color: var(--ion-color-medium); font-weight: 600; text-transform: capitalize;
+    ion-button { --padding-start: 8px; --padding-end: 8px; margin: 0; min-height: 44px; color: var(--ion-color-medium); }
+  }
+}
+@media (min-width: 992px) { .page-head h1 { font-size: 2.125rem; } }
+ion-header ion-toolbar { --min-height: 48px; }
+
+/* Botón primario: verde pleno y texto oscuro (sin el "shade" de Ionic en oscuro) */
+ion-button:not([fill='clear']):not([fill='outline']):not([color]) {
+  --background: var(--ion-color-primary); --background-activated: var(--ion-color-primary-shade); --background-hover: var(--ion-color-primary-tint);
+  --color: var(--ion-color-primary-contrast); --opacity: 1;
+}
+ion-button[disabled]:not([fill='clear']):not([fill='outline']) { opacity: 0.45; }
+
+/* Desktop (≥ 1024px): el rail lateral trae la navegación y el "Salir", así que las páginas ocultan su toolbar. */
+@media (min-width: 1024px) {
+  ion-router-outlet > * > ion-header { display: none; }
+}

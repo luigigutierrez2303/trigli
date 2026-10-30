@@ -1,5 +1,5 @@
 import { toIsoDate } from '../../core/date';
-import { levelForDay } from '../meals/meal-scoring';
+import { levelForDay, levelForMeal, MEAL_ORDER, MealFlags, MealType, ScoreLevel, scoreDay } from '../meals/meal-scoring';
 
 export interface DailyScore {
   date: string;
@@ -50,5 +50,74 @@ export function dailyBars(monday: string, scores: DailyScore[]) {
   return weekDays(monday).map((date) => {
     const score = byDate.get(date) ?? null;
     return { date, score, level: score === null ? null : levelForDay(score) };
+  });
+}
+
+export interface WeekMeal {
+  date: string;
+  meal_type: MealType;
+  score: number;
+  flags: MealFlags;
+}
+
+export interface DatedWorkout extends WeekWorkout {
+  date: string;
+}
+
+export interface WeekMetric {
+  date: string;
+  weight_kg: number;
+}
+
+export interface GridMeal {
+  score: number;
+  level: ScoreLevel;
+  alcohol: boolean;
+}
+
+export interface GridDay {
+  date: string;
+  isToday: boolean;
+  isFuture: boolean;
+  dayScore: number | null;
+  dayLevel: ScoreLevel | null;
+  meals: Record<MealType, GridMeal | null>;
+  cardioMin: number | null;
+  strengthMin: number | null;
+  weightKg: number | null;
+}
+
+/** Una columna por día de la semana (lunes a domingo) con todo lo que muestra la tabla de escritorio. */
+export function weekGrid(
+  monday: string,
+  today: string,
+  data: { meals: WeekMeal[]; workouts: DatedWorkout[]; metrics: WeekMetric[] },
+): GridDay[] {
+  const minutes = (date: string, type: WeekWorkout['type']) => {
+    const found = data.workouts.filter((w) => w.date === date && w.type === type);
+    return found.length ? found.reduce((s, w) => s + w.duration_min, 0) : null;
+  };
+
+  return weekDays(monday).map((date) => {
+    const dayMeals = data.meals.filter((m) => m.date === date);
+    const dayScore = scoreDay(dayMeals.map((m) => m.score));
+    const meals = Object.fromEntries(
+      MEAL_ORDER.map((type) => {
+        const m = dayMeals.find((x) => x.meal_type === type);
+        return [type, m ? { score: m.score, level: levelForMeal(m.score), alcohol: !!m.flags.alcohol } : null];
+      }),
+    ) as Record<MealType, GridMeal | null>;
+
+    return {
+      date,
+      isToday: date === today,
+      isFuture: date > today,
+      dayScore,
+      dayLevel: dayScore === null ? null : levelForDay(dayScore),
+      meals,
+      cardioMin: minutes(date, 'cardio'),
+      strengthMin: minutes(date, 'strength'),
+      weightKg: data.metrics.find((m) => m.date === date)?.weight_kg ?? null,
+    };
   });
 }

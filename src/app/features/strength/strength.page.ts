@@ -5,7 +5,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { logOutOutline, trashOutline } from 'ionicons/icons';
+import { barbellOutline, logOutOutline, trashOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { isValidMinutes, parseDecimal } from '../activity/activity';
@@ -64,7 +64,7 @@ export class StrengthPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ logOutOutline, trashOutline });
+    addIcons({ barbellOutline, logOutOutline, trashOutline });
   }
 
   async ngOnInit() {

@@ -2,14 +2,10 @@
   text-transform: capitalize;
 }
 
-[data-level='good'] { --level: var(--ion-color-success); }
-[data-level='warn'] { --level: var(--ion-color-warning); }
-[data-level='bad']  { --level: var(--ion-color-danger); }
-
 .score-card {
   margin: 0 0 16px;
   text-align: center;
-  border-top: 6px solid var(--level, var(--ion-color-medium));
+  border-top: 4px solid var(--level, var(--ion-color-medium));
 }
 
 .score-label {
@@ -20,10 +16,11 @@
 }
 
 .score-value {
-  font-size: 4rem;
+  font-size: 4.5rem;
+  font-weight: 800;
   font-weight: 700;
   line-height: 1.1;
-  color: var(--level, var(--ion-text-color));
+  color: var(--level-text, var(--ion-text-color));
 }
 
 .score-sub {
@@ -31,8 +28,9 @@
 }
 
 .meal-score {
-  --background: var(--level);
-  min-width: 2rem;
+  --background: var(--level-soft);
+  --color: var(--level-text);
+  min-width: 2.5rem;
   font-size: 1rem;
 }
 
@@ -43,7 +41,7 @@
 .draft-score {
   text-align: center;
   font-weight: 700;
-  color: var(--level);
+  color: var(--level-text);
 
   span { font-size: 3rem; }
   small { font-size: 1.2rem; color: var(--ion-color-medium); }

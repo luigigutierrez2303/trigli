@@ -5,22 +5,19 @@
 .week-card {
   margin: 0 0 16px;
   text-align: center;
-  border-top: 6px solid var(--ion-color-warning);
-
-  &.done { border-top-color: var(--ion-color-success); }
+  ion-progress-bar { --progress-background: var(--level); }
+  border-top: 4px solid var(--level);
 }
 
 .week-label {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ion-color-medium);
+  display: none;
 }
 
 .week-value {
-  font-size: 3rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 
   small { font-size: 1rem; font-weight: 400; color: var(--ion-color-medium); }
 }

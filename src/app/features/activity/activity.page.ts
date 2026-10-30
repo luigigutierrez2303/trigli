@@ -1,10 +1,12 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
   IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonTitle, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, logOutOutline, trashOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import {
@@ -24,6 +26,7 @@ import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
 })
 export class ActivityPage implements OnInit {
   private readonly activity = inject(ActivityService);
+  private readonly route = inject(ActivatedRoute);
   private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
 
@@ -67,11 +70,18 @@ export class ActivityPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, logOutOutline, trashOutline });
+    addIcons({ chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline });
+    // Desde el Resumen: ?fecha=YYYY-MM-DD abre Actividad en ese día.
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const fecha = params.get('fecha');
+      if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return;
+      this.date.set(fecha);
+      this.load();
+    });
   }
 
   ngOnInit() {
-    this.load();
+    if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
   }
 
   async load() {

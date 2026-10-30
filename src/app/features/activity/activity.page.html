@@ -1,15 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="shiftDay(-1)" aria-label="Día anterior">
-        <ion-icon slot="icon-only" name="chevron-back" />
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="date-title">{{ isToday() ? 'Hoy' : dateLabel() }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente">
-        <ion-icon slot="icon-only" name="chevron-forward" />
-      </ion-button>
       <ion-button (click)="logout()" aria-label="Salir">
         <ion-icon slot="icon-only" name="log-out-outline" />
       </ion-button>
@@ -18,9 +9,17 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-card class="week-card" [class.done]="progress().done">
+  <div class="page-head">
+    <h1>Actividad</h1>
+    <div class="page-nav">
+      <ion-button fill="clear" (click)="shiftDay(-1)" aria-label="Día anterior"><ion-icon slot="icon-only" name="chevron-back" /></ion-button>
+      <span>{{ isToday() ? 'Hoy' : dateLabel() }}</span>
+      <ion-button fill="clear" (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente"><ion-icon slot="icon-only" name="chevron-forward" /></ion-button>
+    </div>
+  </div>
+  <ion-card class="week-card" [attr.data-level]="progress().done ? 'good' : 'warn'">
     <ion-card-content>
-      <div class="week-label">Aeróbico de la semana</div>
+      <div class="eyebrow">Aeróbico semanal</div>
       <div class="week-value">{{ progress().minutes }}<small> / {{ weeklyGoal }} min</small></div>
       <ion-progress-bar [value]="progress().pct / 100" />
       <div class="week-sub">
@@ -51,7 +50,7 @@
           }
         </ion-list>
       } @else {
-        <p class="muted">Sin cardio registrado este día</p>
+        <div class="empty-state"><div class="icon"><ion-icon name="walk-outline" /></div><h3>Sin cardio este día</h3><p>Una caminata de 30 minutos ya suma para la meta semanal.</p></div>
       }
 
       <ion-item>
@@ -75,7 +74,7 @@
         <p class="muted">
           Peso registrado: {{ metric()!.weight_kg }} kg
           @if (delta() !== null) {
-            <ion-badge [color]="delta()! <= 0 ? 'success' : 'warning'">
+            <ion-badge [attr.data-level]="delta()! <= 0 ? 'good' : 'warn'">
               {{ delta()! > 0 ? '+' : '' }}{{ delta() }} kg
             </ion-badge>
           }

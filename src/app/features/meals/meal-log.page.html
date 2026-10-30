@@ -1,15 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="shiftDay(-1)" aria-label="Día anterior">
-        <ion-icon slot="icon-only" name="chevron-back" />
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="date-title">{{ isToday() ? 'Hoy' : dateLabel() }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente">
-        <ion-icon slot="icon-only" name="chevron-forward" />
-      </ion-button>
       <ion-button (click)="logout()" aria-label="Salir">
         <ion-icon slot="icon-only" name="log-out-outline" />
       </ion-button>
@@ -18,6 +9,14 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="page-head">
+    <h1>Comidas</h1>
+    <div class="page-nav">
+      <ion-button fill="clear" (click)="shiftDay(-1)" aria-label="Día anterior"><ion-icon slot="icon-only" name="chevron-back" /></ion-button>
+      <span>{{ isToday() ? 'Hoy' : dateLabel() }}</span>
+      <ion-button fill="clear" (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente"><ion-icon slot="icon-only" name="chevron-forward" /></ion-button>
+    </div>
+  </div>
   <ion-card class="score-card" [attr.data-level]="dayLevel()">
     <ion-card-content>
       <div class="score-label">Score del día</div>

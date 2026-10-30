@@ -1,15 +1,6 @@
-<ion-header>
+<ion-header class="mobile-only">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="shiftWeek(-1)" aria-label="Semana anterior">
-        <ion-icon slot="icon-only" name="chevron-back" />
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ weekLabel() }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="shiftWeek(1)" [disabled]="isCurrentWeek()" aria-label="Semana siguiente">
-        <ion-icon slot="icon-only" name="chevron-forward" />
-      </ion-button>
       <ion-button (click)="logout()" aria-label="Salir">
         <ion-icon slot="icon-only" name="log-out-outline" />
       </ion-button>
@@ -17,53 +8,180 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-header><ion-card-title>Alimentación</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <div class="big">{{ summary().avgScore ?? '—' }}<small> score promedio</small></div>
-      <p class="muted">{{ summary().daysLogged }}/7 días registrados</p>
-      <div class="bars">
-        @for (b of bars(); track b.date; let i = $index) {
-          <div class="bar-col">
-            <div class="bar" [attr.data-level]="b.level" [style.height.%]="b.score ?? 4"></div>
-            <span>{{ dayLetters[i] }}</span>
+<ion-content class="ion-padding wide">
+  <div class="mobile-only">
+    <div class="page-head">
+      <h1>Resumen</h1>
+      <div class="page-nav">
+        <ion-button fill="clear" (click)="shiftWeek(-1)" aria-label="Semana anterior"><ion-icon slot="icon-only" name="chevron-back" /></ion-button>
+        <span>{{ weekLabel() }}</span>
+        <ion-button fill="clear" (click)="shiftWeek(1)" [disabled]="isCurrentWeek()" aria-label="Semana siguiente"><ion-icon slot="icon-only" name="chevron-forward" /></ion-button>
+      </div>
+    </div>
+    <div class="cards-2">
+      <ion-card class="span-2">
+        <ion-card-header><ion-card-title>Alimentación</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <div class="metric">{{ summary().avgScore ?? '—' }}<small> score promedio</small></div>
+          <p class="muted">{{ summary().daysLogged }}/7 días registrados</p>
+          <div class="bars">
+            @for (b of bars(); track b.date; let i = $index) {
+              <div class="bar-col">
+                <div class="bar" [attr.data-level]="b.level" [style.height.%]="b.score ?? 4"></div>
+                <span>{{ dayLetters[i] }}</span>
+              </div>
+            }
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header><ion-card-title>Ejercicio</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <div class="metric">{{ cardio().minutes }}<small> / 150 min de aeróbico</small></div>
+          <ion-progress-bar [value]="cardio().pct / 100" />
+          <p class="muted">{{ summary().strengthSessions }} sesiones de fuerza</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header><ion-card-title>Cuerpo y laboratorio</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <p>
+            Peso:
+            @if (weightChange() !== null) {
+              <ion-badge [attr.data-level]="weightChange()! <= 0 ? 'good' : 'warn'">
+                {{ weightChange()! > 0 ? '+' : '' }}{{ weightChange() }} kg en la semana
+              </ion-badge>
+            } @else {
+              <span class="muted">necesitás dos mediciones en la semana</span>
+            }
+          </p>
+          <p>
+            Último TG:
+            @if (data()?.latestTg; as tg) {
+              <strong>{{ tg.tg }} mg/dL</strong> <ion-badge [attr.data-level]="classifyTg(tg.tg)">{{ levelLabels[classifyTg(tg.tg)] }}</ion-badge>
+            } @else {
+              <span class="muted">sin análisis cargados</span>
+            }
+          </p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <div class="desktop-only desk">
+    <div class="week-head">
+      <ion-button fill="clear" (click)="shiftWeek(-1)" aria-label="Semana anterior"><ion-icon slot="icon-only" name="chevron-back" /></ion-button>
+      <h1>{{ weekTitle() }}</h1>
+      <ion-button fill="clear" (click)="shiftWeek(1)" [disabled]="isCurrentWeek()" aria-label="Semana siguiente"><ion-icon slot="icon-only" name="chevron-forward" /></ion-button>
+    </div>
+
+    <div class="week-table" role="table" aria-label="Semana">
+      <div class="trow head" role="row">
+        <div class="cell label"></div>
+        @for (d of grid(); track d.date; let i = $index) {
+          <div class="cell day-head" [class.today]="d.isToday" role="columnheader">{{ dayHeader(d, i) }}</div>
+        }
+        <div class="cell total" role="columnheader">Semana</div>
+      </div>
+
+      <div class="trow" role="row">
+        <div class="cell label strong">Score del día</div>
+        @for (d of grid(); track d.date) {
+          <div class="cell" [class.today]="d.isToday" role="cell">
+            @if (d.dayScore !== null) {
+              <span class="chip" [attr.data-level]="d.dayLevel">{{ d.dayScore }}</span>
+            } @else if (!d.isFuture) {
+              <span class="dash">—</span>
+            }
           </div>
         }
+        <div class="cell total" role="cell">
+          <span class="big">{{ summary().avgScore ?? '—' }}</span>
+          <small>prom. · {{ summary().daysLogged }}/7</small>
+        </div>
       </div>
-    </ion-card-content>
-  </ion-card>
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Ejercicio</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <div class="big">{{ cardio().minutes }}<small> / 150 min de aeróbico</small></div>
-      <ion-progress-bar [value]="cardio().pct / 100" />
-      <p class="muted">{{ summary().strengthSessions }} sesiones de fuerza</p>
-    </ion-card-content>
-  </ion-card>
+      @for (m of mealOrder; track m; let last = $last) {
+        <div class="trow meal" [class.last-meal]="last" role="row">
+          <div class="cell label soft">{{ mealLabels[m] }}</div>
+          @for (d of grid(); track d.date) {
+            @let meal = d.meals[m];
+            <a class="cell link" [class.today]="d.isToday" [class.future]="d.isFuture" role="cell"
+              [routerLink]="d.isFuture ? null : ['/comidas']" [queryParams]="mealQuery(d, m)"
+              [attr.aria-label]="mealLabels[m] + ' ' + d.date">
+              @if (meal) {
+                <span class="meal-score" [attr.data-level]="meal.level">{{ meal.score }}</span>
+                @if (meal.alcohol) { <small>alcohol</small> }
+              } @else if (d.isToday) {
+                <ion-icon name="add-circle-outline" class="add" />
+              }
+            </a>
+          }
+          <div class="cell total" role="cell"></div>
+        </div>
+      }
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Cuerpo y laboratorio</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <p>
-        Peso:
-        @if (weightChange() !== null) {
-          <ion-badge [color]="weightChange()! <= 0 ? 'success' : 'warning'">
-            {{ weightChange()! > 0 ? '+' : '' }}{{ weightChange() }} kg en la semana
-          </ion-badge>
-        } @else {
-          <span class="muted">necesitás dos mediciones en la semana</span>
+      <div class="trow" role="row">
+        <div class="cell label strong">Cardio</div>
+        @for (d of grid(); track d.date) {
+          <a class="cell link" [class.today]="d.isToday" [class.future]="d.isFuture" role="cell"
+            [routerLink]="d.isFuture ? null : ['/actividad']" [queryParams]="{ fecha: d.date }">
+            @if (d.cardioMin !== null) { {{ d.cardioMin }}′ } @else if (!d.isFuture) { <span class="dash">—</span> }
+          </a>
         }
-      </p>
-      <p>
-        Último TG:
+        <div class="cell total" role="cell">
+          <span><b>{{ cardio().minutes }}</b> / 150 min</span>
+          <div class="progress"><div class="fill" [style.width.%]="cardio().pct"></div></div>
+        </div>
+      </div>
+
+      <div class="trow" role="row">
+        <div class="cell label strong">Fuerza</div>
+        @for (d of grid(); track d.date) {
+          <a class="cell link" [class.today]="d.isToday" [class.future]="d.isFuture" role="cell"
+            [routerLink]="d.isFuture ? null : ['/fuerza']">
+            @if (d.strengthMin !== null) { {{ d.strengthMin }}′ }
+          </a>
+        }
+        <div class="cell total" role="cell"><span><b>{{ summary().strengthSessions }}</b> sesiones</span></div>
+      </div>
+
+      <div class="trow" role="row">
+        <div class="cell label strong">Peso</div>
+        @for (d of grid(); track d.date) {
+          <a class="cell link" [class.today]="d.isToday" [class.future]="d.isFuture" role="cell"
+            [routerLink]="d.isFuture ? null : ['/actividad']" [queryParams]="{ fecha: d.date }">
+            @if (d.weightKg !== null) { {{ decimal(d.weightKg) }} }
+          </a>
+        }
+        <div class="cell total" role="cell">
+          @if (weightChange() !== null) {
+            <span class="delta" [attr.data-level]="weightWeekLevel()">{{ signed(weightChange()!) }} kg</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tg-strip">
+      <div class="tg-info">
+        <div class="tg-title">Triglicéridos</div>
         @if (data()?.latestTg; as tg) {
-          <strong>{{ tg.tg }} mg/dL</strong> ({{ tg.date }}) · {{ levelLabels[classifyTg(tg.tg)] }}
+          <div class="tg-value">
+            <span class="big">{{ tg.tg }}</span><small>mg/dL</small>
+            <span class="tg-badge" [attr.data-level]="classifyTg(tg.tg)">{{ levelLabels[classifyTg(tg.tg)] }}</span>
+          </div>
+          @if (tgChange() !== null) {
+            <p class="muted">{{ signed(tgChange()!) }}% desde la primera medición · {{ firstTgDate() }}</p>
+          }
         } @else {
-          <span class="muted">sin análisis cargados</span>
+          <p class="muted">Sin análisis cargados</p>
         }
-      </p>
-    </ion-card-content>
-  </ion-card>
+      </div>
+      <app-line-chart class="tg-chart" [points]="tgPoints()" [refs]="tgRefs" [width]="960" [height]="120"
+        ariaLabel="Triglicéridos en el tiempo" />
+      <div class="tg-ref"><b>150</b><br />referencia</div>
+    </div>
+  </div>
 </ion-content>

@@ -1,4 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCheckbox, IonContent, IonHeader,
@@ -27,6 +29,7 @@ export class MealLogPage implements OnInit {
   private readonly meals = inject(MealService);
   private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
+  private readonly route = inject(ActivatedRoute);
 
   readonly flagDefs = FLAG_DEFS;
   readonly negativeFlags = FLAG_DEFS.filter((f) => f.weight < 0);
@@ -63,10 +66,19 @@ export class MealLogPage implements OnInit {
 
   constructor() {
     addIcons({ chevronBack, chevronForward, logOutOutline, addCircleOutline });
+    // Desde el Resumen: ?fecha=YYYY-MM-DD&comida=dinner abre el editor de esa comida.
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(async (params) => {
+      const fecha = params.get('fecha');
+      const comida = params.get('comida') as MealType | null;
+      if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return;
+      this.date.set(fecha);
+      await this.load();
+      if (comida && MEAL_ORDER.includes(comida)) this.open(comida);
+    });
   }
 
   ngOnInit() {
-    this.load();
+    if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
   }
 
   async load() {

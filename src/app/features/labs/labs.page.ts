@@ -4,7 +4,7 @@ import {
   IonIcon, IonInput, IonItem, IonLabel, IonNote, IonTitle, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { logOutOutline, trashOutline } from 'ionicons/icons';
+import { logOutOutline, trashOutline, flaskOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
@@ -66,7 +66,7 @@ export class LabsPage implements OnInit {
   );
 
   constructor() {
-    addIcons({ logOutOutline, trashOutline });
+    addIcons({ logOutOutline, trashOutline, flaskOutline });
   }
 
   async ngOnInit() {

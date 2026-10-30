@@ -1,6 +1,5 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Fuerza</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="logout()" aria-label="Salir">
         <ion-icon slot="icon-only" name="log-out-outline" />
@@ -10,6 +9,9 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="page-head">
+    <h1>Fuerza</h1>
+  </div>
   <ion-card>
     <ion-card-header><ion-card-title>Sesión de hoy</ion-card-title></ion-card-header>
     <ion-card-content>
@@ -23,7 +25,7 @@
       </ion-item>
 
       @if (suggestionText()) {
-        <p class="suggestion">{{ suggestionText() }}</p>
+        <div class="suggestion"><span class="eyebrow">Sugerencia de hoy</span><strong>{{ suggestionText() }}</strong></div>
       }
 
       <div class="set-row">
@@ -73,7 +75,7 @@
       @for (s of sessions(); track s.id) {
         <ion-item>
           <ion-label>
-            <h2>{{ s.date }} <ion-badge color="medium">{{ s.duration_min }} min</ion-badge></h2>
+            <h2>{{ s.date }} <ion-badge data-level="good">{{ s.duration_min }} min</ion-badge></h2>
             <p>{{ summarize(s) }}</p>
           </ion-label>
           <ion-button slot="end" fill="clear" color="danger" (click)="removeSession(s.id)" aria-label="Borrar">
@@ -81,7 +83,7 @@
           </ion-button>
         </ion-item>
       } @empty {
-        <p class="muted">Todavía no registraste sesiones</p>
+        <div class="empty-state"><div class="icon"><ion-icon name="barbell-outline" /></div><h3>Todavía no hay sesiones</h3><p>Elegí un ejercicio y registrá tu primera serie.</p></div>
       }
     </ion-card-content>
   </ion-card>

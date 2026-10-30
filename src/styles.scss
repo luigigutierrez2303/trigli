@@ -5,3 +5,12 @@
 @use '@ionic/angular/css/padding.css';
 @use '@ionic/angular/css/flex-utils.css';
 @use '@ionic/angular/css/palettes/dark.system.css';
+@use './theme/variables';
+@use './theme/components';
+
+/* Desktop: el contenido se centra en una columna legible en vez de estirarse a todo el ancho. */
+@media (min-width: 768px) {
+  ion-content::part(scroll) {
+    padding-inline: max(16px, calc((100% - 720px) / 2));
+  }
+}

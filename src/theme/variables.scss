@@ -1,0 +1,97 @@
+/* Tokens de Trigli (ver canvas "Trigli Design System"). */
+:root,
+:root.md,
+:root.ios {
+  --ion-font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ion-color-primary: #2dd36f;
+  --ion-color-primary-rgb: 45, 211, 111;
+  --ion-color-primary-contrast: #052e16;
+  --ion-color-primary-contrast-rgb: 5, 46, 22;
+  --ion-color-primary-shade: #28ba62;
+  --ion-color-primary-tint: #42d77d;
+
+  --ion-color-success: #2dd36f;
+  --ion-color-success-rgb: 45, 211, 111;
+  --ion-color-success-contrast: #052e16;
+  --ion-color-success-contrast-rgb: 5, 46, 22;
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: #42d77d;
+
+  --ion-color-warning: #ffc409;
+  --ion-color-warning-rgb: 255, 196, 9;
+  --ion-color-warning-contrast: #3a2a00;
+  --ion-color-warning-contrast-rgb: 58, 42, 0;
+  --ion-color-warning-shade: #e0ac08;
+  --ion-color-warning-tint: #ffca22;
+
+  --ion-color-danger: #eb445a;
+  --ion-color-danger-rgb: 235, 68, 90;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #cf3c4f;
+  --ion-color-danger-tint: #ed576b;
+
+  --ion-color-medium: #55645b;
+  --ion-color-medium-rgb: 85, 100, 91;
+
+  --ion-background-color: #f4f7f3;
+  --ion-background-color-rgb: 244, 247, 243;
+  --ion-text-color: #14231a;
+  --ion-text-color-rgb: 20, 35, 26;
+  --ion-border-color: #e0e8e1;
+  --ion-card-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: #f4f7f3;
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-color: #55645b;
+  --ion-tab-bar-color-selected: #0f7a3c;
+
+  --trigli-surface-2: #eef3ee;
+  --trigli-text-muted: #55645b;
+  --trigli-primary-text: #0f7a3c;
+  --trigli-primary-soft: #e3f8eb;
+  --trigli-ok-soft: #e0f7e8;   --trigli-ok-text: #0f7a3c;
+  --trigli-warn-soft: #fff3cc; --trigli-warn-text: #7a5400;
+  --trigli-bad-soft: #fde4e8;  --trigli-bad-text: #b3122b;
+  --trigli-bar-off: #d5ded7;
+  --trigli-shadow: 0 1px 2px rgba(20, 35, 26, 0.05), 0 8px 24px rgba(20, 35, 26, 0.05);
+
+  --trigli-radius-sm: 8px;
+  --trigli-radius-md: 12px;
+  --trigli-radius-lg: 16px;
+  --trigli-radius-xl: 20px;
+  --trigli-radius-sheet: 28px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  :root.md,
+  :root.ios {
+    --ion-color-medium: #9db0a3;
+    --ion-color-medium-rgb: 157, 176, 163;
+    --ion-color-danger: #ff5c72;
+    --ion-color-danger-rgb: 255, 92, 114;
+    --ion-background-color: #0e1511;
+    --ion-background-color-rgb: 14, 21, 17;
+    --ion-text-color: #e8f1ea;
+    --ion-text-color-rgb: 232, 241, 234;
+    --ion-border-color: #2a372f;
+    --ion-card-background: #17211b;
+    --ion-item-background: #17211b;
+    --ion-toolbar-background: #0e1511;
+    --ion-tab-bar-background: #121a15;
+    --ion-tab-bar-color: #9db0a3;
+    --ion-tab-bar-color-selected: #5be394;
+
+    --trigli-surface-2: #1f2b24;
+    --trigli-text-muted: #9db0a3;
+    --trigli-primary-text: #5be394;
+    --trigli-primary-soft: #173323;
+    --trigli-ok-soft: #153423;   --trigli-ok-text: #5be394;
+    --trigli-warn-soft: #3a2f0b; --trigli-warn-text: #ffd75e;
+    --trigli-bad-soft: #3c1820;  --trigli-bad-text: #ff8a9a;
+    --trigli-bar-off: #2a372f;
+    --trigli-shadow: none;
+  }
+}
