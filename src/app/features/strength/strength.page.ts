@@ -40,6 +40,8 @@ export class StrengthPage implements OnInit {
   readonly durationRaw = signal('');
   private readonly profiles = inject(ProfileService);
   private readonly lastWeight = signal<number | null>(null);
+  readonly fmtDate = (iso: string) =>
+    new Date(iso + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
   readonly sessionKcal = computed(() => {
     const w = this.lastWeight();
     const min = parseDecimal(this.durationRaw());

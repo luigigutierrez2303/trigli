@@ -1,4 +1,5 @@
 <ion-content class="ion-padding wide">
+  <h1 class="mobile-only mobile-title">Resumen</h1>
   <section class="energy-grid" aria-label="Balance de calorías">
     <app-energy-today />
     <app-energy-progress />
@@ -6,7 +7,6 @@
   </section>
   <div class="mobile-only">
     <div class="page-head">
-      <h1>Resumen</h1>
       <div class="page-nav">
         <ion-button fill="clear" (click)="shiftWeek(-1)" aria-label="Semana anterior"><ion-icon slot="icon-only" name="chevron-back" /></ion-button>
         <span>{{ weekLabel() }}</span>
@@ -35,7 +35,7 @@
         <ion-card-content>
           <div class="metric">{{ cardio().minutes }}<small> / 150 min de aeróbico</small></div>
           <ion-progress-bar [value]="cardio().pct / 100" />
-          <p class="muted">{{ summary().strengthSessions }} sesiones de fuerza</p>
+          <p class="muted">{{ summary().strengthSessions }} {{ summary().strengthSessions === 1 ? 'sesión' : 'sesiones' }} de fuerza</p>
         </ion-card-content>
       </ion-card>
 
@@ -140,7 +140,7 @@
             @if (d.strengthMin !== null) { {{ d.strengthMin }}′ }
           </a>
         }
-        <div class="cell total" role="cell"><span><b>{{ summary().strengthSessions }}</b> sesiones</span></div>
+        <div class="cell total" role="cell"><span><b>{{ summary().strengthSessions }}</b> {{ summary().strengthSessions === 1 ? 'sesión' : 'sesiones' }}</span></div>
       </div>
 
       <div class="trow" role="row">

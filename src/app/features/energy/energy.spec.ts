@@ -53,6 +53,7 @@ describe('energy', () => {
   it('clasifica el día contra el presupuesto', () => {
     expect(dayBalance(0, 1500, 0).level).toBe('empty');
     expect(dayBalance(900, 1500, 0).level).toBe('low');
+    expect(dayBalance(900, 1500, 0, false).level).toBe('ok'); // a media jornada todavía falta comer
     expect(dayBalance(1400, 1500, 0).level).toBe('ok');
     expect(dayBalance(1600, 1500, 0).level).toBe('close');
     expect(dayBalance(1800, 1500, 0).level).toBe('over');

@@ -77,7 +77,7 @@ export class MealLogPage implements OnInit {
   readonly dayKcal = computed(() => this.entries().reduce((sum, e) => sum + (e.kcal ?? 0), 0));
   readonly balance = computed(() => {
     const target = this.target();
-    return target === null ? null : dayBalance(this.dayKcal(), target, this.burned());
+    return target === null ? null : dayBalance(this.dayKcal(), target, this.burned(), !this.isToday() || new Date().getHours() >= 19);
   });
 
   // Editor

@@ -65,7 +65,7 @@
       @for (s of sessions(); track s.id) {
         <ion-item>
           <ion-label>
-            <h2>{{ s.date }} <ion-badge data-level="good">{{ s.duration_min }} min</ion-badge></h2>
+            <h2>{{ fmtDate(s.date) }} <ion-badge data-level="good">{{ s.duration_min }} min</ion-badge></h2>
             <p>{{ summarize(s) }}{{ s.kcal !== null ? ' · ' + s.kcal + ' kcal' : '' }}</p>
           </ion-label>
           <ion-button slot="end" fill="clear" color="danger" (click)="removeSession(s.id)" aria-label="Borrar">

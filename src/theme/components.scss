@@ -130,12 +130,12 @@ ion-toolbar ion-buttons ion-button:not([fill='clear']):not([fill='outline']):not
 
 /* "Outline" de Ionic solo existe en modo md; la app usa ios, así que los campos se dibujan a mano. */
 ion-input[fill='outline'], ion-select[fill='outline'], ion-textarea[fill='outline'] {
-  --padding-start: 0; --padding-end: 0;
+  --padding-start: 14px; --padding-end: 14px; --padding-top: 8px; --padding-bottom: 8px;
   min-height: 60px;
-  padding: 8px 14px;
   border: 1px solid var(--ion-border-color);
   border-radius: var(--trigli-radius-md);
   background: var(--trigli-surface-2);
   box-sizing: border-box;
   &:focus-within { border-color: var(--trigli-primary-text); }
 }
+ion-input[fill='outline'] .label-text-wrapper, ion-textarea[fill='outline'] .label-text-wrapper { margin-bottom: 4px; }

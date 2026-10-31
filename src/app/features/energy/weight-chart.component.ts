@@ -5,11 +5,15 @@ import { projectGoal, smoothWeights, WeightPoint, weightTrend } from './energy';
 import { ProfileService } from './profile.service';
 
 const HISTORY_DAYS = 90;
-/** Cuánto se dibuja de la proyección; la fecha de llegada puede ser más lejana y va en el texto. */
+/** Cuánto se dibuja de la proyección (entre 30 y 120 días, según el historial); la fecha de llegada puede ser más lejana y va en el texto. */
+const MIN_DRAWN_DAYS = 30;
 const MAX_DRAWN_DAYS = 120;
-const W = 800;
-const H = 260;
-const PAD = { left: 48, right: 20, top: 16, bottom: 30 };
+/** En celular el SVG se dibuja a su tamaño real (360 de ancho) para que textos y trazos no queden diminutos. */
+const NARROW = typeof window !== 'undefined' && window.innerWidth < 600;
+const W = NARROW ? 360 : 800;
+const H = NARROW ? 280 : 260;
+const PAD = NARROW ? { left: 34, right: 12, top: 14, bottom: 26 } : { left: 48, right: 20, top: 16, bottom: 30 };
+const MIN_LABEL_GAP = NARROW ? 64 : 90;
 
 const DAY_MS = 86_400_000;
 const dayOf = (iso: string) => Date.parse(iso + 'T12:00:00') / DAY_MS;
@@ -50,7 +54,7 @@ const longDate = (iso: string) =>
             }
             @if (goalY(); as gy) {
               <line [attr.x1]="pad.left" [attr.x2]="w - pad.right" [attr.y1]="gy" [attr.y2]="gy" class="goal" />
-              <text [attr.x]="w - pad.right" [attr.y]="gy - 6" class="goal-label" text-anchor="end">Meta {{ goal() }} kg</text>
+              <text [attr.x]="pad.left + 6" [attr.y]="gy - 6" class="goal-label">Meta {{ goal() }} kg</text>
             }
             @if (projLine(); as pl) { <path [attr.d]="pl" class="proj" /> }
             <path [attr.d]="trendPath()" class="trend" />
@@ -84,14 +88,6 @@ const longDate = (iso: string) =>
     circle.raw { fill: var(--trigli-primary-text); opacity: 0.45; }
     line.goal { stroke: var(--ion-color-medium); stroke-width: 1.5; stroke-dasharray: 6 5; }
     .goal-label { fill: var(--ion-color-medium); font-size: 12px; font-weight: 600; }
-    /* En celular el SVG se achica a ~40%: textos y trazos se agrandan para que sigan leyéndose. */
-    @media (max-width: 599px) {
-      .tick, .goal-label { font-size: 24px; }
-      path.trend { stroke-width: 6; }
-      path.proj { stroke-width: 4.5; }
-      line.goal { stroke-width: 2.5; }
-      circle.raw { r: 6px; }
-    }
   `,
 })
 export class WeightChartComponent {
@@ -132,10 +128,13 @@ export class WeightChartComponent {
     const goal = this.goal();
     if (!last || !proj || goal === null) return null;
     const days = dayOf(proj) - dayOf(last.date);
-    if (days <= MAX_DRAWN_DAYS) return { date: proj, kg: goal, reachesGoal: true };
+    const pts = this.points();
+    const history = dayOf(pts.at(-1)!.date) - dayOf(pts[0].date);
+    const drawn = Math.min(MAX_DRAWN_DAYS, Math.max(MIN_DRAWN_DAYS, history));
+    if (days <= drawn) return { date: proj, kg: goal, reachesGoal: true };
     return {
-      date: addDays(last.date, MAX_DRAWN_DAYS),
-      kg: last.kg + (this.rate().value / 7) * MAX_DRAWN_DAYS,
+      date: addDays(last.date, drawn),
+      kg: last.kg + (this.rate().value / 7) * drawn,
       reachesGoal: false,
     };
   });
@@ -204,6 +203,12 @@ export class WeightChartComponent {
     const lastDate = pts.at(-1)!.date;
     labels.push({ date: lastDate, x: this.x(lastDate), anchor: end ? 'middle' : 'end', label: shortDate(lastDate) });
     if (end) labels.push({ date: end.date, x: this.x(end.date), anchor: 'end', label: shortDate(end.date) });
+    // La del medio (última fecha medida) se descarta si queda pegada a la primera o a la última.
+    if (labels.length === 3) {
+      const [first, mid, last] = labels;
+      const apart = Math.abs(mid.x - first.x) >= MIN_LABEL_GAP && Math.abs(last.x - mid.x) >= MIN_LABEL_GAP;
+      return apart ? labels : [first, last];
+    }
     return labels;
   });
 

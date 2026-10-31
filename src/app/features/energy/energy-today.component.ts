@@ -72,7 +72,7 @@ export class EnergyTodayComponent {
 
   readonly balance = computed(() => {
     const target = this.target();
-    return target === null ? null : dayBalance(this.energy().eaten, target, this.energy().burned);
+    return target === null ? null : dayBalance(this.energy().eaten, target, this.energy().burned, new Date().getHours() >= 19);
   });
   /** Arco del anillo: r = 44, circunferencia 276,46. */
   readonly dash = computed(() => {

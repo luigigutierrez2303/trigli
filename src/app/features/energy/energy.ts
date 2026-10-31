@@ -113,11 +113,12 @@ export const DAY_LEVEL_LABELS: Record<DayLevel, string> = {
   over: 'Te pasaste',
 };
 
-export function dayBalance(eaten: number, target: number, burned: number): DayBalance {
+/** `endOfDay`: recién a la noche (o en días pasados) comer poco es una señal; a media jornada todavía falta. */
+export function dayBalance(eaten: number, target: number, burned: number, endOfDay = true): DayBalance {
   const budget = target + burned;
   const remaining = budget - eaten;
   const ratio = eaten / budget;
-  const level: DayLevel = eaten === 0 ? 'empty' : ratio < 0.7 ? 'low' : ratio <= 1 ? 'ok' : ratio <= 1.1 ? 'close' : 'over';
+  const level: DayLevel = eaten === 0 ? 'empty' : ratio < 0.7 ? (endOfDay ? 'low' : 'ok') : ratio <= 1 ? 'ok' : ratio <= 1.1 ? 'close' : 'over';
   return { budget, remaining, level };
 }
 

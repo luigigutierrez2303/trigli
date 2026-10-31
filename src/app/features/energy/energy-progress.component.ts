@@ -34,7 +34,8 @@ const addDays = (iso: string, delta: number) => {
         <ion-card class="tile" [attr.data-status]="w.daysLogged && w.daysOnTarget === w.daysLogged ? 'on_track' : 'stalled'">
           <ion-card-content>
             <div class="eyebrow">Esta semana</div>
-            <div class="big">{{ w.daysOnTarget }}<small> de {{ w.daysLogged }} {{ w.daysLogged === 1 ? 'día' : 'días' }} en tu meta</small></div>
+            <div class="big">{{ w.daysOnTarget }}<small> / {{ w.daysLogged }}</small></div>
+            <div class="unit">{{ w.daysLogged === 1 ? 'día' : 'días' }} dentro de tu meta</div>
             @if (w.daysLogged > 0) {
               <div class="rate">{{ w.deficitKcal }} kcal de déficit</div>
               <p class="msg">Equivale a unos {{ w.estimatedKg }} kg de grasa.</p>
@@ -70,6 +71,7 @@ const addDays = (iso: string, delta: number) => {
     .tile[data-status='gaining'] { --status-color: var(--trigli-bad-text); }
     .big { margin-top: 8px; font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .big small { font-size: 0.9375rem; font-weight: 600; letter-spacing: 0; color: var(--ion-color-medium); }
+    .unit { margin-top: 4px; font-size: 0.875rem; color: var(--ion-color-medium); }
     .rate { margin-top: 6px; font-weight: 700; color: var(--status-color, var(--ion-color-medium)); }
     .msg { margin: 8px 0 0; line-height: 1.4; color: var(--ion-color-medium); }
     .fine { margin: 8px 0 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
