@@ -3,6 +3,7 @@ import {
   ageOn, bmr, dailyPlan, dayBalance, EnergyProfile, itemsKcal, itemsProtein, kcalBurned, MIN_DAILY_KCAL, proteinGoal, smoothWeights, tdee, weekEnergy, weeksToGoal,
   weightTrend,
 } from './energy';
+import { flagsOfItems } from './foods';
 
 const profile: EnergyProfile = {
   sex: 'male', birth_date: '1990-06-15', height_cm: 175, goal_weight_kg: 80, activity_level: 'sedentary', weekly_loss_kg: 0.5,
@@ -90,5 +91,10 @@ describe('energy', () => {
     expect(w.daysOnTarget).toBe(1);
     expect(w.deficitKcal).toBe(900 + -200); // (2200+200-1500) + (2200-2400)
     expect(w.estimatedKg).toBe(0.09);
+  });
+
+  it('deriva las marcas de calidad de los alimentos', () => {
+    expect(flagsOfItems(['Salmón', 'Ensalada mixta', 'Otro'])).toEqual({ salmon: true, salad: true });
+    expect(flagsOfItems([])).toEqual({});
   });
 });

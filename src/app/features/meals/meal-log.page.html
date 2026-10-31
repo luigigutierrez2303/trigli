@@ -120,6 +120,12 @@
 
           <ion-searchbar placeholder="Buscar alimento (ej. milanesa, mate)" [debounce]="150"
             (ionInput)="foodQuery.set($any($event.target).value ?? '')" />
+          <div class="cats" role="group" aria-label="Categorías">
+            <button type="button" class="cat" [class.on]="foodCat() === ''" (click)="foodCat.set('')">Todos</button>
+            @for (c of foodCategories; track c) {
+              <button type="button" class="cat" [class.on]="foodCat() === c" (click)="foodCat.set(c)">{{ c }}</button>
+            }
+          </div>
           <div class="food-list">
             @for (f of visibleKcalFoods(); track f.name + f.kcal) {
               <button type="button" class="food" (click)="addFood(f)">
@@ -138,14 +144,15 @@
             <ion-button (click)="addManual()" [disabled]="!canAddManual()">Agregar</ion-button>
           </div>
         } @else {
+        <p class="muted">Los alimentos que cargás en Calorías se marcan solos acá. Sumá a mano lo que falte.</p>
         <ion-searchbar placeholder="Buscar comida (ej. milanesa, salmón)" [debounce]="150"
           (ionInput)="query.set($any($event.target).value ?? '')" />
 
         @if (picked().length) {
           <div class="picked">
             @for (f of picked(); track f.key) {
-              <button type="button" class="pick" [attr.data-sign]="f.weight < 0 ? 'bad' : 'good'" (click)="toggle(f.key, false)">
-                {{ f.label }} <b>{{ f.weight > 0 ? '+' : '' }}{{ f.weight }}</b> ✕
+              <button type="button" class="pick" [attr.data-sign]="f.weight < 0 ? 'bad' : 'good'" [disabled]="!!derivedFlags()[f.key]" (click)="toggle(f.key, false)">
+                {{ f.label }} <b>{{ f.weight > 0 ? '+' : '' }}{{ f.weight }}</b> {{ derivedFlags()[f.key] ? 'auto' : '✕' }}
               </button>
             }
           </div>
@@ -154,8 +161,8 @@
         <div class="flag-grid">
           @for (f of visibleFoods(); track f.key) {
             <button type="button" class="flag" [class.bad]="f.weight < 0" [class.good]="f.weight > 0"
-              [class.on]="!!draftFlags()[f.key]" [attr.aria-pressed]="!!draftFlags()[f.key]"
-              (click)="toggle(f.key, !draftFlags()[f.key])">
+              [class.on]="!!effectiveFlags()[f.key]" [attr.aria-pressed]="!!effectiveFlags()[f.key]"
+              [disabled]="!!derivedFlags()[f.key]" (click)="toggle(f.key, !draftFlags()[f.key])">
               <span class="flag-top">
                 <span class="flag-label">{{ f.label }}</span>
                 <span class="pts" [attr.data-sign]="f.weight < 0 ? 'bad' : f.weight > 0 ? 'good' : 'zero'">{{ f.weight > 0 ? '+' : '' }}{{ f.weight }}</span>

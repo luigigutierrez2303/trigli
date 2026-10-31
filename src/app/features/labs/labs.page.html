@@ -12,38 +12,49 @@
   <div class="page-head">
     <h1>Laboratorio</h1>
   </div>
-  <ion-card>
+  <ion-card class="tg-card">
     <ion-card-header><ion-card-title>Triglicéridos</ion-card-title></ion-card-header>
     <ion-card-content>
       @if (latestTg() !== null) {
-        <div class="latest">
-          <span class="value">{{ latestTg() }}</span><small> mg/dL</small>
-          <ion-badge [attr.data-level]="classifyTg(latestTg()!)">{{ levelLabels[classifyTg(latestTg()!)] }}</ion-badge>
+        <div class="latest" [attr.data-level]="classifyTg(latestTg()!)">
+          <div>
+            <span class="value">{{ latestTg() }}</span><small> mg/dL</small>
+            <div class="when">{{ fmtDate(latestDate()!) }}</div>
+          </div>
+          <div class="chips">
+            <ion-badge [attr.data-level]="classifyTg(latestTg()!)">{{ levelLabels[classifyTg(latestTg()!)] }}</ion-badge>
+            @if (tgChange() !== null) {
+              <ion-badge [attr.data-level]="tgChange()! <= 0 ? 'good' : 'bad'">
+                {{ tgChange()! > 0 ? '▲ +' : tgChange()! < 0 ? '▼ ' : '' }}{{ tgChange() }}% desde el inicio
+              </ion-badge>
+            }
+          </div>
         </div>
-        @if (tgChange() !== null) {
-          <p class="muted">{{ tgChange()! > 0 ? '+' : '' }}{{ tgChange() }}% desde la primera medición</p>
-        }
       }
-      <app-line-chart [points]="tgPoints()" [refs]="tgRefs" ariaLabel="Evolución de triglicéridos" />
+      <app-line-chart [points]="tgPoints()" [refs]="tgRefs" [zones]="true" [width]="640" [height]="220"
+        ariaLabel="Evolución de triglicéridos" />
+      <ul class="legend" aria-label="Referencias">
+        <li data-level="good">Normal: menos de 150</li>
+        <li data-level="warn">Límite alto: 150 a 199</li>
+        <li data-level="bad">Alto: 200 o más</li>
+      </ul>
     </ion-card-content>
   </ion-card>
 
   <ion-card>
     <ion-card-header><ion-card-title>Nuevo análisis</ion-card-title></ion-card-header>
     <ion-card-content>
-      <ion-item>
-        <ion-input label="Fecha" labelPlacement="stacked" type="date" [max]="today"
-          [value]="dateRaw()" (ionInput)="dateRaw.set($any($event.target).value ?? '')" />
-      </ion-item>
-      @for (f of fields; track f.key) {
-        <ion-item>
-          <ion-input [label]="f.label" labelPlacement="stacked" type="number" inputmode="numeric"
+      <ion-input fill="outline" label="Fecha" labelPlacement="stacked" type="date" [max]="today"
+        [value]="dateRaw()" (ionInput)="dateRaw.set($any($event.target).value ?? '')" />
+      <div class="grid">
+        @for (f of fields; track f.key) {
+          <ion-input fill="outline" [label]="f.label" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="—"
             [value]="raw()[f.key]" (ionInput)="setField(f.key, $any($event.target).value ?? '')" />
-        </ion-item>
-      }
-      <ion-note>Cargá solo lo que midieron; enteros en mg/dL.</ion-note>
-      <ion-button expand="block" class="ion-margin-top" [disabled]="!canSave() || saving()" (click)="save()">
-        Guardar análisis
+        }
+      </div>
+      <p class="hint">Cargá solo lo que midieron, en números enteros (mg/dL).</p>
+      <ion-button expand="block" [disabled]="!canSave() || saving()" (click)="save()">
+        {{ saving() ? 'Guardando…' : 'Guardar análisis' }}
       </ion-button>
     </ion-card-content>
   </ion-card>
@@ -54,9 +65,12 @@
       @for (r of newestFirst(); track r.id) {
         <ion-item>
           <ion-label>
-            <h2>{{ r.date }}</h2>
-            <p>{{ summary(r) }}</p>
+            <h2>{{ fmtDate(r.date) }}</h2>
+            <p>{{ summary(r) || 'Solo triglicéridos' }}</p>
           </ion-label>
+          @if (r.tg !== null) {
+            <ion-badge slot="end" [attr.data-level]="classifyTg(r.tg)">{{ r.tg }}</ion-badge>
+          }
           <ion-button slot="end" fill="clear" color="danger" (click)="remove(r.id)" aria-label="Borrar">
             <ion-icon slot="icon-only" name="trash-outline" />
           </ion-button>

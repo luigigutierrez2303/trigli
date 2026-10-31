@@ -28,3 +28,52 @@
 }
 
 .week-sub { margin-top: 8px; }
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--trigli-radius-md);
+  background: transparent;
+  color: var(--ion-color-medium);
+  font: inherit;
+  cursor: pointer;
+
+  &.sel { background: var(--trigli-primary-soft); border-color: var(--trigli-primary-text); color: var(--trigli-primary-text); }
+  &.future { opacity: 0.4; cursor: default; }
+  .bar-wrap { display: flex; align-items: flex-end; width: 100%; max-width: 28px; height: 56px; border-radius: 8px; background: var(--trigli-bar-off); overflow: hidden; }
+  .bar { width: 100%; border-radius: 8px; background: var(--trigli-primary-text); }
+  .min { min-height: 1em; font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .letter { font-size: 0.75rem; font-weight: 600; }
+}
+
+.field-label { margin: 16px 0 8px; font-size: 0.8125rem; font-weight: 600; color: var(--ion-color-medium); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  padding: 8px 14px;
+  min-height: 40px;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 999px;
+  background: var(--trigli-surface-2);
+  color: var(--ion-text-color);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+}
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }

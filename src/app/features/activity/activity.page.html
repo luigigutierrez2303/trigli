@@ -29,6 +29,16 @@
           Faltan {{ progress().remaining }} min
         }
       </div>
+      <div class="days" role="group" aria-label="Minutos por día de la semana">
+        @for (d of weekDays(); track d.date) {
+          <button type="button" class="day" [class.sel]="d.selected" [class.future]="d.future" [disabled]="d.future"
+            [attr.aria-label]="d.name + ': ' + d.minutes + ' minutos'" [attr.aria-pressed]="d.selected" (click)="goTo(d.date)">
+            <span class="bar-wrap"><span class="bar" [style.height.%]="d.pct"></span></span>
+            <span class="min">{{ d.minutes || '' }}</span>
+            <span class="letter">{{ d.letter }}</span>
+          </button>
+        }
+      </div>
     </ion-card-content>
   </ion-card>
 
@@ -54,19 +64,26 @@
         <div class="empty-state"><div class="icon"><ion-icon name="walk-outline" /></div><h3>Sin cardio este día</h3><p>Una caminata de 30 minutos ya suma para la meta semanal.</p></div>
       }
 
-      <ion-item>
-        <ion-select label="Actividad" labelPlacement="stacked" [value]="activityKey()" (ionChange)="activityKey.set($any($event).detail.value)">
-          @for (a of activities; track a.key) { <ion-select-option [value]="a.key">{{ a.label }}</ion-select-option> }
-        </ion-select>
-      </ion-item>
-      <ion-item>
-        <ion-input label="Minutos" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="30"
+      <div class="field-label">Actividad</div>
+      <div class="chips" role="radiogroup" aria-label="Tipo de actividad">
+        @for (a of activities; track a.key) {
+          <button type="button" class="chip" role="radio" [class.on]="activityKey() === a.key" [attr.aria-checked]="activityKey() === a.key"
+            (click)="activityKey.set(a.key)">{{ a.label }}</button>
+        }
+      </div>
+
+      <div class="field-label">Minutos</div>
+      <div class="chips">
+        @for (m of quickMinutes; track m) {
+          <button type="button" class="chip" [class.on]="minutesRaw() === '' + m" (click)="minutesRaw.set('' + m)">{{ m }}</button>
+        }
+      </div>
+      <div class="grid">
+        <ion-input fill="outline" label="Otra duración (min)" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="30"
           [value]="minutesRaw()" (ionInput)="minutesRaw.set($any($event.target).value ?? '')" />
-      </ion-item>
-      <ion-item>
-        <ion-input label="Qué hiciste" labelPlacement="stacked" placeholder="Caminata, bici… (opcional)"
+        <ion-input fill="outline" label="Nota" labelPlacement="stacked" placeholder="Opcional"
           [value]="cardioNotes()" (ionInput)="cardioNotes.set($any($event.target).value ?? '')" />
-      </ion-item>
+      </div>
       <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="addCardio()">
         Agregar cardio{{ cardioKcal() !== null ? ' (≈ ' + cardioKcal() + ' kcal)' : '' }}
       </ion-button>
@@ -87,14 +104,12 @@
           }
         </p>
       }
-      <ion-item>
-        <ion-input label="Peso (kg)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="82,5"
+      <div class="grid">
+        <ion-input fill="outline" label="Peso (kg)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="82,5"
           [value]="weightRaw()" (ionInput)="weightRaw.set($any($event.target).value ?? '')" />
-      </ion-item>
-      <ion-item>
-        <ion-input label="Cintura (cm)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="95"
+        <ion-input fill="outline" label="Cintura (cm)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="95"
           [value]="waistRaw()" (ionInput)="waistRaw.set($any($event.target).value ?? '')" />
-      </ion-item>
+      </div>
       @if (!canSaveMetric() && (weightRaw() || waistRaw())) {
         <ion-note color="danger">Revisá los valores: peso 20–300 kg, cintura 30–250 cm.</ion-note>
       }

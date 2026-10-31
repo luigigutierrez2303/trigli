@@ -5,6 +5,7 @@ import {
   IonLabel, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonText, ToastController,
 } from '@ionic/angular';
 import { Supabase } from '../../core/supabase';
+import { ThemeMode, ThemeService } from '../../core/theme';
 import { toIsoDate } from '../../core/date';
 import { isValidWeight, parseDecimal } from '../activity/activity';
 import { ActivityService } from '../activity/activity.service';
@@ -48,6 +49,18 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
             @if (uploaded()) { <ion-button size="small" fill="clear" color="medium" (click)="removePhoto()" [disabled]="photoBusy()">Quitar</ion-button> }
             @if (photoError()) { <ion-text color="danger"><p>{{ photoError() }}</p></ion-text> }
           </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header><ion-card-title>Apariencia</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <ion-segment [value]="theme.mode()" (ionChange)="theme.set($any($event).detail.value)">
+            @for (o of themeOptions; track o.value) {
+              <ion-segment-button [value]="o.value"><ion-label>{{ o.label }}</ion-label></ion-segment-button>
+            }
+          </ion-segment>
+          <p class="fine">Automático sigue el modo claro u oscuro de tu dispositivo.</p>
         </ion-card-content>
       </ion-card>
 
@@ -162,6 +175,12 @@ export class AccountPage implements OnInit {
   private readonly profiles = inject(ProfileService);
   private readonly activity = inject(ActivityService);
   private readonly toast = inject(ToastController);
+  readonly theme = inject(ThemeService);
+  readonly themeOptions: { value: ThemeMode; label: string }[] = [
+    { value: 'auto', label: 'Automático' },
+    { value: 'light', label: 'Claro' },
+    { value: 'dark', label: 'Oscuro' },
+  ];
 
   readonly email = computed(() => this.sb.session()?.user.email ?? '');
   readonly error = signal<string | null>(null);

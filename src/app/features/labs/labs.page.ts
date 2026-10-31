@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonNote, IonToolbar, ToastController,
+  IonIcon, IonInput, IonItem, IonLabel, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { logOutOutline, trashOutline, flaskOutline } from 'ionicons/icons';
@@ -28,7 +28,7 @@ const isLabValue = (n: number | null): n is number => n !== null && Number.isInt
   selector: 'app-labs',
   imports: [
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonItem, IonLabel, IonNote, IonBadge, IonInput, LineChartComponent,
+    IonCardTitle, IonCardContent, IonItem, IonLabel, IonBadge, IonInput, LineChartComponent,
   ],
   templateUrl: './labs.page.html',
   styleUrl: './labs.page.scss',
@@ -39,7 +39,7 @@ export class LabsPage implements OnInit {
   private readonly toast = inject(ToastController);
 
   readonly fields = FIELDS;
-  readonly tgRefs = [{ value: 150, label: '150 normal' }, { value: 200, label: '200 alto' }];
+  readonly tgRefs = [{ value: 150, label: '150' }, { value: 200, label: '200' }];
   readonly levelLabels = TG_LEVEL_LABELS;
   readonly classifyTg = classifyTg;
 
@@ -54,6 +54,9 @@ export class LabsPage implements OnInit {
   readonly tgPoints = computed(() => this.withTg().map((r) => ({ label: r.date, value: r.tg! })));
   readonly latestTg = computed(() => this.withTg().at(-1)?.tg ?? null);
   readonly tgChange = computed(() => percentChange(this.withTg().map((r) => r.tg!)));
+  readonly latestDate = computed(() => this.withTg().at(-1)?.date ?? null);
+  readonly fmtDate = (iso: string) =>
+    new Date(iso + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
   readonly newestFirst = computed(() => [...this.results()].reverse());
 
   /** Valores cargados; vacío = no medido. Cada campo informado debe ser entero razonable. */
@@ -106,8 +109,9 @@ export class LabsPage implements OnInit {
     }
   }
 
+  /** Los valores de un análisis menos los triglicéridos, que van destacados aparte. */
   summary(r: LabResult): string {
-    return FIELDS.filter((f) => r[f.key] !== null).map((f) => `${f.label.split(' ')[0]} ${r[f.key]}`).join(' · ');
+    return FIELDS.filter((f) => f.key !== 'tg' && r[f.key] !== null).map((f) => `${f.label.split(' ')[0]} ${r[f.key]}`).join(' · ');
   }
 
   logout() {

@@ -64,34 +64,33 @@
   --trigli-radius-sheet: 28px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root,
-  :root.md,
-  :root.ios {
-    --ion-color-medium: #9db0a3;
-    --ion-color-medium-rgb: 157, 176, 163;
-    --ion-color-danger: #ff5c72;
-    --ion-color-danger-rgb: 255, 92, 114;
-    --ion-background-color: #0e1511;
-    --ion-background-color-rgb: 14, 21, 17;
-    --ion-text-color: #e8f1ea;
-    --ion-text-color-rgb: 232, 241, 234;
-    --ion-border-color: #2a372f;
-    --ion-card-background: #17211b;
-    --ion-item-background: #17211b;
-    --ion-toolbar-background: #0e1511;
-    --ion-tab-bar-background: #121a15;
-    --ion-tab-bar-color: #9db0a3;
-    --ion-tab-bar-color-selected: #c8f169;
+/* Oscuro: la clase la pone ThemeService (manual o según el sistema). */
+:root.ion-palette-dark,
+:root.ion-palette-dark.md,
+:root.ion-palette-dark.ios {
+  --ion-color-medium: #9db0a3;
+  --ion-color-medium-rgb: 157, 176, 163;
+  --ion-color-danger: #ff5c72;
+  --ion-color-danger-rgb: 255, 92, 114;
+  --ion-background-color: #0e1511;
+  --ion-background-color-rgb: 14, 21, 17;
+  --ion-text-color: #e8f1ea;
+  --ion-text-color-rgb: 232, 241, 234;
+  --ion-border-color: #2a372f;
+  --ion-card-background: #17211b;
+  --ion-item-background: #17211b;
+  --ion-toolbar-background: #0e1511;
+  --ion-tab-bar-background: #121a15;
+  --ion-tab-bar-color: #9db0a3;
+  --ion-tab-bar-color-selected: #c8f169;
 
-    --trigli-surface-2: #1f2b24;
-    --trigli-text-muted: #9db0a3;
-    --trigli-primary-text: #c8f169;
-    --trigli-primary-soft: #173323;
-    --trigli-ok-soft: #153423;   --trigli-ok-text: #5be394;
-    --trigli-warn-soft: #3a2f0b; --trigli-warn-text: #ffd75e;
-    --trigli-bad-soft: #3c1820;  --trigli-bad-text: #ff8a9a;
-    --trigli-bar-off: #2a372f;
-    --trigli-shadow: none;
-  }
+  --trigli-surface-2: #1f2b24;
+  --trigli-text-muted: #9db0a3;
+  --trigli-primary-text: #c8f169;
+  --trigli-primary-soft: #173323;
+  --trigli-ok-soft: #153423;   --trigli-ok-text: #5be394;
+  --trigli-warn-soft: #3a2f0b; --trigli-warn-text: #ffd75e;
+  --trigli-bad-soft: #3c1820;  --trigli-bad-text: #ff8a9a;
+  --trigli-bar-off: #2a372f;
+  --trigli-shadow: none;
 }

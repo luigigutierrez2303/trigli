@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ThemeService } from '../../core/theme';
 import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  barbellOutline, flaskOutline, homeOutline, personCircleOutline, restaurantOutline, walkOutline,
+  barbellOutline, flaskOutline, homeOutline, moonOutline, personCircleOutline, sunnyOutline, restaurantOutline, walkOutline,
 } from 'ionicons/icons';
 
 /** Una sola fuente para la barra inferior (celular) y el rail lateral (desktop). */
@@ -31,6 +32,11 @@ export const NAV = [
             <span>{{ n.short }}</span>
           </a>
         }
+        <span class="spacer"></span>
+        <button class="rail-item" type="button" (click)="toggleTheme()" [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+          <ion-icon [name]="theme.isDark() ? 'sunny-outline' : 'moon-outline'" />
+          <span>{{ theme.isDark() ? 'Claro' : 'Oscuro' }}</span>
+        </button>
       </nav>
 
       <ion-tabs class="content">
@@ -69,6 +75,7 @@ export const NAV = [
         color: var(--ion-color-medium); font: inherit; font-size: 11px; font-weight: 500;
       }
       .rail-item ion-icon { font-size: 22px; }
+      .spacer { flex: 1; }
       .rail-item:hover { background: var(--trigli-surface-2); }
       .rail-item.active { background: var(--trigli-primary-soft); color: var(--trigli-primary-text); }
     }
@@ -76,8 +83,13 @@ export const NAV = [
 })
 export class TabsPage {
   readonly nav = NAV;
+  readonly theme = inject(ThemeService);
+
+  toggleTheme() {
+    this.theme.set(this.theme.isDark() ? 'light' : 'dark');
+  }
 
   constructor() {
-    addIcons({ homeOutline, restaurantOutline, walkOutline, barbellOutline, flaskOutline, personCircleOutline });
+    addIcons({ homeOutline, restaurantOutline, walkOutline, barbellOutline, flaskOutline, personCircleOutline, moonOutline, sunnyOutline });
   }
 }

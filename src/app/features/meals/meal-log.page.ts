@@ -13,7 +13,7 @@ import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
 import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, MealItem } from '../energy/energy';
-import { Food, FOODS } from '../energy/foods';
+import { flagsOfItems, Food, FOOD_CATEGORIES, FOODS } from '../energy/foods';
 import { ProfileService } from '../energy/profile.service';
 import {
   ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
@@ -48,7 +48,8 @@ export class MealLogPage implements OnInit {
     return q ? this.foods.filter((f) => normalize(`${f.label} ${f.hint}`).includes(q)) : this.foods;
   });
   /** Lo elegido en el editor (incluye marcas viejas), para mostrarlo arriba. */
-  readonly picked = computed(() => ALL_FLAG_DEFS.filter((f) => this.draftFlags()[f.key]));
+  /** Lo elegido en el editor (incluye marcas viejas y las que vienen de los alimentos), para mostrarlo arriba. */
+  readonly picked = computed(() => ALL_FLAG_DEFS.filter((f) => this.effectiveFlags()[f.key]));
   readonly mealOrder = MEAL_ORDER;
   readonly mealLabels = MEAL_LABELS;
   readonly levelForMeal = levelForMeal;
@@ -81,17 +82,25 @@ export class MealLogPage implements OnInit {
   readonly draftItems = signal<MealItem[]>([]);
   readonly draftKcal = computed(() => itemsKcal(this.draftItems()));
   readonly foodQuery = signal('');
+  readonly foodCategories = FOOD_CATEGORIES;
+  /** Categoría elegida ('' = todas). */
+  readonly foodCat = signal('');
   readonly visibleKcalFoods = computed(() => {
     const q = normalize(this.foodQuery());
-    const all = q ? FOODS.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : FOODS.slice(0, 12);
-    return all.slice(0, 20);
+    const cat = this.foodCat();
+    const inCat = cat ? FOODS.filter((f) => f.cat === cat) : FOODS;
+    const found = q ? inCat.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : inCat;
+    return found.slice(0, q || cat ? 60 : 15);
   });
   manualName = '';
   manualKcalRaw = signal('');
   readonly editing = signal<MealType | null>(null);
   readonly draftFlags = signal<MealFlags>({});
   draftNotes = '';
-  readonly draftScore = computed(() => scoreMeal(this.draftFlags()));
+  /** Marcas que salen solas de los alimentos cargados por calorías. */
+  readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems().map((i) => i.name)));
+  readonly effectiveFlags = computed<MealFlags>(() => ({ ...this.draftFlags(), ...this.derivedFlags() }));
+  readonly draftScore = computed(() => scoreMeal(this.effectiveFlags()));
   readonly saving = signal(false);
 
   readonly dateLabel = computed(() =>
@@ -153,11 +162,14 @@ export class MealLogPage implements OnInit {
 
   open(type: MealType) {
     const existing = this.byType().get(type);
-    this.draftFlags.set({ ...(existing?.flags ?? {}) });
+    // Lo que venga de alimentos se recalcula solo: acá queda solo lo marcado a mano.
+    const fromItems = flagsOfItems((existing?.items ?? []).map((i) => i.name));
+    this.draftFlags.set(Object.fromEntries(Object.entries(existing?.flags ?? {}).filter(([k]) => !fromItems[k])));
     this.draftNotes = existing?.notes ?? '';
     this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
     this.query.set('');
     this.foodQuery.set('');
+    this.foodCat.set('');
     this.manualName = '';
     this.manualKcalRaw.set('');
     this.tab.set('kcal');
@@ -205,7 +217,7 @@ export class MealLogPage implements OnInit {
     this.saving.set(true);
     try {
       const saved = await this.meals.save(
-        this.date(), type, this.draftFlags(), this.draftNotes, this.draftItems(), this.draftItems().length ? this.draftKcal() : null,
+        this.date(), type, this.effectiveFlags(), this.draftNotes, this.draftItems(), this.draftItems().length ? this.draftKcal() : null,
       );
       this.entries.update((list) => [...list.filter((e) => e.meal_type !== type), saved]);
       this.close();

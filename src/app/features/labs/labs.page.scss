@@ -1,8 +1,45 @@
+.tg-card { border-top: 4px solid var(--level, var(--ion-color-medium)); }
+
 .latest {
-  .value { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; }
-  small { color: var(--ion-color-medium); margin-right: 8px; }
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  .value { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--level-text, var(--ion-text-color)); }
+  small { color: var(--ion-color-medium); }
+  .when { margin-top: 4px; font-size: 0.8125rem; color: var(--ion-color-medium); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 }
 
-.muted {
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
   color: var(--ion-color-medium);
+
+  li::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 3px;
+    background: var(--level);
+  }
 }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+}
+
+.hint { margin: 12px 0 0; font-size: 0.8125rem; color: var(--ion-color-medium); }

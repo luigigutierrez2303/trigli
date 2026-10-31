@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonSelect, IonSelectOption, IonToolbar, ToastController,
+  IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline } from 'ionicons/icons';
@@ -22,7 +22,6 @@ import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
   imports: [
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar,
-    IonSelect, IonSelectOption,
   ],
   templateUrl: './activity.page.html',
   styleUrl: './activity.page.scss',
@@ -58,6 +57,22 @@ export class ActivityPage implements OnInit {
   readonly cardioNotes = signal('');
   readonly activities = CARDIO_ACTIVITIES;
   readonly activityKey = signal('walk_fast');
+  readonly quickMinutes = [15, 30, 45, 60];
+  /** Minutos de cada día de la semana en pantalla, para las barras. */
+  readonly weekDays = computed(() => {
+    const monday = weekStart(this.date());
+    const today = toIsoDate(new Date());
+    const names = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const days = names.map((name, i) => {
+      const d = new Date(monday + 'T12:00:00');
+      d.setDate(d.getDate() + i);
+      const date = toIsoDate(d);
+      const minutes = this.weekCardio().filter((w) => w.date === date).reduce((sum, w) => sum + w.duration_min, 0);
+      return { date, name, letter: name[0], minutes, future: date > today, selected: date === this.date(), pct: 0 };
+    });
+    const top = Math.max(60, ...days.map((d) => d.minutes));
+    return days.map((d) => ({ ...d, pct: d.minutes ? Math.max((d.minutes / top) * 100, 8) : 0 }));
+  });
   readonly activityLabel = (key: string | null) => cardioActivity(key)?.label ?? null;
   /** Último peso conocido, para estimar las kcal del cardio. */
   private readonly lastWeight = signal<number | null>(null);
@@ -117,6 +132,11 @@ export class ActivityPage implements OnInit {
     } catch (e) {
       this.showError(e);
     }
+  }
+
+  goTo(date: string) {
+    this.date.set(date);
+    this.load();
   }
 
   shiftDay(delta: number) {
