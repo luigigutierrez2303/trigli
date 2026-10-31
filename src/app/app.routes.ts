@@ -28,6 +28,10 @@ export const routes: Routes = [
         path: 'laboratorio',
         loadComponent: () => import('./features/labs/labs.page').then((m) => m.LabsPage),
       },
+      {
+        path: 'cuenta',
+        loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),
+      },
       { path: '', redirectTo: 'resumen', pathMatch: 'full' },
     ],
   },

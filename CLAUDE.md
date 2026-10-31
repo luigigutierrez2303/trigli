@@ -25,7 +25,7 @@ Angular 22 (standalone, zoneless, signals) + Ionic 9 + Supabase. Deploy en Verce
 
 ## Estado
 
-Hecho: login con magic link, registro de comidas con score diario, schema completo con RLS, cardio (meta semanal 150 min) y peso/cintura en Actividad, fuerza con doble progresión (8-12 reps, +2 kg), laboratorio con gráfico de TG (SVG propio, `line-chart.component.ts`), dashboard semanal. Tabs: Resumen, Comidas, Actividad, Fuerza, Lab.
+Hecho: login con magic link, registro de comidas con score diario, schema completo con RLS, cardio (meta semanal 150 min) y peso/cintura en Actividad, fuerza con doble progresión (8-12 reps, +2 kg), laboratorio con gráfico de TG (SVG propio, `line-chart.component.ts`), dashboard semanal. Balance calórico (`features/energy/`): perfil y meta en Mi cuenta (Mifflin-St Jeor + déficit semanal, piso 1500/1200 kcal), kcal por comida con catálogo `foods.ts`, kcal netas de ejercicio por MET ((MET−1)×kg×h). Mi cuenta con foto de perfil. Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta.
 
 Pendiente (requieren infraestructura/secretos del usuario):
 1. Notificaciones push (VAPID + Edge Function + cron)

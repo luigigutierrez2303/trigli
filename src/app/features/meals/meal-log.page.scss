@@ -126,3 +126,28 @@ ion-modal.meal-modal {
     --border-radius: var(--trigli-radius-xl);
   }
 }
+
+.kcal-card {
+  margin: 0 0 16px;
+  border-top: 4px solid var(--kcal-color, var(--ion-color-medium));
+
+  &[data-kcal='ok'] { --kcal-color: var(--trigli-ok-text); }
+  &[data-kcal='low'], &[data-kcal='close'] { --kcal-color: var(--trigli-warn-text); }
+  &[data-kcal='over'] { --kcal-color: var(--trigli-bad-text); }
+}
+.kcal-eaten { font-size: 2.25rem; font-weight: 800; color: var(--kcal-color, var(--ion-text-color)); }
+.kcal-state { float: right; font-weight: 600; color: var(--kcal-color, var(--ion-color-medium)); }
+.kcal-sub { margin-top: 4px; color: var(--ion-color-medium); }
+
+.draft-kcal { margin-left: 12px; font-size: 0.9rem; color: var(--ion-color-medium); }
+.qty { display: flex; align-items: center; gap: 6px; }
+.food-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 16px; }
+.food {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left;
+  padding: 10px 12px; border: 1px solid var(--ion-border-color); border-radius: var(--trigli-radius-md);
+  background: var(--ion-card-background); color: var(--ion-text-color); font: inherit; cursor: pointer;
+  b, small { display: block; }
+  small { color: var(--ion-color-medium); }
+}
+.food-kcal { font-weight: 600; white-space: nowrap; }
+.manual { display: grid; grid-template-columns: 1fr 96px auto; gap: 8px; align-items: end; margin-bottom: 16px; }

@@ -42,6 +42,24 @@ export class Supabase {
     return this.client.auth.updateUser({ password });
   }
 
+  private avatarPath() {
+    return `${this.session()!.user.id}/avatar.jpg`;
+  }
+
+  /** URL firmada de la foto de perfil, o null si todavía no subió una. */
+  async avatarUrl(): Promise<string | null> {
+    const { data } = await this.client.storage.from('avatars').createSignedUrl(this.avatarPath(), 3600);
+    return data?.signedUrl ?? null;
+  }
+
+  uploadAvatar(jpeg: Blob) {
+    return this.client.storage.from('avatars').upload(this.avatarPath(), jpeg, { upsert: true, contentType: 'image/jpeg' });
+  }
+
+  removeAvatar() {
+    return this.client.storage.from('avatars').remove([this.avatarPath()]);
+  }
+
   signOut() {
     return this.client.auth.signOut();
   }

@@ -4,12 +4,12 @@
 :root.ios {
   --ion-font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --ion-color-primary: #2dd36f;
-  --ion-color-primary-rgb: 45, 211, 111;
-  --ion-color-primary-contrast: #052e16;
-  --ion-color-primary-contrast-rgb: 5, 46, 22;
-  --ion-color-primary-shade: #28ba62;
-  --ion-color-primary-tint: #42d77d;
+  --ion-color-primary: #c8f169;
+  --ion-color-primary-rgb: 200, 241, 105;
+  --ion-color-primary-contrast: #0b1f20;
+  --ion-color-primary-contrast-rgb: 11, 31, 32;
+  --ion-color-primary-shade: #b0d45d;
+  --ion-color-primary-tint: #cef577;
 
   --ion-color-success: #2dd36f;
   --ion-color-success-rgb: 45, 211, 111;
@@ -35,22 +35,22 @@
   --ion-color-medium: #55645b;
   --ion-color-medium-rgb: 85, 100, 91;
 
-  --ion-background-color: #f4f7f3;
-  --ion-background-color-rgb: 244, 247, 243;
+  --ion-background-color: #f3f8f4;
+  --ion-background-color-rgb: 243, 248, 244;
   --ion-text-color: #14231a;
   --ion-text-color-rgb: 20, 35, 26;
   --ion-border-color: #e0e8e1;
   --ion-card-background: #ffffff;
   --ion-item-background: #ffffff;
-  --ion-toolbar-background: #f4f7f3;
+  --ion-toolbar-background: #f3f8f4;
   --ion-tab-bar-background: #ffffff;
   --ion-tab-bar-color: #55645b;
-  --ion-tab-bar-color-selected: #0f7a3c;
+  --ion-tab-bar-color-selected: #0f3d3e;
 
   --trigli-surface-2: #eef3ee;
   --trigli-text-muted: #55645b;
-  --trigli-primary-text: #0f7a3c;
-  --trigli-primary-soft: #e3f8eb;
+  --trigli-primary-text: #0f3d3e;
+  --trigli-primary-soft: #dcebe1;
   --trigli-ok-soft: #e0f7e8;   --trigli-ok-text: #0f7a3c;
   --trigli-warn-soft: #fff3cc; --trigli-warn-text: #7a5400;
   --trigli-bad-soft: #fde4e8;  --trigli-bad-text: #b3122b;
@@ -82,11 +82,11 @@
     --ion-toolbar-background: #0e1511;
     --ion-tab-bar-background: #121a15;
     --ion-tab-bar-color: #9db0a3;
-    --ion-tab-bar-color-selected: #5be394;
+    --ion-tab-bar-color-selected: #c8f169;
 
     --trigli-surface-2: #1f2b24;
     --trigli-text-muted: #9db0a3;
-    --trigli-primary-text: #5be394;
+    --trigli-primary-text: #c8f169;
     --trigli-primary-soft: #173323;
     --trigli-ok-soft: #153423;   --trigli-ok-text: #5be394;
     --trigli-warn-soft: #3a2f0b; --trigli-warn-text: #ffd75e;

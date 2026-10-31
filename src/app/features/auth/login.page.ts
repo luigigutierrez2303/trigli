@@ -11,9 +11,9 @@ import { Supabase } from '../../core/supabase';
     <ion-content class="ion-padding">
       <div class="wrap">
         <div class="logo" aria-hidden="true">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#052e16" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
+          <svg width="44" height="44" viewBox="0 0 120 120" fill="none"><polyline points="22,36 48,56 66,48 92,82" stroke="#c8f169" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="92" cy="82" r="9" fill="#fff"/></svg>
         </div>
-        <h1>Trigli</h1>
+        <h1>trigl<span class="dot">i</span></h1>
         <p class="sub">Comida, ejercicio y triglicéridos.</p>
 
         @if (sb.recovery()) {
@@ -60,8 +60,9 @@ import { Supabase } from '../../core/supabase';
   `,
   styles: `
     .wrap { max-width: 400px; margin: 12vh auto 0; text-align: center; }
-    .logo { width: 72px; height: 72px; border-radius: 24px; background: #2dd36f; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
-    h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+    .logo { width: 72px; height: 72px; border-radius: 24px; background: #0f3d3e; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
+    h1 { font-family: 'Bricolage Grotesque', var(--ion-font-family); font-size: 2.75rem; font-weight: 800; letter-spacing: -0.04em; margin: 0; }
+    h1 .dot { color: var(--trigli-primary-text); }
     h2 { font-size: 1.75rem; font-weight: 700; margin: 24px 0 0; }
     .sub { color: var(--ion-color-medium); margin: 6px 0 20px; font-size: 1.05rem; }
     ion-list { text-align: left; margin-bottom: 16px; }

@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonTitle, IonToolbar, ToastController,
+  IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonSelect, IonSelectOption, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline } from 'ionicons/icons';
@@ -13,19 +13,23 @@ import {
   cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, weekEnd, weekStart, weightDelta,
   WEEKLY_CARDIO_GOAL_MIN,
 } from './activity';
+import { CARDIO_ACTIVITIES, cardioActivity, kcalBurned } from '../energy/energy';
+import { ProfileService } from '../energy/profile.service';
 import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
 
 @Component({
   selector: 'app-activity',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar,
+    IonSelect, IonSelectOption,
   ],
   templateUrl: './activity.page.html',
   styleUrl: './activity.page.scss',
 })
 export class ActivityPage implements OnInit {
   private readonly activity = inject(ActivityService);
+  private readonly profiles = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
@@ -52,6 +56,17 @@ export class ActivityPage implements OnInit {
   // Formularios
   readonly minutesRaw = signal('');
   readonly cardioNotes = signal('');
+  readonly activities = CARDIO_ACTIVITIES;
+  readonly activityKey = signal('walk_fast');
+  readonly activityLabel = (key: string | null) => cardioActivity(key)?.label ?? null;
+  /** Último peso conocido, para estimar las kcal del cardio. */
+  private readonly lastWeight = signal<number | null>(null);
+  readonly cardioKcal = computed(() => {
+    const w = this.lastWeight();
+    const min = this.minutes();
+    const act = cardioActivity(this.activityKey());
+    return w && act && isValidMinutes(min) ? kcalBurned(act.met, w, min) : null;
+  });
   readonly weightRaw = signal('');
   readonly waistRaw = signal('');
 
@@ -87,14 +102,16 @@ export class ActivityPage implements OnInit {
   async load() {
     const date = this.date();
     try {
-      const [cardio, metric, prev] = await Promise.all([
+      const [cardio, metric, prev, lastWeight] = await Promise.all([
         this.activity.cardioBetween(weekStart(date), weekEnd(date)),
         this.activity.metricByDate(date),
         this.activity.previousWeight(date),
+        this.profiles.latestWeight(),
       ]);
       this.weekCardio.set(cardio);
       this.metric.set(metric);
       this.prevWeight.set(prev);
+      this.lastWeight.set(lastWeight);
       this.weightRaw.set(metric?.weight_kg != null ? String(metric.weight_kg) : '');
       this.waistRaw.set(metric?.waist_cm != null ? String(metric.waist_cm) : '');
     } catch (e) {
@@ -113,7 +130,9 @@ export class ActivityPage implements OnInit {
     if (!this.canAddCardio()) return;
     this.saving.set(true);
     try {
-      const saved = await this.activity.addCardio(this.date(), this.minutes()!, this.cardioNotes());
+      const saved = await this.activity.addCardio(
+        this.date(), this.minutes()!, this.cardioNotes(), this.activityKey(), this.cardioKcal(),
+      );
       this.weekCardio.update((list) => [...list, saved]);
       this.minutesRaw.set('');
       this.cardioNotes.set('');
@@ -141,6 +160,7 @@ export class ActivityPage implements OnInit {
       if (this.weightRaw().trim() !== '') values.weight_kg = this.weight()!;
       if (this.waistRaw().trim() !== '') values.waist_cm = this.waist()!;
       this.metric.set(await this.activity.saveMetric(this.date(), values));
+      this.lastWeight.set(await this.profiles.latestWeight());
     } catch (e) {
       this.showError(e);
     } finally {

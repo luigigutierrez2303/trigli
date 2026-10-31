@@ -32,6 +32,23 @@
     </ion-card-content>
   </ion-card>
 
+  @if (balance(); as b) {
+    <ion-card class="kcal-card" [attr.data-kcal]="b.level">
+      <ion-card-content>
+        <div class="kcal-main">
+          <span class="kcal-eaten">{{ dayKcal() }}</span><small> / {{ b.budget }} kcal</small>
+          <span class="kcal-state">{{ dayLevelLabels[b.level] }}</span>
+        </div>
+        <div class="kcal-sub">
+          @if (b.remaining >= 0) { Te quedan <b>{{ b.remaining }}</b> kcal } @else { Te pasaste por <b>{{ -b.remaining }}</b> kcal }
+          @if (burned() > 0) { · incluye {{ burned() }} kcal de ejercicio }
+        </div>
+      </ion-card-content>
+    </ion-card>
+  } @else if (dayKcal() > 0) {
+    <ion-card class="kcal-card"><ion-card-content><b>{{ dayKcal() }} kcal</b> hoy. Cargá tu meta en Mi cuenta para ver cuánto te queda.</ion-card-content></ion-card>
+  }
+
   <ion-list lines="full">
     @for (type of mealOrder; track type) {
       @let entry = byType().get(type);
@@ -39,7 +56,7 @@
         <ion-label>
           <h2>{{ mealLabels[type] }}</h2>
           @if (entry) {
-            <p>{{ flagLabels(entry.flags) || 'Sin marcas' }}</p>
+            <p>{{ entry.kcal !== null ? entry.kcal + ' kcal · ' : '' }}{{ flagLabels(entry.flags) || 'Sin marcas' }}</p>
           } @else {
             <p class="muted">Sin registrar</p>
           }
@@ -70,11 +87,57 @@
         <ion-toolbar class="score-bar">
           <div class="draft-score" [attr.data-level]="levelForMeal(draftScore())">
             <span>{{ draftScore() }}</span><small>/10</small>
+            <span class="draft-kcal">{{ draftKcal() }} kcal</span>
           </div>
+        </ion-toolbar>
+        <ion-toolbar>
+          <ion-segment [value]="tab()" (ionChange)="tab.set($any($event).detail.value)">
+            <ion-segment-button value="kcal"><ion-label>Calorías</ion-label></ion-segment-button>
+            <ion-segment-button value="calidad"><ion-label>Calidad</ion-label></ion-segment-button>
+          </ion-segment>
         </ion-toolbar>
       </ion-header>
 
       <ion-content class="ion-padding">
+        @if (tab() === 'kcal') {
+          @if (draftItems().length) {
+            <ion-list lines="full" class="items">
+              @for (item of draftItems(); track $index) {
+                <ion-item>
+                  <ion-label>
+                    <h3>{{ item.name }}</h3>
+                    <p>{{ item.kcal * item.qty }} kcal</p>
+                  </ion-label>
+                  <div slot="end" class="qty">
+                    <ion-button fill="outline" size="small" (click)="changeQty($index, -1)" aria-label="Menos">−</ion-button>
+                    <span>{{ item.qty }}</span>
+                    <ion-button fill="outline" size="small" (click)="changeQty($index, 1)" aria-label="Más">+</ion-button>
+                  </div>
+                </ion-item>
+              }
+            </ion-list>
+          }
+
+          <ion-searchbar placeholder="Buscar alimento (ej. milanesa, mate)" [debounce]="150"
+            (ionInput)="foodQuery.set($any($event.target).value ?? '')" />
+          <div class="food-list">
+            @for (f of visibleKcalFoods(); track f.name + f.kcal) {
+              <button type="button" class="food" (click)="addFood(f)">
+                <span><b>{{ f.name }}</b><small>{{ f.portion }}</small></span>
+                <span class="food-kcal">{{ f.kcal }} kcal</span>
+              </button>
+            } @empty {
+              <p class="muted">No lo tenemos en la lista. Cargalo a mano abajo.</p>
+            }
+          </div>
+
+          <div class="manual">
+            <ion-input label="Otro alimento" labelPlacement="stacked" placeholder="Nombre (opcional)" [(ngModel)]="manualName" />
+            <ion-input label="kcal" labelPlacement="stacked" inputmode="numeric" placeholder="0"
+              [value]="manualKcalRaw()" (ionInput)="manualKcalRaw.set($any($event.target).value ?? '')" />
+            <ion-button (click)="addManual()" [disabled]="!canAddManual()">Agregar</ion-button>
+          </div>
+        } @else {
         <ion-searchbar placeholder="Buscar comida (ej. milanesa, salmón)" [debounce]="150"
           (ionInput)="query.set($any($event.target).value ?? '')" />
 
@@ -103,6 +166,8 @@
             <p class="muted">No encontramos "{{ query() }}".</p>
           }
         </div>
+
+        }
 
         <ion-item class="notes">
           <ion-textarea label="Notas" labelPlacement="stacked" [(ngModel)]="draftNotes" [autoGrow]="true"

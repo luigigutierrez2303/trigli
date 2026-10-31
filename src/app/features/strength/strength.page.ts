@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonTitle, IonToolbar,
+  IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonToolbar,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -9,13 +9,15 @@ import { barbellOutline, logOutOutline, trashOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { isValidMinutes, parseDecimal } from '../activity/activity';
+import { kcalBurned, STRENGTH_MET } from '../energy/energy';
+import { ProfileService } from '../energy/profile.service';
 import { isValidLoad, isValidReps, SetEntry, sessionVolume, suggestNext } from './strength';
 import { Exercise, NewSet, StrengthService, StrengthSession } from './strength.service';
 
 @Component({
   selector: 'app-strength',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonInput, IonSelect,
     IonSelectOption,
   ],
@@ -40,6 +42,13 @@ export class StrengthPage implements OnInit {
   // Sesión en curso
   readonly draft = signal<NewSet[]>([]);
   readonly durationRaw = signal('');
+  private readonly profiles = inject(ProfileService);
+  private readonly lastWeight = signal<number | null>(null);
+  readonly sessionKcal = computed(() => {
+    const w = this.lastWeight();
+    const min = parseDecimal(this.durationRaw());
+    return w && isValidMinutes(min) ? kcalBurned(STRENGTH_MET, w, min) : null;
+  });
 
   readonly nameById = computed(() => new Map(this.exercises().map((e) => [e.id, e.name])));
   readonly suggestion = computed(() => (this.exerciseId() ? suggestNext(this.lastSets()) : null));
@@ -69,7 +78,10 @@ export class StrengthPage implements OnInit {
 
   async ngOnInit() {
     try {
-      const [exercises, sessions] = await Promise.all([this.strength.exercises(), this.strength.recentSessions()]);
+      const [exercises, sessions, weight] = await Promise.all([
+        this.strength.exercises(), this.strength.recentSessions(), this.profiles.latestWeight(),
+      ]);
+      this.lastWeight.set(weight);
       this.exercises.set(exercises);
       this.sessions.set(sessions);
     } catch (e) {
@@ -108,7 +120,7 @@ export class StrengthPage implements OnInit {
     if (!this.canSave()) return;
     this.saving.set(true);
     try {
-      await this.strength.saveSession(toIsoDate(new Date()), parseDecimal(this.durationRaw())!, null, this.draft());
+      await this.strength.saveSession(toIsoDate(new Date()), parseDecimal(this.durationRaw())!, null, this.draft(), this.sessionKcal());
       this.draft.set([]);
       this.durationRaw.set('');
       this.exerciseId.set(null);

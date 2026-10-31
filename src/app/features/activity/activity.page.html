@@ -40,7 +40,8 @@
           @for (w of dayCardio(); track w.id) {
             <ion-item>
               <ion-label>
-                <h2>{{ w.duration_min }} min</h2>
+                <h2>{{ activityLabel(w.activity) ?? 'Cardio' }} · {{ w.duration_min }} min</h2>
+                @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas</p> }
                 @if (w.notes) { <p>{{ w.notes }}</p> }
               </ion-label>
               <ion-button slot="end" fill="clear" color="danger" (click)="removeCardio(w.id)" aria-label="Borrar">
@@ -54,6 +55,11 @@
       }
 
       <ion-item>
+        <ion-select label="Actividad" labelPlacement="stacked" [value]="activityKey()" (ionChange)="activityKey.set($any($event).detail.value)">
+          @for (a of activities; track a.key) { <ion-select-option [value]="a.key">{{ a.label }}</ion-select-option> }
+        </ion-select>
+      </ion-item>
+      <ion-item>
         <ion-input label="Minutos" labelPlacement="stacked" type="number" inputmode="numeric" placeholder="30"
           [value]="minutesRaw()" (ionInput)="minutesRaw.set($any($event.target).value ?? '')" />
       </ion-item>
@@ -62,8 +68,9 @@
           [value]="cardioNotes()" (ionInput)="cardioNotes.set($any($event.target).value ?? '')" />
       </ion-item>
       <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="addCardio()">
-        Agregar cardio
+        Agregar cardio{{ cardioKcal() !== null ? ' (≈ ' + cardioKcal() + ' kcal)' : '' }}
       </ion-button>
+      @if (cardioKcal() === null && minutes()) { <ion-note class="ion-padding-top">Cargá tu peso más abajo para estimar las kcal.</ion-note> }
     </ion-card-content>
   </ion-card>
 

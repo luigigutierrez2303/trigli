@@ -4,13 +4,17 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonHeader,
-  IonIcon, IonItem, IonLabel, IonList, IonModal, IonSearchbar, IonTextarea, IonTitle, IonToolbar,
+  IonIcon, IonItem, IonLabel, IonInput, IonList, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTextarea, IonTitle, IonToolbar,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, logOutOutline, addCircleOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
+import { parseDecimal } from '../activity/activity';
+import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, MealItem } from '../energy/energy';
+import { Food, FOODS } from '../energy/foods';
+import { ProfileService } from '../energy/profile.service';
 import {
   ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
@@ -22,7 +26,8 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   selector: 'app-meal-log',
   imports: [
     FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
-    IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea,
+    IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
+    IonSegment, IonSegmentButton,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -32,6 +37,7 @@ export class MealLogPage implements OnInit {
   private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
   private readonly route = inject(ActivatedRoute);
+  private readonly profiles = inject(ProfileService);
 
   readonly flagDefs = FLAG_DEFS;
   /** Catálogo en orden alfabético para recorrerlo con el buscador. */
@@ -60,7 +66,28 @@ export class MealLogPage implements OnInit {
   });
   readonly hadAlcohol = computed(() => this.entries().some((e) => hasAlcohol(e.flags)));
 
+  // Calorías
+  readonly dayLevelLabels = DAY_LEVEL_LABELS;
+  readonly target = signal<number | null>(null);
+  readonly burned = signal(0);
+  readonly dayKcal = computed(() => this.entries().reduce((sum, e) => sum + (e.kcal ?? 0), 0));
+  readonly balance = computed(() => {
+    const target = this.target();
+    return target === null ? null : dayBalance(this.dayKcal(), target, this.burned());
+  });
+
   // Editor
+  readonly tab = signal<'kcal' | 'calidad'>('kcal');
+  readonly draftItems = signal<MealItem[]>([]);
+  readonly draftKcal = computed(() => itemsKcal(this.draftItems()));
+  readonly foodQuery = signal('');
+  readonly visibleKcalFoods = computed(() => {
+    const q = normalize(this.foodQuery());
+    const all = q ? FOODS.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : FOODS.slice(0, 12);
+    return all.slice(0, 20);
+  });
+  manualName = '';
+  manualKcalRaw = signal('');
   readonly editing = signal<MealType | null>(null);
   readonly draftFlags = signal<MealFlags>({});
   draftNotes = '';
@@ -88,12 +115,23 @@ export class MealLogPage implements OnInit {
 
   ngOnInit() {
     if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
+    this.loadTarget();
+  }
+
+  /** Meta diaria según el perfil y el último peso; sin perfil no hay balance. */
+  private async loadTarget() {
+    try {
+      const [profile, weight] = await Promise.all([this.profiles.get(), this.profiles.latestWeight()]);
+      if (profile && weight) this.target.set(dailyPlan(profile, weight, toIsoDate(new Date())).target);
+    } catch { /* el balance es opcional */ }
   }
 
   async load() {
     this.loading.set(true);
     try {
-      this.entries.set(await this.meals.byDate(this.date()));
+      const [entries, energy] = await Promise.all([this.meals.byDate(this.date()), this.profiles.dayEnergy(this.date())]);
+      this.entries.set(entries);
+      this.burned.set(energy.burned);
     } catch (e) {
       this.showError(e);
     } finally {
@@ -112,12 +150,44 @@ export class MealLogPage implements OnInit {
     const existing = this.byType().get(type);
     this.draftFlags.set({ ...(existing?.flags ?? {}) });
     this.draftNotes = existing?.notes ?? '';
+    this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
     this.query.set('');
+    this.foodQuery.set('');
+    this.manualName = '';
+    this.manualKcalRaw.set('');
+    this.tab.set('kcal');
     this.editing.set(type);
   }
 
   close() {
     this.editing.set(null);
+  }
+
+  addFood(food: Food) {
+    this.draftItems.update((items) => {
+      const same = items.find((i) => i.name === food.name && i.kcal === food.kcal);
+      return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, qty: 1 }];
+    });
+  }
+
+  readonly manualKcal = computed(() => parseDecimal(this.manualKcalRaw()));
+  readonly canAddManual = computed(() => {
+    const k = this.manualKcal();
+    return k !== null && k > 0 && k <= 5000;
+  });
+
+  addManual() {
+    const kcal = this.manualKcal();
+    if (!this.canAddManual() || kcal === null) return;
+    this.draftItems.update((items) => [...items, { name: this.manualName.trim() || 'Otro', kcal: Math.round(kcal), qty: 1 }]);
+    this.manualName = '';
+    this.manualKcalRaw.set('');
+  }
+
+  changeQty(index: number, delta: number) {
+    this.draftItems.update((items) =>
+      items.flatMap((item, i) => (i !== index ? [item] : item.qty + delta <= 0 ? [] : [{ ...item, qty: item.qty + delta }])),
+    );
   }
 
   toggle(key: keyof MealFlags, checked: boolean) {
@@ -129,7 +199,9 @@ export class MealLogPage implements OnInit {
     if (!type) return;
     this.saving.set(true);
     try {
-      const saved = await this.meals.save(this.date(), type, this.draftFlags(), this.draftNotes);
+      const saved = await this.meals.save(
+        this.date(), type, this.draftFlags(), this.draftNotes, this.draftItems(), this.draftItems().length ? this.draftKcal() : null,
+      );
       this.entries.update((list) => [...list.filter((e) => e.meal_type !== type), saved]);
       this.close();
     } catch (e) {

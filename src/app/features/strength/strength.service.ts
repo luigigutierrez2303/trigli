@@ -18,6 +18,7 @@ export interface StrengthSession {
   date: string;
   duration_min: number;
   notes: string | null;
+  kcal: number | null;
   workout_set: { set_number: number; reps: number; weight_kg: number | null; exercise: { name: string } | null }[];
 }
 
@@ -57,10 +58,10 @@ export class StrengthService {
       .map((s) => ({ reps: s.reps, weight_kg: s.weight_kg === null ? null : Number(s.weight_kg) }));
   }
 
-  async saveSession(date: string, durationMin: number, notes: string | null, sets: NewSet[]): Promise<void> {
+  async saveSession(date: string, durationMin: number, notes: string | null, sets: NewSet[], kcal: number | null): Promise<void> {
     const { data: workout, error } = await this.db
       .from('workout')
-      .insert({ date, type: 'strength', duration_min: durationMin, notes: notes || null })
+      .insert({ date, type: 'strength', duration_min: durationMin, notes: notes || null, kcal })
       .select('id')
       .single();
     if (error) throw error;
@@ -77,7 +78,7 @@ export class StrengthService {
   async recentSessions(limit = 5): Promise<StrengthSession[]> {
     const { data, error } = await this.db
       .from('workout')
-      .select('id, date, duration_min, notes, workout_set(set_number, reps, weight_kg, exercise(name))')
+      .select('id, date, duration_min, notes, kcal, workout_set(set_number, reps, weight_kg, exercise(name))')
       .eq('type', 'strength')
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })

@@ -63,7 +63,7 @@
             [value]="durationRaw()" (ionInput)="durationRaw.set($any($event.target).value ?? '')" />
         </ion-item>
         <ion-button expand="block" class="ion-margin-top" [disabled]="!canSave() || saving()" (click)="saveSession()">
-          Guardar sesión
+          Guardar sesión{{ sessionKcal() !== null ? ' (≈ ' + sessionKcal() + ' kcal)' : '' }}
         </ion-button>
       }
     </ion-card-content>
@@ -76,7 +76,7 @@
         <ion-item>
           <ion-label>
             <h2>{{ s.date }} <ion-badge data-level="good">{{ s.duration_min }} min</ion-badge></h2>
-            <p>{{ summarize(s) }}</p>
+            <p>{{ summarize(s) }}{{ s.kcal !== null ? ' · ' + s.kcal + ' kcal' : '' }}</p>
           </ion-label>
           <ion-button slot="end" fill="clear" color="danger" (click)="removeSession(s.id)" aria-label="Borrar">
             <ion-icon slot="icon-only" name="trash-outline" />

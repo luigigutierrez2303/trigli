@@ -2,13 +2,14 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonProgressBar, IonTitle, IonToolbar, ToastController,
+  IonIcon, IonProgressBar, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addCircleOutline, chevronBack, chevronForward, logOutOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
+import { EnergyTodayComponent } from '../energy/energy-today.component';
 import { classifyTg, percentChange, TG_LEVEL_LABELS } from '../labs/labs';
 import { LineChartComponent } from '../labs/line-chart.component';
 import { MEAL_LABELS, MEAL_ORDER, MealType } from '../meals/meal-scoring';
@@ -21,8 +22,8 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 @Component({
   selector: 'app-dashboard',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent,
   ],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',

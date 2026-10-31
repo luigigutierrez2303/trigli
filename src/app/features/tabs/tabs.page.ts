@@ -1,11 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  barbellOutline, flaskOutline, homeOutline, logOutOutline, restaurantOutline, walkOutline,
+  barbellOutline, flaskOutline, homeOutline, personCircleOutline, restaurantOutline, walkOutline,
 } from 'ionicons/icons';
-import { Supabase } from '../../core/supabase';
 
 /** Una sola fuente para la barra inferior (celular) y el rail lateral (desktop). */
 export const NAV = [
@@ -14,6 +13,7 @@ export const NAV = [
   { path: 'actividad', label: 'Actividad', short: 'Actividad', icon: 'walk-outline' },
   { path: 'fuerza', label: 'Fuerza', short: 'Fuerza', icon: 'barbell-outline' },
   { path: 'laboratorio', label: 'Laboratorio', short: 'Lab', icon: 'flask-outline' },
+  { path: 'cuenta', label: 'Mi cuenta', short: 'Cuenta', icon: 'person-circle-outline' },
 ] as const;
 
 @Component({
@@ -29,10 +29,6 @@ export const NAV = [
             <span>{{ n.short }}</span>
           </a>
         }
-        <span class="spacer"></span>
-        <button class="rail-item logout" type="button" (click)="logout()" aria-label="Salir">
-          <ion-icon name="log-out-outline" />
-        </button>
       </nav>
 
       <ion-tabs class="content">
@@ -62,7 +58,7 @@ export const NAV = [
       }
       .logo {
         width: 40px; height: 40px; border-radius: 10px; margin-bottom: 18px; display: flex; align-items: center;
-        justify-content: center; background: var(--ion-color-success); color: var(--ion-color-success-contrast);
+        justify-content: center; background: #0f3d3e; color: #c8f169;
         font-size: 18px; font-weight: 700;
       }
       .rail-item {
@@ -73,19 +69,13 @@ export const NAV = [
       .rail-item ion-icon { font-size: 22px; }
       .rail-item:hover { background: var(--trigli-surface-2); }
       .rail-item.active { background: var(--trigli-primary-soft); color: var(--trigli-primary-text); }
-      .spacer { flex: 1; }
     }
   `,
 })
 export class TabsPage {
-  private readonly sb = inject(Supabase);
   readonly nav = NAV;
 
   constructor() {
-    addIcons({ homeOutline, restaurantOutline, walkOutline, barbellOutline, flaskOutline, logOutOutline });
-  }
-
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
+    addIcons({ homeOutline, restaurantOutline, walkOutline, barbellOutline, flaskOutline, personCircleOutline });
   }
 }

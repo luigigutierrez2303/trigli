@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonNote, IonTitle, IonToolbar, ToastController,
+  IonIcon, IonInput, IonItem, IonLabel, IonNote, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { logOutOutline, trashOutline, flaskOutline } from 'ionicons/icons';
@@ -27,7 +27,7 @@ const isLabValue = (n: number | null): n is number => n !== null && Number.isInt
 @Component({
   selector: 'app-labs',
   imports: [
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonItem, IonLabel, IonNote, IonBadge, IonInput, LineChartComponent,
   ],
   templateUrl: './labs.page.html',

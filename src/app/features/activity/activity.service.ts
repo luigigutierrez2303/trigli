@@ -6,6 +6,8 @@ export interface CardioWorkout {
   date: string; // YYYY-MM-DD
   duration_min: number;
   notes: string | null;
+  activity: string | null;
+  kcal: number | null;
 }
 
 export interface BodyMetric {
@@ -14,7 +16,7 @@ export interface BodyMetric {
   waist_cm: number | null;
 }
 
-const WORKOUT_COLS = 'id, date, duration_min, notes';
+const WORKOUT_COLS = 'id, date, duration_min, notes, activity, kcal';
 const METRIC_COLS = 'date, weight_kg, waist_cm';
 
 @Injectable({ providedIn: 'root' })
@@ -34,10 +36,12 @@ export class ActivityService {
     return data as CardioWorkout[];
   }
 
-  async addCardio(date: string, durationMin: number, notes: string | null): Promise<CardioWorkout> {
+  async addCardio(
+    date: string, durationMin: number, notes: string | null, activity: string, kcal: number | null,
+  ): Promise<CardioWorkout> {
     const { data, error } = await this.db
       .from('workout')
-      .insert({ date, type: 'cardio', duration_min: durationMin, notes: notes || null })
+      .insert({ date, type: 'cardio', duration_min: durationMin, notes: notes || null, activity, kcal })
       .select(WORKOUT_COLS)
       .single();
     if (error) throw error;
