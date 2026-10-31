@@ -18,53 +18,57 @@ const addDays = (iso: string, delta: number) => {
 /** "¿Voy bien?": tendencia de peso suavizada, déficit de la semana y proteína de hoy. */
 @Component({
   selector: 'app-energy-progress',
-  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonProgressBar],
+  imports: [IonCard, IonCardContent, IonProgressBar],
   template: `
     @if (loaded()) {
-      <ion-card class="progress" [attr.data-status]="trend().status">
-        <ion-card-header><ion-card-title>¿Voy bien?</ion-card-title></ion-card-header>
+      <ion-card class="tile" [attr.data-status]="trend().status">
         <ion-card-content>
-          <div class="row">
-            <span class="big">{{ currentKg() !== null ? currentKg() + ' kg' : '—' }}</span>
-            @if (trend().ratePerWeek !== null) {
-              <span class="rate">{{ rateLabel() }}</span>
-            }
-          </div>
+          <div class="eyebrow">Peso · tendencia</div>
+          <div class="big">{{ currentKg() !== null ? currentKg() : '—' }}<small> kg</small></div>
+          @if (trend().ratePerWeek !== null) { <div class="rate">{{ rateLabel() }}</div> }
           <p class="msg">{{ message() }}</p>
-
-          @if (week(); as w) {
-            <hr />
-            <div class="row"><b>Esta semana</b></div>
-            <p class="msg">
-              {{ w.daysOnTarget }} de {{ w.daysLogged }} {{ w.daysLogged === 1 ? 'día registrado' : 'días registrados' }} dentro de tu meta.
-              @if (w.daysLogged > 0) {
-                Déficit acumulado: <b>{{ w.deficitKcal }} kcal</b> (≈ {{ w.estimatedKg }} kg de grasa).
-              }
-            </p>
-          }
-
-          @if (proteinTarget(); as goal) {
-            <hr />
-            <div class="row"><b>Proteína de hoy</b><span class="rate">{{ todayProtein() }} / {{ goal }} g</span></div>
-            <ion-progress-bar [value]="proteinPct()" />
-            <p class="fine">Solo cuenta lo cargado desde la lista de alimentos. Meta de 1,6 g por kg de peso.</p>
-          }
         </ion-card-content>
       </ion-card>
+
+      @if (week(); as w) {
+        <ion-card class="tile" [attr.data-status]="w.daysLogged && w.daysOnTarget === w.daysLogged ? 'on_track' : 'stalled'">
+          <ion-card-content>
+            <div class="eyebrow">Esta semana</div>
+            <div class="big">{{ w.daysOnTarget }}<small> de {{ w.daysLogged }} {{ w.daysLogged === 1 ? 'día' : 'días' }} en tu meta</small></div>
+            @if (w.daysLogged > 0) {
+              <div class="rate">{{ w.deficitKcal }} kcal de déficit</div>
+              <p class="msg">Equivale a unos {{ w.estimatedKg }} kg de grasa.</p>
+            } @else {
+              <p class="msg">Registrá tus comidas para ver cómo va la semana.</p>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      @if (proteinTarget(); as goal) {
+        <ion-card class="tile" [attr.data-status]="proteinPct() >= 1 ? 'on_track' : 'stalled'">
+          <ion-card-content>
+            <div class="eyebrow">Proteína de hoy</div>
+            <div class="big">{{ todayProtein() }}<small> / {{ goal }} g</small></div>
+            <ion-progress-bar [value]="proteinPct()" />
+            <p class="fine">Cuenta solo lo cargado desde la lista de alimentos. Meta: 1,6 g por kg de peso.</p>
+          </ion-card-content>
+        </ion-card>
+      }
     }
   `,
   styles: `
-    .progress { border-top: 4px solid var(--status-color, var(--ion-color-medium)); }
-    .progress[data-status='on_track'] { --status-color: var(--trigli-ok-text); }
-    .progress[data-status='stalled'], .progress[data-status='fast'] { --status-color: var(--trigli-warn-text); }
-    .progress[data-status='gaining'] { --status-color: var(--trigli-bad-text); }
-    .row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-    .big { font-size: 2rem; font-weight: 800; }
-    .rate { font-weight: 600; color: var(--status-color, var(--ion-color-medium)); }
-    .msg { margin: 6px 0 0; line-height: 1.4; }
-    .fine { margin: 6px 0 0; font-size: 12px; color: var(--ion-color-medium); }
-    hr { border: 0; border-top: 1px solid var(--ion-border-color); margin: 14px 0; }
-    ion-progress-bar { height: 8px; border-radius: 4px; margin-top: 8px; }
+    :host { display: contents; }
+    .tile { margin: 0; height: 100%; border-top: 4px solid var(--status-color, var(--ion-color-medium)); }
+    .tile[data-status='on_track'] { --status-color: var(--trigli-ok-text); }
+    .tile[data-status='stalled'], .tile[data-status='fast'] { --status-color: var(--trigli-warn-text); }
+    .tile[data-status='gaining'] { --status-color: var(--trigli-bad-text); }
+    .big { margin-top: 8px; font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .big small { font-size: 0.9375rem; font-weight: 600; letter-spacing: 0; color: var(--ion-color-medium); }
+    .rate { margin-top: 6px; font-weight: 700; color: var(--status-color, var(--ion-color-medium)); }
+    .msg { margin: 8px 0 0; line-height: 1.4; color: var(--ion-color-medium); }
+    .fine { margin: 8px 0 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
+    ion-progress-bar { margin-top: 12px; height: 8px; border-radius: 4px; --progress-background: var(--status-color, var(--ion-color-primary)); }
   `,
 })
 export class EnergyProgressComponent {

@@ -79,7 +79,8 @@ describe('energy', () => {
       kgs.map((kg, i) => ({ date: new Date(Date.UTC(2026, 9, 1 + i * step)).toISOString().slice(0, 10), kg }));
     expect(weightTrend(series([90])).status).toBe('insufficient');
     expect(weightTrend(series([90, 89.5])).status).toBe('on_track');
-    expect(weightTrend(series([90, 88])).status).toBe('fast');
+    expect(weightTrend(series([90, 88])).status).toBe('on_track'); // 1 semana: puede ser agua
+    expect(weightTrend(series([90, 89, 88])).status).toBe('fast');
     expect(weightTrend(series([90, 90, 90])).status).toBe('stalled');
     expect(weightTrend(series([90, 91])).status).toBe('gaining');
     expect(weightTrend(series([90, 89.5])).ratePerWeek).toBe(-0.5);

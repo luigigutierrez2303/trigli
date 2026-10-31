@@ -174,7 +174,8 @@ export const TREND_MESSAGES: Record<TrendStatus, string> = {
 
 /**
  * Tendencia sobre el peso suavizado (el dato diario fluctúa por agua y comida).
- * Necesita al menos 7 días entre la primera y la última medición.
+ * Necesita al menos 7 días entre la primera y la última medición; "muy rápido" y "estancado" piden 14,
+ * porque en menos tiempo el agua mueve el peso más que la grasa.
  */
 export function weightTrend(points: WeightPoint[]): WeightTrend {
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
@@ -188,7 +189,7 @@ export function weightTrend(points: WeightPoint[]): WeightTrend {
   const rate = Math.round(((last.kg - first.kg) / (days / 7)) * 100) / 100;
   const loss = -rate;
   const status: TrendStatus =
-    loss > last.kg * 0.01 ? 'fast' : loss >= 0.1 ? 'on_track' : rate > 0.1 ? 'gaining' : days >= 14 ? 'stalled' : 'on_track';
+    loss > last.kg * 0.01 && days >= 14 ? 'fast' : loss >= 0.1 ? 'on_track' : rate > 0.1 ? 'gaining' : days >= 14 ? 'stalled' : 'on_track';
   return { status, ratePerWeek: rate, smoothed };
 }
 
