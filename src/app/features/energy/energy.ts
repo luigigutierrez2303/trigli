@@ -8,7 +8,11 @@ export const ACTIVITY_LEVELS: { key: ActivityLevel; label: string; factor: numbe
   { key: 'moderate', label: 'Trabajo físico', factor: 1.55 },
 ];
 
-export const WEEKLY_LOSS_OPTIONS = [0.25, 0.5, 0.75] as const;
+export const LOSS_PACES = [
+  { value: 0.25, name: 'Suave' },
+  { value: 0.5, name: 'Moderado' },
+  { value: 0.75, name: 'Rápido' },
+] as const;
 
 /** Un kilo de grasa corporal equivale a unas 7700 kcal. */
 export const KCAL_PER_KG = 7700;

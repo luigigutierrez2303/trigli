@@ -2,12 +2,13 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonInput, IonItem, IonList,
-  IonSelect, IonSelectOption, IonText,
+  IonLabel, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonText, ToastController,
 } from '@ionic/angular';
 import { Supabase } from '../../core/supabase';
 import { toIsoDate } from '../../core/date';
-import { parseDecimal } from '../activity/activity';
-import { ACTIVITY_LEVELS, ActivityLevel, dailyPlan, EnergyProfile, Sex, weeksToGoal, WEEKLY_LOSS_OPTIONS } from '../energy/energy';
+import { isValidWeight, parseDecimal } from '../activity/activity';
+import { ActivityService } from '../activity/activity.service';
+import { ACTIVITY_LEVELS, ActivityLevel, dailyPlan, EnergyProfile, LOSS_PACES, Sex, weeksToGoal } from '../energy/energy';
 import { ProfileService } from '../energy/profile.service';
 
 const MIN_PASSWORD = 6;
@@ -28,7 +29,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
   selector: 'app-account',
   imports: [
     FormsModule, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonInput,
-    IonButton, IonText, IonSelect, IonSelectOption,
+    IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel,
   ],
   template: `
     <ion-content class="ion-padding">
@@ -50,54 +51,64 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
         </ion-card-content>
       </ion-card>
 
-      <ion-card>
-        <ion-card-header><ion-card-title>Mi meta</ion-card-title></ion-card-header>
+      <ion-card class="goal">
+        <ion-card-header>
+          <ion-card-title>Mi meta</ion-card-title>
+          <p class="lead">Con estos datos calculamos tus calorías diarias.</p>
+        </ion-card-header>
         <ion-card-content>
-          <ion-list lines="none">
-            <ion-item>
-              <ion-select label="Sexo" labelPlacement="stacked" [value]="sex()" (ionChange)="sex.set($any($event).detail.value)">
-                <ion-select-option value="female">Mujer</ion-select-option>
-                <ion-select-option value="male">Hombre</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <ion-item>
-              <ion-input type="date" label="Fecha de nacimiento" labelPlacement="stacked" [value]="birth()"
-                (ionInput)="birth.set($any($event.target).value ?? '')" />
-            </ion-item>
-            <ion-item>
-              <ion-input inputmode="decimal" label="Altura (cm)" labelPlacement="stacked" [value]="heightRaw()"
-                (ionInput)="heightRaw.set($any($event.target).value ?? '')" />
-            </ion-item>
-            <ion-item>
-              <ion-input inputmode="decimal" label="Peso objetivo (kg)" labelPlacement="stacked" [value]="goalRaw()"
-                (ionInput)="goalRaw.set($any($event.target).value ?? '')" />
-            </ion-item>
-            <ion-item>
-              <ion-select label="Actividad diaria (sin contar entrenamientos)" labelPlacement="stacked" [value]="level()"
-                (ionChange)="level.set($any($event).detail.value)">
-                @for (l of levels; track l.key) { <ion-select-option [value]="l.key">{{ l.label }}</ion-select-option> }
-              </ion-select>
-            </ion-item>
-            <ion-item>
-              <ion-select label="Ritmo de pérdida" labelPlacement="stacked" [value]="lossPerWeek()"
-                (ionChange)="lossPerWeek.set($any($event).detail.value)">
-                @for (r of lossOptions; track r) { <ion-select-option [value]="r">{{ r }} kg por semana</ion-select-option> }
-              </ion-select>
-            </ion-item>
-          </ion-list>
-          <ion-button expand="block" (click)="saveGoal()" [disabled]="!profile() || goalSaving()">Guardar meta</ion-button>
-          @if (goalError()) { <ion-text color="danger"><p>{{ goalError() }}</p></ion-text> }
+          <div class="field-label">Sexo</div>
+          <ion-segment [value]="sex()" (ionChange)="sex.set($any($event).detail.value)">
+            <ion-segment-button value="female"><ion-label>Mujer</ion-label></ion-segment-button>
+            <ion-segment-button value="male"><ion-label>Hombre</ion-label></ion-segment-button>
+          </ion-segment>
+
+          <div class="grid">
+            <ion-input fill="outline" type="date" label="Fecha de nacimiento" labelPlacement="stacked" [value]="birth()"
+              (ionInput)="birth.set($any($event.target).value ?? '')" />
+            <ion-input fill="outline" inputmode="decimal" label="Altura (cm)" labelPlacement="stacked" placeholder="175" [value]="heightRaw()"
+              (ionInput)="heightRaw.set($any($event.target).value ?? '')" />
+            <ion-input fill="outline" inputmode="decimal" label="Peso actual (kg)" labelPlacement="stacked" placeholder="90" [value]="weightRaw()"
+              (ionInput)="weightRaw.set($any($event.target).value ?? '')" />
+            <ion-input fill="outline" inputmode="decimal" label="Peso objetivo (kg)" labelPlacement="stacked" placeholder="80" [value]="goalRaw()"
+              (ionInput)="goalRaw.set($any($event.target).value ?? '')" />
+          </div>
+
+          <ion-select fill="outline" label="Actividad diaria" labelPlacement="stacked" [value]="level()"
+            (ionChange)="level.set($any($event).detail.value)">
+            @for (l of levels; track l.key) { <ion-select-option [value]="l.key">{{ l.label }}</ion-select-option> }
+          </ion-select>
+          <p class="fine">Sin contar tus entrenamientos: esos se suman aparte cuando los registrás.</p>
+
+          <div class="field-label">Ritmo de pérdida</div>
+          <ion-segment [value]="lossPerWeek()" (ionChange)="lossPerWeek.set($any($event).detail.value)">
+            @for (r of lossOptions; track r.value) {
+              <ion-segment-button [value]="r.value"><ion-label>{{ r.name }}<br /><small>{{ r.value }} kg/sem</small></ion-label></ion-segment-button>
+            }
+          </ion-segment>
+
           @if (plan(); as p) {
-            <div class="plan">
-              <p><b>Tu meta: {{ p.target }} kcal por día</b></p>
-              <p>Metabolismo basal {{ p.bmr }} kcal · gasto diario {{ p.tdee }} kcal (con peso {{ weight() }} kg).</p>
-              @if (p.floored) { <p>Bajamos el déficit para no pasar el mínimo recomendado.</p> }
-              @if (weeks(); as w) { <p>Al ritmo elegido llegás a tu peso objetivo en unas {{ w }} semanas.</p> }
-              <p class="fine">Es una estimación. Si tomás medicación o tenés una condición de salud, consultalo con tu médico o nutricionista.</p>
+            <div class="plan" aria-live="polite">
+              <div class="plan-main">
+                <span class="plan-num">{{ p.target }}</span>
+                <span>kcal por día<br /><small>tu meta para bajar</small></span>
+              </div>
+              <div class="tiles">
+                <div><b>{{ p.bmr }}</b><small>metabolismo basal</small></div>
+                <div><b>{{ p.tdee }}</b><small>gasto diario</small></div>
+                @if (weeks(); as w) { <div><b>~{{ w }}</b><small>semanas al objetivo</small></div> }
+              </div>
+              @if (p.floored) { <p class="fine">Bajamos el déficit para no pasar el mínimo recomendado.</p> }
             </div>
-          } @else if (profile() && !weight()) {
-            <p class="fine">Cargá tu peso en Actividad para calcular tu meta.</p>
+          } @else if (profile()) {
+            <p class="fine">Cargá tu peso actual para ver tu meta de calorías.</p>
           }
+
+          <ion-button expand="block" class="save" [class.saved]="isSaved()" (click)="saveGoal()" [disabled]="!canSaveGoal()">
+            {{ goalSaving() ? 'Guardando…' : isSaved() ? '✓ Guardado' : 'Guardar meta' }}
+          </ion-button>
+          @if (goalError()) { <ion-text color="danger"><p>{{ goalError() }}</p></ion-text> }
+          <p class="fine">Es una estimación. Si tomás medicación o tenés una condición de salud, consultalo con tu médico o nutricionista.</p>
         </ion-card-content>
       </ion-card>
 
@@ -124,18 +135,33 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
     .profile { display: flex; align-items: center; gap: 16px; }
     .avatar { flex: none; width: 88px; height: 88px; border-radius: 50%; overflow: hidden; background: #0f3d3e; color: #c8f169; display: flex; align-items: center; justify-content: center; font: 800 36px 'Bricolage Grotesque', var(--ion-font-family); text-transform: uppercase; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .plan { margin-top: 12px; font-size: 14px; line-height: 1.4; }
-    .plan p, .fine { margin: 6px 0; }
-    .fine { font-size: 12px; color: var(--ion-color-medium); }
+    .lead { margin: 4px 0 0; font-size: 14px; color: var(--ion-color-medium); }
+    .field-label { margin: 16px 0 8px; font-size: 13px; font-weight: 600; color: var(--ion-color-medium); }
+    .field-label:first-child { margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    ion-select { margin-top: 4px; }
+    ion-segment-button small { opacity: 0.75; font-size: 11px; }
+    .fine { margin: 6px 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
+    .plan { margin: 20px 0 4px; padding: 16px; border-radius: var(--trigli-radius-lg); background: var(--trigli-primary-soft); }
+    .plan-main { display: flex; align-items: center; gap: 14px; line-height: 1.25; }
+    .plan-num { font: 800 44px/1 'Bricolage Grotesque', var(--ion-font-family); color: var(--trigli-primary-text); }
+    .plan small { color: var(--ion-color-medium); }
+    .tiles { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 12px; }
+    .tiles div { display: flex; flex-direction: column; }
+    .tiles b { font-size: 16px; }
+    .save { margin-top: 20px; }
+    .save.saved { --background: var(--trigli-ok-soft); --color: var(--trigli-ok-text); --opacity: 1; }
     .who { min-width: 0; }
     .email { margin: 0 0 4px; font-weight: 600; word-break: break-all; }
     .logout { margin: 16px; }
-    @media (min-width: 1024px) { ion-card, .logout { max-width: 520px; } }
+    @media (min-width: 1024px) { ion-card, .logout { max-width: 640px; } }
   `,
 })
 export class AccountPage implements OnInit {
   private readonly sb = inject(Supabase);
   private readonly profiles = inject(ProfileService);
+  private readonly activity = inject(ActivityService);
+  private readonly toast = inject(ToastController);
 
   readonly email = computed(() => this.sb.session()?.user.email ?? '');
   readonly error = signal<string | null>(null);
@@ -155,14 +181,28 @@ export class AccountPage implements OnInit {
 
   // Meta de calorías
   readonly levels = ACTIVITY_LEVELS;
-  readonly lossOptions = WEEKLY_LOSS_OPTIONS;
+  readonly lossOptions = LOSS_PACES;
   readonly sex = signal<Sex>('female');
   readonly birth = signal('');
   readonly heightRaw = signal('');
   readonly goalRaw = signal('');
   readonly level = signal<ActivityLevel>('sedentary');
   readonly lossPerWeek = signal<number>(0.5);
-  readonly weight = signal<number | null>(null);
+  readonly weightRaw = signal('');
+  readonly weight = computed(() => {
+    const w = parseDecimal(this.weightRaw());
+    return isValidWeight(w) ? w : null;
+  });
+  /** Foto del formulario tal como quedó guardado; sirve para saber si hay cambios sin guardar. */
+  private readonly savedKey = signal<string | null>(null);
+  private readonly formKey = computed(() =>
+    JSON.stringify([this.profile(), this.weight()]),
+  );
+  readonly dirty = computed(() => this.formKey() !== this.savedKey());
+  readonly justSaved = signal(false);
+  readonly isSaved = computed(() => this.justSaved() && !this.dirty());
+  readonly canSaveGoal = computed(() => !!this.profile() && this.weight() !== null && this.dirty() && !this.goalSaving());
+  private lastSavedWeight: number | null = null;
   readonly goalSaving = signal(false);
   readonly goalError = signal<string | null>(null);
 
@@ -190,13 +230,21 @@ export class AccountPage implements OnInit {
 
   async saveGoal() {
     const p = this.profile();
-    if (!p) return;
+    const w = this.weight();
+    if (!p || w === null) return;
     this.goalSaving.set(true);
     this.goalError.set(null);
     try {
       await this.profiles.save(p);
+      if (w !== this.lastSavedWeight) {
+        await this.activity.saveMetric(toIsoDate(new Date()), { weight_kg: w });
+        this.lastSavedWeight = w;
+      }
+      this.savedKey.set(this.formKey());
+      this.justSaved.set(true);
+      (await this.toast.create({ message: 'Meta guardada', duration: 2000, color: 'success' })).present();
     } catch {
-      this.goalError.set('No pudimos guardar tu meta. Probá de nuevo.');
+      this.goalError.set('No pudimos guardar tu meta. Revisá tu conexión y probá de nuevo.');
     }
     this.goalSaving.set(false);
   }
@@ -206,7 +254,8 @@ export class AccountPage implements OnInit {
     this.uploaded.set(await this.sb.avatarUrl());
     try {
       const [saved, weight] = await Promise.all([this.profiles.get(), this.profiles.latestWeight()]);
-      this.weight.set(weight);
+      this.lastSavedWeight = weight;
+      if (weight) this.weightRaw.set(String(weight));
       if (saved) {
         this.sex.set(saved.sex);
         this.birth.set(saved.birth_date);
@@ -214,6 +263,7 @@ export class AccountPage implements OnInit {
         this.goalRaw.set(String(saved.goal_weight_kg));
         this.level.set(saved.activity_level);
         this.lossPerWeek.set(saved.weekly_loss_kg);
+        this.savedKey.set(this.formKey());
       }
     } catch {
       this.goalError.set('No pudimos cargar tu meta.');

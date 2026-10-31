@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonCard, IonCardContent, IonProgressBar } from '@ionic/angular';
 import { toIsoDate } from '../../core/date';
@@ -45,7 +45,7 @@ import { DayEnergy, ProfileService } from './profile.service';
     a { color: var(--trigli-primary-text); font-weight: 600; }
   `,
 })
-export class EnergyTodayComponent implements OnInit {
+export class EnergyTodayComponent {
   private readonly profiles = inject(ProfileService);
 
   readonly levelLabels = DAY_LEVEL_LABELS;
@@ -62,7 +62,14 @@ export class EnergyTodayComponent implements OnInit {
     return b ? Math.min(this.energy().eaten / b.budget, 1) : 0;
   });
 
-  async ngOnInit() {
+  constructor() {
+    effect(() => {
+      this.profiles.changes();
+      untracked(() => void this.load());
+    });
+  }
+
+  private async load() {
     try {
       const today = toIsoDate(new Date());
       const [profile, weight, energy] = await Promise.all([

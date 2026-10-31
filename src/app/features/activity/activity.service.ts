@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Supabase } from '../../core/supabase';
+import { ProfileService } from '../energy/profile.service';
 
 export interface CardioWorkout {
   id: string;
@@ -22,6 +23,7 @@ const METRIC_COLS = 'date, weight_kg, waist_cm';
 @Injectable({ providedIn: 'root' })
 export class ActivityService {
   private readonly db = inject(Supabase).client;
+  private readonly profiles = inject(ProfileService);
 
   /** Cardio entre dos fechas inclusive (para el día y para la semana). */
   async cardioBetween(from: string, to: string): Promise<CardioWorkout[]> {
@@ -45,12 +47,14 @@ export class ActivityService {
       .select(WORKOUT_COLS)
       .single();
     if (error) throw error;
+    this.profiles.notifyChange();
     return data as CardioWorkout;
   }
 
   async removeWorkout(id: string): Promise<void> {
     const { error } = await this.db.from('workout').delete().eq('id', id);
     if (error) throw error;
+    this.profiles.notifyChange();
   }
 
   async metricByDate(date: string): Promise<BodyMetric | null> {
@@ -81,6 +85,7 @@ export class ActivityService {
       .select(METRIC_COLS)
       .single();
     if (error) throw error;
+    this.profiles.notifyChange();
     return data as BodyMetric;
   }
 }

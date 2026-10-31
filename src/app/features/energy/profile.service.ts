@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Supabase } from '../../core/supabase';
 import { EnergyProfile, itemsProtein, MealItem, WeightPoint } from './energy';
 
@@ -18,6 +18,12 @@ export interface WeekEnergyDay extends DayEnergy {
 export class ProfileService {
   private readonly db = inject(Supabase).client;
 
+  /** Sube cada vez que algo cambia comidas, entrenos, peso o perfil: las tarjetas de balance se recargan. */
+  readonly changes = signal(0);
+  notifyChange() {
+    this.changes.update((n) => n + 1);
+  }
+
   async get(): Promise<EnergyProfile | null> {
     const { data, error } = await this.db.from('profile').select(COLS).maybeSingle();
     if (error) throw error;
@@ -32,6 +38,7 @@ export class ProfileService {
   async save(p: EnergyProfile): Promise<void> {
     const { error } = await this.db.from('profile').upsert({ ...p, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
     if (error) throw error;
+    this.notifyChange();
   }
 
   /** Último peso registrado (o null si nunca cargó uno). */

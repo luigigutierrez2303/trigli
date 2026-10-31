@@ -22,7 +22,9 @@ export const NAV = [
   template: `
     <div class="shell">
       <nav class="rail" aria-label="Navegación principal">
-        <div class="logo" aria-hidden="true">T</div>
+        <div class="logo" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 120 120" fill="none"><polyline points="22,36 48,56 66,48 92,82" stroke="#c8f169" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="92" cy="82" r="10" fill="#fff"/></svg>
+        </div>
         @for (n of nav; track n.path) {
           <a class="rail-item" [routerLink]="['/', n.path]" routerLinkActive="active">
             <ion-icon [name]="n.icon" />

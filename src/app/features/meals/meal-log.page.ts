@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -101,6 +101,10 @@ export class MealLogPage implements OnInit {
   );
 
   constructor() {
+    effect(() => {
+      this.profiles.changes();
+      untracked(() => void this.loadEnergy());
+    });
     addIcons({ chevronBack, chevronForward, logOutOutline, addCircleOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD&comida=dinner abre el editor de esa comida.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(async (params) => {
@@ -115,23 +119,24 @@ export class MealLogPage implements OnInit {
 
   ngOnInit() {
     if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
-    this.loadTarget();
   }
 
-  /** Meta diaria según el perfil y el último peso; sin perfil no hay balance. */
-  private async loadTarget() {
+  /** Meta diaria y kcal quemadas; se recarga cuando cambia el perfil, el peso o los entrenos. */
+  private async loadEnergy() {
     try {
-      const [profile, weight] = await Promise.all([this.profiles.get(), this.profiles.latestWeight()]);
-      if (profile && weight) this.target.set(dailyPlan(profile, weight, toIsoDate(new Date())).target);
+      const [profile, weight, energy] = await Promise.all([
+        this.profiles.get(), this.profiles.latestWeight(), this.profiles.dayEnergy(this.date()),
+      ]);
+      this.target.set(profile && weight ? dailyPlan(profile, weight, toIsoDate(new Date())).target : null);
+      this.burned.set(energy.burned);
     } catch { /* el balance es opcional */ }
   }
 
   async load() {
     this.loading.set(true);
     try {
-      const [entries, energy] = await Promise.all([this.meals.byDate(this.date()), this.profiles.dayEnergy(this.date())]);
-      this.entries.set(entries);
-      this.burned.set(energy.burned);
+      this.entries.set(await this.meals.byDate(this.date()));
+      await this.loadEnergy();
     } catch (e) {
       this.showError(e);
     } finally {

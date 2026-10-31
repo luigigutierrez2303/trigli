@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Supabase } from '../../core/supabase';
+import { ProfileService } from '../energy/profile.service';
 import { SetEntry } from './strength';
 
 export interface Exercise {
@@ -25,6 +26,7 @@ export interface StrengthSession {
 @Injectable({ providedIn: 'root' })
 export class StrengthService {
   private readonly db = inject(Supabase).client;
+  private readonly profiles = inject(ProfileService);
 
   async exercises(): Promise<Exercise[]> {
     const { data, error } = await this.db.from('exercise').select('id, name, muscle').order('name');
@@ -73,6 +75,7 @@ export class StrengthService {
       await this.db.from('workout').delete().eq('id', workout.id); // no dejar sesiones vacías
       throw setsError;
     }
+    this.profiles.notifyChange();
   }
 
   async recentSessions(limit = 5): Promise<StrengthSession[]> {
@@ -90,5 +93,6 @@ export class StrengthService {
   async removeSession(id: string): Promise<void> {
     const { error } = await this.db.from('workout').delete().eq('id', id);
     if (error) throw error;
+    this.profiles.notifyChange();
   }
 }

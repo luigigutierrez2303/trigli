@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonProgressBar } from '@ionic/angular';
 import { toIsoDate } from '../../core/date';
 import { weekEnd, weekStart } from '../activity/activity';
@@ -67,7 +67,7 @@ const addDays = (iso: string, delta: number) => {
     ion-progress-bar { height: 8px; border-radius: 4px; margin-top: 8px; }
   `,
 })
-export class EnergyProgressComponent implements OnInit {
+export class EnergyProgressComponent {
   private readonly profiles = inject(ProfileService);
 
   readonly loaded = signal(false);
@@ -97,7 +97,14 @@ export class EnergyProgressComponent implements OnInit {
   readonly todayProtein = computed(() => this.days().find((d) => d.date === toIsoDate(new Date()))?.protein ?? 0);
   readonly proteinPct = computed(() => Math.min(this.todayProtein() / (this.proteinTarget() || 1), 1));
 
-  async ngOnInit() {
+  constructor() {
+    effect(() => {
+      this.profiles.changes();
+      untracked(() => void this.load());
+    });
+  }
+
+  private async load() {
     try {
       const today = toIsoDate(new Date());
       const [profile, weight, weights, days] = await Promise.all([
