@@ -25,7 +25,17 @@ Angular 22 (standalone, zoneless, signals) + Ionic 9 + Supabase. Deploy en Verce
 
 ## Estado
 
-Hecho: login con magic link, registro de comidas con score diario, schema completo con RLS, cardio (meta semanal 150 min) y peso/cintura en Actividad, fuerza con doble progresión (8-12 reps, +2 kg), laboratorio con gráfico de TG (SVG propio, `line-chart.component.ts`), dashboard semanal. Balance calórico (`features/energy/`): perfil y meta en Mi cuenta (Mifflin-St Jeor + déficit semanal, piso 1500/1200 kcal), kcal por comida con catálogo `foods.ts`, kcal netas de ejercicio por MET ((MET−1)×kg×h). Mi cuenta con foto de perfil. Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta.
+Hecho (detalle en `docs/asesor/estado-actual.md`):
+- Acceso con Google o email + contraseña (con recuperación). Schema con RLS, grants y bucket de avatares.
+- Comidas: score derivado de los alimentos, calorías con catálogo `energy/foods.ts` (~265 alimentos, categorías, gramos opcionales), favoritas y repetir comida anterior.
+- Balance calórico (`features/energy/`): meta en Mi cuenta (Mifflin-St Jeor + déficit, piso 1500/1200 kcal), kcal de ejercicio por MET ((MET−1)×kg×h), tendencia de peso con promedio móvil, déficit semanal, proteína 1,6 g/kg, gráfico de peso con meta (`weight-chart.component.ts`).
+- Actividad (cardio con tipo y kcal, peso, cintura), fuerza con doble progresión, laboratorio con gráfico de TG (`line-chart.component.ts`), Resumen semanal.
+- Mi cuenta: foto, meta, apariencia (automático/claro/oscuro vía clase `ion-palette-dark`), contraseña.
+- Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta. Marca "Descenso" (verde bosque #0F3D3E + lima #C8F169).
+
+Notas de UI:
+- La app usa modo iOS de Ionic: `fill="outline"` no existe ahí, los campos se dibujan en `theme/components.scss`.
+- Un servicio que cambia comidas, entrenos, peso o perfil debe llamar `ProfileService.notifyChange()` para que las tarjetas de balance se recarguen.
 
 Pendiente (requieren infraestructura/secretos del usuario):
 1. Notificaciones push (VAPID + Edge Function + cron)
