@@ -9,6 +9,7 @@ import { addCircleOutline, chevronBack, chevronForward, logOutOutline } from 'io
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
+import { EnergyProgressComponent } from '../energy/energy-progress.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
 import { classifyTg, percentChange, TG_LEVEL_LABELS } from '../labs/labs';
 import { LineChartComponent } from '../labs/line-chart.component';
@@ -23,7 +24,7 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   selector: 'app-dashboard',
   imports: [
     IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent,
+    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent,
   ],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',

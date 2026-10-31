@@ -121,7 +121,91 @@ export interface MealItem {
   name: string;
   /** kcal de una porción. */
   kcal: number;
+  /** Proteína (g) de una porción; ausente en lo cargado a mano o antes de existir el dato. */
+  protein?: number;
   qty: number;
 }
 
 export const itemsKcal = (items: MealItem[]) => Math.round(items.reduce((sum, i) => sum + i.kcal * i.qty, 0));
+export const itemsProtein = (items: MealItem[]) => Math.round(items.reduce((sum, i) => sum + (i.protein ?? 0) * i.qty, 0));
+
+/** Proteína diaria para cuidar el músculo mientras se baja de peso: ~1,6 g por kg. */
+export const proteinGoal = (weightKg: number) => Math.round(weightKg * 1.6);
+
+export interface WeightPoint {
+  date: string;
+  kg: number;
+}
+
+const DAY_MS = 86_400_000;
+const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY_MS);
+
+/** Promedio móvil: cada punto promedia los pesos de los 7 días que terminan en su fecha. */
+export function smoothWeights(points: WeightPoint[], windowDays = 7): WeightPoint[] {
+  return points.map((p) => {
+    const window = points.filter((q) => daysBetween(q.date, p.date) >= 0 && daysBetween(q.date, p.date) < windowDays);
+    return { date: p.date, kg: Math.round((window.reduce((sum, q) => sum + q.kg, 0) / window.length) * 10) / 10 };
+  });
+}
+
+export type TrendStatus = 'insufficient' | 'gaining' | 'stalled' | 'on_track' | 'fast';
+
+export interface WeightTrend {
+  status: TrendStatus;
+  /** kg por semana; negativo = bajando. null si faltan datos. */
+  ratePerWeek: number | null;
+  smoothed: WeightPoint[];
+}
+
+export const TREND_MESSAGES: Record<TrendStatus, string> = {
+  insufficient: 'Pesate al menos dos veces con una semana de diferencia para ver tu tendencia.',
+  gaining: 'Tu peso viene subiendo. Revisá las porciones y los extras de la semana.',
+  stalled: 'Estás estancado hace un par de semanas. Es normal: revisá que estés registrando todo.',
+  on_track: 'Vas bajando a un ritmo saludable. Seguí así.',
+  fast: 'Estás bajando muy rápido. Comé un poco más para no perder músculo.',
+};
+
+/**
+ * Tendencia sobre el peso suavizado (el dato diario fluctúa por agua y comida).
+ * Necesita al menos 7 días entre la primera y la última medición.
+ */
+export function weightTrend(points: WeightPoint[]): WeightTrend {
+  const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const smoothed = smoothWeights(sorted);
+  if (sorted.length < 2) return { status: 'insufficient', ratePerWeek: null, smoothed };
+  const first = smoothed[0];
+  const last = smoothed[smoothed.length - 1];
+  const days = daysBetween(first.date, last.date);
+  if (days < 7) return { status: 'insufficient', ratePerWeek: null, smoothed };
+
+  const rate = Math.round(((last.kg - first.kg) / (days / 7)) * 100) / 100;
+  const loss = -rate;
+  const status: TrendStatus =
+    loss > last.kg * 0.01 ? 'fast' : loss >= 0.1 ? 'on_track' : rate > 0.1 ? 'gaining' : days >= 14 ? 'stalled' : 'on_track';
+  return { status, ratePerWeek: rate, smoothed };
+}
+
+export interface WeekDay {
+  eaten: number;
+  burned: number;
+}
+
+export interface WeekEnergy {
+  daysLogged: number;
+  /** Días registrados en los que no te pasaste de tu presupuesto. */
+  daysOnTarget: number;
+  /** Déficit real acumulado: gasto de mantenimiento + ejercicio − lo comido, solo en días registrados. */
+  deficitKcal: number;
+  estimatedKg: number;
+}
+
+export function weekEnergy(days: WeekDay[], target: number, maintenance: number): WeekEnergy {
+  const logged = days.filter((d) => d.eaten > 0);
+  const deficitKcal = logged.reduce((sum, d) => sum + (maintenance + d.burned - d.eaten), 0);
+  return {
+    daysLogged: logged.length,
+    daysOnTarget: logged.filter((d) => d.eaten <= (target + d.burned) * 1.1).length,
+    deficitKcal,
+    estimatedKg: Math.round((deficitKcal / KCAL_PER_KG) * 100) / 100,
+  };
+}

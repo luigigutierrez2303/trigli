@@ -1,12 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { Supabase } from '../../core/supabase';
-import { EnergyProfile } from './energy';
+import { EnergyProfile, itemsProtein, MealItem, WeightPoint } from './energy';
 
 const COLS = 'sex, birth_date, height_cm, goal_weight_kg, activity_level, weekly_loss_kg';
 
 export interface DayEnergy {
   eaten: number;
   burned: number;
+  protein: number;
+}
+
+export interface WeekEnergyDay extends DayEnergy {
+  date: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,15 +47,43 @@ export class ProfileService {
     return data ? Number(data.weight_kg) : null;
   }
 
-  /** Kcal comidas y quemadas entrenando en un día. */
-  async dayEnergy(date: string): Promise<DayEnergy> {
+  /** Kcal y proteína comidas, y kcal quemadas entrenando, por día entre dos fechas inclusive. */
+  async energyBetween(from: string, to: string): Promise<WeekEnergyDay[]> {
     const [meals, workouts] = await Promise.all([
-      this.db.from('meal_log').select('kcal').eq('date', date),
-      this.db.from('workout').select('kcal').eq('date', date),
+      this.db.from('meal_log').select('date, kcal, items').gte('date', from).lte('date', to),
+      this.db.from('workout').select('date, kcal').gte('date', from).lte('date', to),
     ]);
     if (meals.error) throw meals.error;
     if (workouts.error) throw workouts.error;
-    const sum = (rows: { kcal: number | null }[]) => rows.reduce((total, r) => total + (r.kcal ?? 0), 0);
-    return { eaten: sum(meals.data), burned: sum(workouts.data) };
+
+    const days = new Map<string, WeekEnergyDay>();
+    const day = (date: string) => {
+      if (!days.has(date)) days.set(date, { date, eaten: 0, burned: 0, protein: 0 });
+      return days.get(date)!;
+    };
+    for (const m of meals.data) {
+      const d = day(m.date as string);
+      d.eaten += (m.kcal as number | null) ?? 0;
+      d.protein += itemsProtein((m.items ?? []) as MealItem[]);
+    }
+    for (const w of workouts.data) day(w.date as string).burned += (w.kcal as number | null) ?? 0;
+    return [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  async dayEnergy(date: string): Promise<DayEnergy> {
+    const [today] = await this.energyBetween(date, date);
+    return today ?? { eaten: 0, burned: 0, protein: 0 };
+  }
+
+  /** Pesos registrados desde una fecha, del más viejo al más nuevo. */
+  async weightsSince(from: string): Promise<WeightPoint[]> {
+    const { data, error } = await this.db
+      .from('body_metric')
+      .select('date, weight_kg')
+      .not('weight_kg', 'is', null)
+      .gte('date', from)
+      .order('date');
+    if (error) throw error;
+    return data.map((r) => ({ date: r.date as string, kg: Number(r.weight_kg) }));
   }
 }

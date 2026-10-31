@@ -51,7 +51,7 @@ export class EnergyTodayComponent implements OnInit {
   readonly levelLabels = DAY_LEVEL_LABELS;
   readonly loaded = signal(false);
   readonly target = signal<number | null>(null);
-  readonly energy = signal<DayEnergy>({ eaten: 0, burned: 0 });
+  readonly energy = signal<DayEnergy>({ eaten: 0, burned: 0, protein: 0 });
 
   readonly balance = computed(() => {
     const target = this.target();

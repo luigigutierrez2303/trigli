@@ -165,8 +165,8 @@ export class MealLogPage implements OnInit {
 
   addFood(food: Food) {
     this.draftItems.update((items) => {
-      const same = items.find((i) => i.name === food.name && i.kcal === food.kcal);
-      return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, qty: 1 }];
+      const same = items.find((i) => i.name === food.name && i.kcal === food.kcal && i.protein === food.protein);
+      return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, protein: food.protein, qty: 1 }];
     });
   }
 

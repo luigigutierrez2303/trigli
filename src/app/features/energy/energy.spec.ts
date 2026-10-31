@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ageOn, bmr, dailyPlan, dayBalance, EnergyProfile, itemsKcal, kcalBurned, MIN_DAILY_KCAL, tdee, weeksToGoal,
+  ageOn, bmr, dailyPlan, dayBalance, EnergyProfile, itemsKcal, itemsProtein, kcalBurned, MIN_DAILY_KCAL, proteinGoal, smoothWeights, tdee, weekEnergy, weeksToGoal,
+  weightTrend,
 } from './energy';
 
 const profile: EnergyProfile = {
@@ -60,5 +61,34 @@ describe('energy', () => {
   it('suma las kcal de los ítems', () => {
     expect(itemsKcal([{ name: 'a', kcal: 250, qty: 2 }, { name: 'b', kcal: 90, qty: 1 }])).toBe(590);
     expect(itemsKcal([])).toBe(0);
+  });
+
+  it('suma la proteína de los ítems y calcula la meta', () => {
+    expect(itemsProtein([{ name: 'a', kcal: 1, protein: 30, qty: 2 }, { name: 'b', kcal: 1, qty: 1 }])).toBe(60);
+    expect(proteinGoal(90)).toBe(144);
+  });
+
+  it('suaviza el peso con promedio móvil de 7 días', () => {
+    const out = smoothWeights([{ date: '2026-10-01', kg: 90 }, { date: '2026-10-02', kg: 92 }, { date: '2026-10-20', kg: 88 }]);
+    expect(out.map((p) => p.kg)).toEqual([90, 91, 88]);
+  });
+
+  it('detecta la tendencia de peso', () => {
+    const series = (kgs: number[], step = 7) =>
+      kgs.map((kg, i) => ({ date: new Date(Date.UTC(2026, 9, 1 + i * step)).toISOString().slice(0, 10), kg }));
+    expect(weightTrend(series([90])).status).toBe('insufficient');
+    expect(weightTrend(series([90, 89.5])).status).toBe('on_track');
+    expect(weightTrend(series([90, 88])).status).toBe('fast');
+    expect(weightTrend(series([90, 90, 90])).status).toBe('stalled');
+    expect(weightTrend(series([90, 91])).status).toBe('gaining');
+    expect(weightTrend(series([90, 89.5])).ratePerWeek).toBe(-0.5);
+  });
+
+  it('resume la semana con el déficit real', () => {
+    const w = weekEnergy([{ eaten: 1500, burned: 200 }, { eaten: 0, burned: 0 }, { eaten: 2400, burned: 0 }], 1600, 2200);
+    expect(w.daysLogged).toBe(2);
+    expect(w.daysOnTarget).toBe(1);
+    expect(w.deficitKcal).toBe(900 + -200); // (2200+200-1500) + (2200-2400)
+    expect(w.estimatedKg).toBe(0.09);
   });
 });
