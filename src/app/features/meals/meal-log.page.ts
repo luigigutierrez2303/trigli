@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -25,7 +26,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
 @Component({
   selector: 'app-meal-log',
   imports: [
-    FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
+    DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
     IonSegment, IonSegmentButton,
   ],
@@ -183,7 +184,7 @@ export class MealLogPage implements OnInit {
   addFood(food: Food) {
     this.draftItems.update((items) => {
       const same = items.find((i) => i.name === food.name && i.kcal === food.kcal && i.protein === food.protein);
-      return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, protein: food.protein, qty: 1 }];
+      return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, protein: food.protein, ...(food.grams ? { refGrams: food.grams } : {}), qty: 1 }];
     });
   }
 
@@ -199,6 +200,24 @@ export class MealLogPage implements OnInit {
     this.draftItems.update((items) => [...items, { name: this.manualName.trim() || 'Otro', kcal: Math.round(kcal), qty: 1 }]);
     this.manualName = '';
     this.manualKcalRaw.set('');
+  }
+
+  /** Gramos de un ítem que tiene peso de referencia. */
+  gramsOf(item: MealItem): number {
+    return Math.round(item.qty * (item.refGrams ?? 0));
+  }
+
+  qtyLabel(qty: number): string {
+    return String(Math.round(qty * 100) / 100).replace('.', ',');
+  }
+
+  /** El usuario escribe gramos: se traduce a porciones. Vacío o inválido deja la cantidad como está. */
+  setGrams(index: number, raw: string) {
+    const grams = parseDecimal(raw);
+    if (grams === null || grams <= 0 || grams > 5000) return;
+    this.draftItems.update((items) =>
+      items.map((item, i) => (i === index && item.refGrams ? { ...item, qty: Math.round((grams / item.refGrams) * 1000) / 1000 } : item)),
+    );
   }
 
   changeQty(index: number, delta: number) {

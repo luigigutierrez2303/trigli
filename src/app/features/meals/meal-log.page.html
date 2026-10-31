@@ -106,12 +106,18 @@
                 <ion-item>
                   <ion-label>
                     <h3>{{ item.name }}</h3>
-                    <p>{{ item.kcal * item.qty }} kcal</p>
+                    <p>{{ item.kcal * item.qty | number: '1.0-0' }} kcal</p>
                   </ion-label>
                   <div slot="end" class="qty">
-                    <ion-button fill="outline" size="small" (click)="changeQty($index, -1)" aria-label="Menos">−</ion-button>
-                    <span>{{ item.qty }}</span>
-                    <ion-button fill="outline" size="small" (click)="changeQty($index, 1)" aria-label="Más">+</ion-button>
+                    @if (item.refGrams) {
+                      <ion-input class="grams" fill="outline" type="number" inputmode="numeric" aria-label="Gramos"
+                        [value]="gramsOf(item)" (ionChange)="setGrams($index, $any($event.target).value ?? '')" />
+                      <span class="unit">g</span>
+                    } @else {
+                      <ion-button fill="outline" size="small" (click)="changeQty($index, -1)" aria-label="Menos">−</ion-button>
+                      <span>{{ qtyLabel(item.qty) }}</span>
+                      <ion-button fill="outline" size="small" (click)="changeQty($index, 1)" aria-label="Más">+</ion-button>
+                    }
                   </div>
                 </ion-item>
               }

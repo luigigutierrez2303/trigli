@@ -174,3 +174,6 @@ ion-modal.meal-modal {
   cursor: pointer;
   &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
 }
+
+.qty .grams { width: 96px; --padding-start: 10px; --padding-end: 4px; min-height: 40px; text-align: right; }
+.qty .unit { color: var(--ion-color-medium); font-weight: 600; }

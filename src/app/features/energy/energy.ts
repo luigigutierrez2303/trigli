@@ -127,6 +127,9 @@ export interface MealItem {
   kcal: number;
   /** Proteína (g) de una porción; ausente en lo cargado a mano o antes de existir el dato. */
   protein?: number;
+  /** Gramos de una porción, si se conocen: la cantidad también se puede dar en gramos. */
+  refGrams?: number;
+  /** Cuántas porciones; puede ser fraccionaria (150 g de una porción de 100 g = 1,5). */
   qty: number;
 }
 

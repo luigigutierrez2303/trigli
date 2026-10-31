@@ -21,4 +21,16 @@ describe('foods', () => {
       expect(f.protein, f.name).toBeGreaterThanOrEqual(0);
     }
   });
+
+  it('toma los gramos de la porción cuando están indicados', () => {
+    const byName = (n: string) => FOODS.find((f) => f.name === n)!;
+    expect(byName('Lomo').grams).toBe(100);
+    expect(byName('Peceto').grams).toBe(150);
+    expect(byName('Huevo').grams).toBeUndefined();
+  });
+
+  it('tiene los cortes de carne cargados por 100 g', () => {
+    const cuts = FOODS.filter((f) => f.cat === 'Carnes' && f.portion === '100 g');
+    expect(cuts.length).toBeGreaterThanOrEqual(20);
+  });
 });

@@ -25,12 +25,22 @@ export interface Food {
   kcal: number;
   /** Gramos de proteína de la porción. */
   protein: number;
+  /** Peso en gramos de la porción de referencia, si se conoce: permite cargar la cantidad en gramos. */
+  grams?: number;
   /** Marca de calidad (clave de FLAG_DEFS) que este alimento activa solo al agregarlo. */
   flag?: string;
 }
 
-const f = (cat: FoodCategory, name: string, portion: string, kcal: number, protein: number, flag?: string): Food =>
-  ({ name, cat, portion, kcal, protein, ...(flag ? { flag } : {}) });
+/** Gramos de la porción cuando el texto los indica: "150 g", "1 filet (150 g)". */
+const gramsOf = (portion: string): number | undefined => {
+  const m = portion.match(/\((\d+)\s*g\)/) ?? portion.match(/^(\d+)\s*g$/);
+  return m ? Number(m[1]) : undefined;
+};
+
+const f = (cat: FoodCategory, name: string, portion: string, kcal: number, protein: number, flag?: string): Food => {
+  const grams = gramsOf(portion);
+  return { name, cat, portion, kcal, protein, ...(grams ? { grams } : {}), ...(flag ? { flag } : {}) };
+};
 
 /** Valores aproximados de porciones comunes en Argentina. Sirven para estimar, no para auditar. */
 export const FOODS: Food[] = [
@@ -144,6 +154,35 @@ export const FOODS: Food[] = [
   f('Carnes', 'Bondiola de cerdo', '1 porción (150 g)', 380, 28, 'grill'),
   f('Carnes', 'Costillitas de cerdo', '1 porción (200 g)', 560, 38, 'grill'),
   f('Carnes', 'Cordero', '1 porción (150 g)', 340, 32),
+
+  // Cortes por 100 g (cocidos): elegí los gramos que comiste
+  f('Carnes', 'Lomo', '100 g', 190, 27, 'leanBeef'),
+  f('Carnes', 'Ojo de bife', '100 g', 280, 26),
+  f('Carnes', 'Bife angosto', '100 g', 270, 26),
+  f('Carnes', 'Entraña', '100 g', 290, 25, 'grill'),
+  f('Carnes', 'Vacío', '100 g', 300, 24, 'grill'),
+  f('Carnes', 'Costilla (tira de asado)', '100 g', 330, 22, 'grill'),
+  f('Carnes', 'Tapa de asado', '100 g', 320, 22, 'grill'),
+  f('Carnes', 'Falda', '100 g', 300, 23, 'grill'),
+  f('Carnes', 'Tira de cuadril', '100 g', 250, 26),
+  f('Carnes', 'Colita de cuadril', '100 g', 200, 30, 'leanBeef'),
+  f('Carnes', 'Bola de lomo', '100 g', 175, 30, 'leanBeef'),
+  f('Carnes', 'Cuadrada', '100 g', 180, 29, 'leanBeef'),
+  f('Carnes', 'Tapa de nalga', '100 g', 175, 30, 'leanBeef'),
+  f('Carnes', 'Roast beef', '100 g', 190, 27, 'leanBeef'),
+  f('Carnes', 'Paleta de vaca', '100 g', 210, 28),
+  f('Carnes', 'Osobuco', '100 g', 190, 27),
+  f('Carnes', 'Carne para guiso', '100 g', 200, 28),
+  f('Carnes', 'Lengua', '100 g', 220, 19),
+  f('Carnes', 'Pechito de cerdo', '100 g', 350, 22, 'grill'),
+  f('Carnes', 'Carré de cerdo', '100 g', 210, 28),
+  f('Carnes', 'Matambre de cerdo', '100 g', 240, 26),
+  f('Carnes', 'Suprema de pollo', '100 g', 165, 31, 'chicken'),
+  f('Carnes', 'Muslo de pollo sin piel', '100 g', 175, 26, 'chicken'),
+  f('Carnes', 'Alitas de pollo', '100 g', 290, 27),
+  f('Carnes', 'Hígado de pollo', '100 g', 170, 24),
+  f('Carnes', 'Cabrito', '100 g', 150, 27),
+  f('Carnes', 'Conejo', '100 g', 170, 29),
 
   // Pescados y mariscos
   f('Pescados y mariscos', 'Salmón', '1 filet (150 g)', 300, 33, 'salmon'),
