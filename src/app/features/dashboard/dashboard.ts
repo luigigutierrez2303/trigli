@@ -1,5 +1,5 @@
 import { toIsoDate } from '../../core/date';
-import { levelForDay, levelForMeal, MEAL_ORDER, MealFlags, MealType, ScoreLevel, scoreDay } from '../meals/meal-scoring';
+import { hasAlcohol, levelForDay, levelForMeal, MEAL_ORDER, MealFlags, MealType, ScoreLevel, scoreDay } from '../meals/meal-scoring';
 
 export interface DailyScore {
   date: string;
@@ -104,7 +104,7 @@ export function weekGrid(
     const meals = Object.fromEntries(
       MEAL_ORDER.map((type) => {
         const m = dayMeals.find((x) => x.meal_type === type);
-        return [type, m ? { score: m.score, level: levelForMeal(m.score), alcohol: !!m.flags.alcohol } : null];
+        return [type, m ? { score: m.score, level: levelForMeal(m.score), alcohol: hasAlcohol(m.flags) } : null];
       }),
     ) as Record<MealType, GridMeal | null>;
 

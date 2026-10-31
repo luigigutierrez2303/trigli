@@ -46,7 +46,8 @@ export class LabsPage implements OnInit {
   readonly results = signal<LabResult[]>([]);
   readonly saving = signal(false);
 
-  readonly dateRaw = signal(toIsoDate(new Date()));
+  readonly today = toIsoDate(new Date());
+  readonly dateRaw = signal(this.today);
   readonly raw = signal<Record<FieldKey, string>>({ tg: '', hdl: '', ldl: '', total_chol: '', glucose: '' });
 
   readonly withTg = computed(() => this.results().filter((r) => r.tg !== null));

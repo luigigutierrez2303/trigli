@@ -43,17 +43,86 @@
   font-weight: 700;
   color: var(--level-text);
 
-  span { font-size: 3rem; }
-  small { font-size: 1.2rem; color: var(--ion-color-medium); }
+  span { font-size: 2.25rem; }
+  small { font-size: 1rem; color: var(--ion-color-medium); }
 }
 
+.score-bar { --min-height: 0; }
+
 .group-title {
-  display: block;
-  margin: 16px 16px 4px;
+  margin: 4px 0 8px;
   font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ion-color-danger);
 
-  &.good { color: var(--ion-color-success); }
+  &.good { margin-top: 20px; color: var(--trigli-ok-text); }
+}
+
+/* Cada marca es una tarjeta que se prende y se apaga con un toque. */
+.flag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 8px;
+}
+
+.flag {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 56px;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  color: var(--ion-text-color);
+  background: var(--trigli-surface-2);
+  border: 1.5px solid transparent;
+  border-radius: var(--trigli-radius-md);
+  cursor: pointer;
+
+  &:hover { border-color: var(--ion-border-color); }
+  &.bad.on { background: var(--trigli-bad-soft); border-color: var(--ion-color-danger); }
+  &.good.on { background: var(--trigli-ok-soft); border-color: var(--ion-color-success); }
+}
+
+.flag-label { font-weight: 600; font-size: 0.95rem; }
+.flag-hint { font-size: 0.78rem; color: var(--ion-color-medium); }
+
+.flag-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+
+.pts {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  &[data-sign='bad'] { color: var(--trigli-bad-text); }
+  &[data-sign='good'] { color: var(--trigli-ok-text); }
+  &[data-sign='zero'] { color: var(--ion-color-medium); }
+}
+
+.picked { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.pick {
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ion-text-color);
+  &[data-sign='bad'] { background: var(--trigli-bad-soft); }
+  &[data-sign='good'] { background: var(--trigli-ok-soft); }
+}
+
+ion-searchbar { padding-inline: 0; }
+
+.notes { margin-top: 20px; }
+
+/* En pantallas anchas el editor es un diálogo centrado; en celular ocupa toda la pantalla. */
+ion-modal.meal-modal {
+  @media (min-width: 768px) {
+    --width: 640px;
+    --height: min(88vh, 760px);
+    --border-radius: var(--trigli-radius-xl);
+  }
 }

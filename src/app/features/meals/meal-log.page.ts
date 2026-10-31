@@ -3,8 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCheckbox, IonContent, IonHeader,
-  IonIcon, IonItem, IonLabel, IonList, IonModal, IonNote, IonTextarea, IonTitle, IonToolbar,
+  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonHeader,
+  IonIcon, IonItem, IonLabel, IonList, IonModal, IonSearchbar, IonTextarea, IonTitle, IonToolbar,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -12,15 +12,17 @@ import { chevronBack, chevronForward, logOutOutline, addCircleOutline } from 'io
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import {
-  FLAG_DEFS, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
+  ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
 import { MealLog, MealService } from './meal.service';
+
+const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 @Component({
   selector: 'app-meal-log',
   imports: [
     FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
-    IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonModal, IonCheckbox, IonTextarea,
+    IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -32,8 +34,15 @@ export class MealLogPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   readonly flagDefs = FLAG_DEFS;
-  readonly negativeFlags = FLAG_DEFS.filter((f) => f.weight < 0);
-  readonly positiveFlags = FLAG_DEFS.filter((f) => f.weight > 0);
+  /** Catálogo en orden alfabético para recorrerlo con el buscador. */
+  readonly foods = [...FLAG_DEFS].sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  readonly query = signal('');
+  readonly visibleFoods = computed(() => {
+    const q = normalize(this.query());
+    return q ? this.foods.filter((f) => normalize(`${f.label} ${f.hint}`).includes(q)) : this.foods;
+  });
+  /** Lo elegido en el editor (incluye marcas viejas), para mostrarlo arriba. */
+  readonly picked = computed(() => ALL_FLAG_DEFS.filter((f) => this.draftFlags()[f.key]));
   readonly mealOrder = MEAL_ORDER;
   readonly mealLabels = MEAL_LABELS;
   readonly levelForMeal = levelForMeal;
@@ -49,7 +58,7 @@ export class MealLogPage implements OnInit {
     const s = this.dayScore();
     return s === null ? null : levelForDay(s);
   });
-  readonly hadAlcohol = computed(() => this.entries().some((e) => e.flags.alcohol));
+  readonly hadAlcohol = computed(() => this.entries().some((e) => hasAlcohol(e.flags)));
 
   // Editor
   readonly editing = signal<MealType | null>(null);
@@ -103,6 +112,7 @@ export class MealLogPage implements OnInit {
     const existing = this.byType().get(type);
     this.draftFlags.set({ ...(existing?.flags ?? {}) });
     this.draftNotes = existing?.notes ?? '';
+    this.query.set('');
     this.editing.set(type);
   }
 
@@ -142,7 +152,7 @@ export class MealLogPage implements OnInit {
   }
 
   flagLabels(flags: MealFlags): string {
-    return FLAG_DEFS.filter((f) => flags[f.key]).map((f) => f.label).join(' · ');
+    return ALL_FLAG_DEFS.filter((f) => flags[f.key]).map((f) => f.label).join(' · ');
   }
 
   logout() {

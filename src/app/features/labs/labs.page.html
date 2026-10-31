@@ -32,7 +32,7 @@
     <ion-card-header><ion-card-title>Nuevo análisis</ion-card-title></ion-card-header>
     <ion-card-content>
       <ion-item>
-        <ion-input label="Fecha" labelPlacement="stacked" type="date" [max]="dateRaw()"
+        <ion-input label="Fecha" labelPlacement="stacked" type="date" [max]="today"
           [value]="dateRaw()" (ionInput)="dateRaw.set($any($event.target).value ?? '')" />
       </ion-item>
       @for (f of fields; track f.key) {

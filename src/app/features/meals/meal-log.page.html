@@ -55,58 +55,56 @@
     }
   </ion-list>
 
-  <ion-modal [isOpen]="editing() !== null" (didDismiss)="close()" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9, 1]">
+  <ion-modal class="meal-modal" [isOpen]="editing() !== null" (didDismiss)="close()">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-button (click)="close()">Cancelar</ion-button>
+            <ion-button fill="clear" (click)="close()">Cancelar</ion-button>
           </ion-buttons>
           <ion-title>{{ editing() ? mealLabels[editing()!] : '' }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button strong (click)="save()" [disabled]="saving()">Guardar</ion-button>
+            <ion-button fill="solid" (click)="save()" [disabled]="saving()">Guardar</ion-button>
           </ion-buttons>
+        </ion-toolbar>
+        <ion-toolbar class="score-bar">
+          <div class="draft-score" [attr.data-level]="levelForMeal(draftScore())">
+            <span>{{ draftScore() }}</span><small>/10</small>
+          </div>
         </ion-toolbar>
       </ion-header>
 
       <ion-content class="ion-padding">
-        <div class="draft-score" [attr.data-level]="levelForMeal(draftScore())">
-          <span>{{ draftScore() }}</span><small>/10</small>
+        <ion-searchbar placeholder="Buscar comida (ej. milanesa, salmón)" [debounce]="150"
+          (ionInput)="query.set($any($event.target).value ?? '')" />
+
+        @if (picked().length) {
+          <div class="picked">
+            @for (f of picked(); track f.key) {
+              <button type="button" class="pick" [attr.data-sign]="f.weight < 0 ? 'bad' : 'good'" (click)="toggle(f.key, false)">
+                {{ f.label }} <b>{{ f.weight > 0 ? '+' : '' }}{{ f.weight }}</b> ✕
+              </button>
+            }
+          </div>
+        }
+
+        <div class="flag-grid">
+          @for (f of visibleFoods(); track f.key) {
+            <button type="button" class="flag" [class.bad]="f.weight < 0" [class.good]="f.weight > 0"
+              [class.on]="!!draftFlags()[f.key]" [attr.aria-pressed]="!!draftFlags()[f.key]"
+              (click)="toggle(f.key, !draftFlags()[f.key])">
+              <span class="flag-top">
+                <span class="flag-label">{{ f.label }}</span>
+                <span class="pts" [attr.data-sign]="f.weight < 0 ? 'bad' : f.weight > 0 ? 'good' : 'zero'">{{ f.weight > 0 ? '+' : '' }}{{ f.weight }}</span>
+              </span>
+              @if (f.hint) { <span class="flag-hint">{{ f.hint }}</span> }
+            </button>
+          } @empty {
+            <p class="muted">No encontramos "{{ query() }}".</p>
+          }
         </div>
 
-        <ion-list lines="none">
-          <ion-note class="group-title">Suman triglicéridos</ion-note>
-          @for (f of negativeFlags; track f.key) {
-            <ion-item>
-              <ion-checkbox
-                justify="space-between"
-                [checked]="!!draftFlags()[f.key]"
-                (ionChange)="toggle(f.key, $event.detail.checked)">
-                <ion-label>
-                  {{ f.label }}
-                  @if (f.hint) { <p>{{ f.hint }}</p> }
-                </ion-label>
-              </ion-checkbox>
-            </ion-item>
-          }
-
-          <ion-note class="group-title good">Ayudan</ion-note>
-          @for (f of positiveFlags; track f.key) {
-            <ion-item>
-              <ion-checkbox
-                justify="space-between"
-                [checked]="!!draftFlags()[f.key]"
-                (ionChange)="toggle(f.key, $event.detail.checked)">
-                <ion-label>
-                  {{ f.label }}
-                  @if (f.hint) { <p>{{ f.hint }}</p> }
-                </ion-label>
-              </ion-checkbox>
-            </ion-item>
-          }
-        </ion-list>
-
-        <ion-item>
+        <ion-item class="notes">
           <ion-textarea label="Notas" labelPlacement="stacked" [(ngModel)]="draftNotes" [autoGrow]="true"
             placeholder="Qué comiste (opcional)" />
         </ion-item>
