@@ -1,13 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonToolbar,
-  ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { barbellOutline, logOutOutline, trashOutline } from 'ionicons/icons';
+import { barbellOutline, trashOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
-import { Supabase } from '../../core/supabase';
 import { isValidMinutes, parseDecimal } from '../activity/activity';
 import { kcalBurned, STRENGTH_MET } from '../energy/energy';
 import { ProfileService } from '../energy/profile.service';
@@ -17,7 +14,7 @@ import { Exercise, NewSet, StrengthService, StrengthSession } from './strength.s
 @Component({
   selector: 'app-strength',
   imports: [
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonInput, IonSelect,
     IonSelectOption,
   ],
@@ -26,7 +23,6 @@ import { Exercise, NewSet, StrengthService, StrengthSession } from './strength.s
 })
 export class StrengthPage implements OnInit {
   private readonly strength = inject(StrengthService);
-  private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
 
   readonly exercises = signal<Exercise[]>([]);
@@ -73,7 +69,7 @@ export class StrengthPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ barbellOutline, logOutOutline, trashOutline });
+    addIcons({ barbellOutline, trashOutline });
   }
 
   async ngOnInit() {
@@ -146,9 +142,6 @@ export class StrengthPage implements OnInit {
     return `${names.join(' · ')} — ${s.workout_set.length} series`;
   }
 
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
-  }
 
   private async showError(e: unknown) {
     const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';

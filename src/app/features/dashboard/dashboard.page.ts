@@ -1,13 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonProgressBar, IonToolbar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonProgressBar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { addCircleOutline, chevronBack, chevronForward, logOutOutline } from 'ionicons/icons';
+import { addCircleOutline, chevronBack, chevronForward } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
-import { Supabase } from '../../core/supabase';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
 import { EnergyProgressComponent } from '../energy/energy-progress.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
@@ -23,7 +21,7 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 @Component({
   selector: 'app-dashboard',
   imports: [
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent,
   ],
   templateUrl: './dashboard.page.html',
@@ -31,7 +29,6 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 })
 export class DashboardPage implements OnInit {
   private readonly dashboard = inject(DashboardService);
-  private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
 
   readonly dayLetters = DAY_LETTERS;
@@ -72,7 +69,7 @@ export class DashboardPage implements OnInit {
   readonly firstTgDate = computed(() => this.data()?.tgSeries[0]?.date ?? null);
 
   constructor() {
-    addIcons({ addCircleOutline, chevronBack, chevronForward, logOutOutline });
+    addIcons({ addCircleOutline, chevronBack, chevronForward });
   }
 
   ngOnInit() {
@@ -115,7 +112,4 @@ export class DashboardPage implements OnInit {
     return { fecha: day.date, comida: meal };
   }
 
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
-  }
 }

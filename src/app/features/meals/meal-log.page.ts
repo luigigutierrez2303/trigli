@@ -9,7 +9,7 @@ import {
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, logOutOutline, addCircleOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
@@ -115,7 +115,7 @@ export class MealLogPage implements OnInit {
       this.profiles.changes();
       untracked(() => void this.loadEnergy());
     });
-    addIcons({ chevronBack, chevronForward, logOutOutline, addCircleOutline });
+    addIcons({ chevronBack, chevronForward, addCircleOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD&comida=dinner abre el editor de esa comida.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(async (params) => {
       const fecha = params.get('fecha');
@@ -263,9 +263,6 @@ export class MealLogPage implements OnInit {
     return ALL_FLAG_DEFS.filter((f) => flags[f.key]).map((f) => f.label).join(' · ');
   }
 
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
-  }
 
   private async showError(e: unknown) {
     const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';

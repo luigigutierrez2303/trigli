@@ -39,6 +39,20 @@ export const NAV = [
         </button>
       </nav>
 
+      <div class="main">
+      <header class="topbar">
+        <span class="brand">
+          <svg width="28" height="28" viewBox="0 0 120 120" aria-hidden="true">
+            <rect width="120" height="120" rx="28" fill="#0F3D3E" />
+            <polyline points="22,36 48,56 66,48 92,82" fill="none" stroke="#C8F169" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="92" cy="82" r="10" fill="#fff" />
+          </svg>
+          <span class="wordmark">trigl<span class="dot">i</span></span>
+        </span>
+        <button class="theme-btn" type="button" (click)="toggleTheme()" [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+          <ion-icon [name]="theme.isDark() ? 'sunny-outline' : 'moon-outline'" />
+        </button>
+      </header>
       <ion-tabs class="content">
         <ion-tab-bar slot="bottom">
           @for (n of nav; track n.path) {
@@ -49,16 +63,32 @@ export const NAV = [
           }
         </ion-tab-bar>
       </ion-tabs>
+      </div>
     </div>
   `,
   styles: `
     .shell { display: flex; height: 100%; }
-    .content { flex: 1; min-width: 0; position: relative; }
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
+    .content { flex: 1; min-height: 0; position: relative; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; flex: none;
+      padding: calc(6px + env(safe-area-inset-top)) 12px 6px 16px;
+      background: var(--ion-background-color); border-bottom: 1px solid var(--ion-border-color);
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .wordmark { font: 800 22px/1 'Bricolage Grotesque', var(--ion-font-family); letter-spacing: -0.04em; color: var(--ion-text-color); }
+    .wordmark .dot { color: var(--trigli-primary-text); }
+    .theme-btn {
+      width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; cursor: pointer;
+      color: var(--ion-color-medium); font-size: 24px; display: flex; align-items: center; justify-content: center;
+    }
+    .theme-btn:hover { background: var(--trigli-surface-2); }
     .rail { display: none; }
 
     /* Desktop: rail vertical de 80 px en lugar de la barra inferior. */
     @media (min-width: 1024px) {
       ion-tab-bar { display: none; }
+      .topbar { display: none; }
 
       .rail {
         display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 80px; padding: 20px 0;

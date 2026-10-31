@@ -1,12 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonToolbar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { logOutOutline, trashOutline, flaskOutline } from 'ionicons/icons';
+import { trashOutline, flaskOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
-import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
 import { classifyTg, percentChange, TG_LEVEL_LABELS } from './labs';
 import { LabResult, LabService, NewLab } from './labs.service';
@@ -27,7 +25,7 @@ const isLabValue = (n: number | null): n is number => n !== null && Number.isInt
 @Component({
   selector: 'app-labs',
   imports: [
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonItem, IonLabel, IonBadge, IonInput, LineChartComponent,
   ],
   templateUrl: './labs.page.html',
@@ -35,7 +33,6 @@ const isLabValue = (n: number | null): n is number => n !== null && Number.isInt
 })
 export class LabsPage implements OnInit {
   private readonly labs = inject(LabService);
-  private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
 
   readonly fields = FIELDS;
@@ -70,7 +67,7 @@ export class LabsPage implements OnInit {
   );
 
   constructor() {
-    addIcons({ logOutOutline, trashOutline, flaskOutline });
+    addIcons({ trashOutline, flaskOutline });
   }
 
   async ngOnInit() {
@@ -114,9 +111,6 @@ export class LabsPage implements OnInit {
     return FIELDS.filter((f) => f.key !== 'tg' && r[f.key] !== null).map((f) => `${f.label.split(' ')[0]} ${r[f.key]}`).join(' · ');
   }
 
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
-  }
 
   private async showError(e: unknown) {
     const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';

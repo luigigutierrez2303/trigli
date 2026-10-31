@@ -109,3 +109,14 @@ ion-button[disabled]:not([fill='clear']):not([fill='outline']) { opacity: 0.45; 
 @media (min-width: 1024px) {
   ion-router-outlet > * > ion-header { display: none; }
 }
+
+/* Modales: una sola superficie (encabezado, cuerpo y barra de herramientas del mismo color). */
+ion-modal {
+  --background: var(--ion-card-background);
+  ion-header ion-toolbar { --background: var(--ion-card-background); --border-width: 0; }
+  ion-header { background: var(--ion-card-background); box-shadow: none; }
+  ion-content { --background: var(--ion-card-background); }
+  ion-segment { --background: var(--trigli-surface-2); margin-bottom: 4px; }
+  ion-searchbar { --background: var(--trigli-surface-2); --box-shadow: none; --border-radius: var(--trigli-radius-md); }
+}
+ion-modal::part(content) { background: var(--ion-card-background); }

@@ -2,13 +2,11 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader,
-  IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonToolbar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, trashOutline, walkOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
-import { Supabase } from '../../core/supabase';
 import {
   cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, weekEnd, weekStart, weightDelta,
   WEEKLY_CARDIO_GOAL_MIN,
@@ -20,7 +18,7 @@ import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
 @Component({
   selector: 'app-activity',
   imports: [
-    IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
+    IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar,
   ],
   templateUrl: './activity.page.html',
@@ -30,7 +28,6 @@ export class ActivityPage implements OnInit {
   private readonly activity = inject(ActivityService);
   private readonly profiles = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
-  private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
 
   readonly weeklyGoal = WEEKLY_CARDIO_GOAL_MIN;
@@ -100,7 +97,7 @@ export class ActivityPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, logOutOutline, trashOutline, walkOutline });
+    addIcons({ chevronBack, chevronForward, trashOutline, walkOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD abre Actividad en ese día.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const fecha = params.get('fecha');
@@ -188,9 +185,6 @@ export class ActivityPage implements OnInit {
     }
   }
 
-  logout() {
-    this.sb.signOut().then(() => location.assign('/login'));
-  }
 
   private async showError(e: unknown) {
     const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';

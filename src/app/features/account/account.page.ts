@@ -2,8 +2,10 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonInput, IonItem, IonList,
-  IonLabel, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonText, ToastController,
+  IonIcon, IonLabel, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonText, ToastController,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { logOutOutline } from 'ionicons/icons';
 import { Supabase } from '../../core/supabase';
 import { ThemeMode, ThemeService } from '../../core/theme';
 import { toIsoDate } from '../../core/date';
@@ -30,7 +32,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
   selector: 'app-account',
   imports: [
     FormsModule, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonInput,
-    IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel,
+    IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel, IonIcon,
   ],
   template: `
     <ion-content class="ion-padding">
@@ -140,7 +142,14 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
         </ion-card-content>
       </ion-card>
 
-      <ion-button expand="block" fill="outline" color="danger" class="logout" (click)="logout()">Cerrar sesión</ion-button>
+      <ion-card>
+        <ion-card-content class="signout-card">
+          <button type="button" class="signout" (click)="logout()">
+            <ion-icon name="log-out-outline" aria-hidden="true" />
+            <span>Cerrar sesión</span>
+          </button>
+        </ion-card-content>
+      </ion-card>
     </ion-content>
   `,
   styles: `
@@ -166,8 +175,11 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
     .save.saved { --background: var(--trigli-ok-soft); --color: var(--trigli-ok-text); --opacity: 1; }
     .who { min-width: 0; }
     .email { margin: 0 0 4px; font-weight: 600; word-break: break-all; }
-    .logout { margin: 16px; }
-    @media (min-width: 1024px) { ion-card, .logout { max-width: 640px; } }
+    .signout-card { padding: 4px; }
+    .signout { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; color: var(--ion-color-danger); font: inherit; font-weight: 600; cursor: pointer; }
+    .signout:hover { background: var(--trigli-bad-soft); }
+    .signout ion-icon { font-size: 22px; }
+    @media (min-width: 1024px) { ion-card { max-width: 640px; } }
   `,
 })
 export class AccountPage implements OnInit {
@@ -266,6 +278,10 @@ export class AccountPage implements OnInit {
       this.goalError.set('No pudimos guardar tu meta. Revisá tu conexión y probá de nuevo.');
     }
     this.goalSaving.set(false);
+  }
+
+  constructor() {
+    addIcons({ logOutOutline });
   }
 
   async ngOnInit() {
