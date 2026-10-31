@@ -8,6 +8,7 @@ import { addCircleOutline, chevronBack, chevronForward } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
 import { EnergyProgressComponent } from '../energy/energy-progress.component';
+import { WeightChartComponent } from '../energy/weight-chart.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
 import { classifyTg, percentChange, TG_LEVEL_LABELS } from '../labs/labs';
 import { LineChartComponent } from '../labs/line-chart.component';
@@ -22,7 +23,7 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   selector: 'app-dashboard',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent,
+    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent,
   ],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',

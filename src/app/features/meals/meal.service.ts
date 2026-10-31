@@ -31,6 +31,21 @@ export class MealService {
     return data as MealLog[];
   }
 
+  /** La comida más reciente del mismo tipo anterior a `date` (para repetirla). */
+  async latestOfType(mealType: MealType, date: string): Promise<MealLog | null> {
+    const { data, error } = await this.db
+      .from('meal_log')
+      .select(COLS)
+      .eq('meal_type', mealType)
+      .lt('date', date)
+      .not('kcal', 'is', null)
+      .order('date', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data as MealLog | null;
+  }
+
   /** Una entrada por (día, comida): upsert sobre la unique constraint. */
   async save(date: string, mealType: MealType, flags: MealFlags, notes: string | null, items: MealItem[], kcal: number | null): Promise<MealLog> {
     const clean = Object.fromEntries(Object.entries(flags).filter(([, v]) => v)) as MealFlags;

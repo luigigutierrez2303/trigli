@@ -21,7 +21,7 @@
           </div>
         </div>
       }
-      <app-line-chart [points]="tgPoints()" [refs]="tgRefs" [zones]="true" [width]="640" [height]="220"
+      <app-line-chart [points]="tgPoints()" [refs]="tgRefs" [zones]="true" [width]="chartSize.w" [height]="chartSize.h"
         ariaLabel="Evolución de triglicéridos" />
       <ul class="legend" aria-label="Referencias">
         <li data-level="good">Normal: menos de 150</li>

@@ -51,6 +51,8 @@ export class LabsPage implements OnInit {
   readonly tgPoints = computed(() => this.withTg().map((r) => ({ label: r.date, value: r.tg! })));
   readonly latestTg = computed(() => this.withTg().at(-1)?.tg ?? null);
   readonly tgChange = computed(() => percentChange(this.withTg().map((r) => r.tg!)));
+  /** Proporción del gráfico según el ancho de pantalla, para que el texto no quede diminuto en celular. */
+  readonly chartSize = window.innerWidth < 600 ? { w: 360, h: 240 } : { w: 640, h: 220 };
   readonly latestDate = computed(() => this.withTg().at(-1)?.date ?? null);
   readonly fmtDate = (iso: string) =>
     new Date(iso + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });

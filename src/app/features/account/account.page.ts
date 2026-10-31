@@ -68,8 +68,10 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
 
       <ion-card class="goal">
         <ion-card-header>
-          <ion-card-title>Mi meta</ion-card-title>
-          <p class="lead">Con estos datos calculamos tus calorías diarias.</p>
+          <div>
+            <ion-card-title>Mi meta</ion-card-title>
+            <p class="lead">Con estos datos calculamos tus calorías diarias.</p>
+          </div>
         </ion-card-header>
         <ion-card-content>
           <div class="field-label">Sexo</div>

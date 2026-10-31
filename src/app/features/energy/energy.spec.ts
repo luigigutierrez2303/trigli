@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ageOn, bmr, dailyPlan, dayBalance, EnergyProfile, itemsKcal, itemsProtein, kcalBurned, MIN_DAILY_KCAL, proteinGoal, smoothWeights, tdee, weekEnergy, weeksToGoal,
-  weightTrend,
+  mergeItems, projectGoal, weightTrend,
 } from './energy';
 import { flagsOfItems } from './foods';
 
@@ -97,5 +97,19 @@ describe('energy', () => {
   it('deriva las marcas de calidad de los alimentos', () => {
     expect(flagsOfItems(['Salmón', 'Ensalada mixta', 'Otro'])).toEqual({ salmon: true, salad: true });
     expect(flagsOfItems([])).toEqual({});
+  });
+
+  it('mezcla ítems acumulando porciones de los repetidos', () => {
+    const base = [{ name: 'Huevo', kcal: 75, protein: 6, qty: 2 }];
+    const out = mergeItems(base, [{ name: 'Huevo', kcal: 75, protein: 6, qty: 1 }, { name: 'Palta', kcal: 120, qty: 1 }]);
+    expect(out).toEqual([{ name: 'Huevo', kcal: 75, protein: 6, qty: 3 }, { name: 'Palta', kcal: 120, qty: 1 }]);
+    expect(base[0].qty).toBe(2); // no muta lo original
+  });
+
+  it('proyecta la fecha de llegada al peso objetivo', () => {
+    expect(projectGoal(90, 80, -0.5, '2026-10-30')).toBe('2027-03-19'); // 20 semanas
+    expect(projectGoal(80, 80, -0.5, '2026-10-30')).toBeNull();
+    expect(projectGoal(90, 80, 0.2, '2026-10-30')).toBeNull();
+    expect(projectGoal(90, 40, -0.1, '2026-10-30')).toBeNull(); // más de dos años
   });
 });

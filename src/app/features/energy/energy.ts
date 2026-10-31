@@ -136,6 +136,17 @@ export interface MealItem {
 export const itemsKcal = (items: MealItem[]) => Math.round(items.reduce((sum, i) => sum + i.kcal * i.qty, 0));
 export const itemsProtein = (items: MealItem[]) => Math.round(items.reduce((sum, i) => sum + (i.protein ?? 0) * i.qty, 0));
 
+/** Suma `extra` a `base`: un alimento que ya está (mismo nombre y valores) acumula porciones en vez de repetirse. */
+export function mergeItems(base: MealItem[], extra: MealItem[]): MealItem[] {
+  const out = base.map((i) => ({ ...i }));
+  for (const item of extra) {
+    const same = out.find((i) => i.name === item.name && i.kcal === item.kcal && i.protein === item.protein);
+    if (same) same.qty = Math.round((same.qty + item.qty) * 1000) / 1000;
+    else out.push({ ...item });
+  }
+  return out;
+}
+
 /** Proteína diaria para cuidar el músculo mientras se baja de peso: ~1,6 g por kg. */
 export const proteinGoal = (weightKg: number) => Math.round(weightKg * 1.6);
 
@@ -153,6 +164,19 @@ export function smoothWeights(points: WeightPoint[], windowDays = 7): WeightPoin
     const window = points.filter((q) => daysBetween(q.date, p.date) >= 0 && daysBetween(q.date, p.date) < windowDays);
     return { date: p.date, kg: Math.round((window.reduce((sum, q) => sum + q.kg, 0) / window.length) * 10) / 10 };
   });
+}
+
+/**
+ * Fecha estimada para llegar al peso objetivo si seguís bajando al ritmo dado (kg por semana, negativo = bajando).
+ * null si ya llegaste, si no estás bajando o si queda a más de dos años.
+ */
+export function projectGoal(currentKg: number, goalKg: number, ratePerWeek: number, fromIso: string): string | null {
+  if (currentKg <= goalKg || ratePerWeek >= 0) return null;
+  const weeks = (currentKg - goalKg) / -ratePerWeek;
+  if (weeks > 104) return null;
+  const d = new Date(fromIso + 'T12:00:00');
+  d.setDate(d.getDate() + Math.ceil(weeks * 7));
+  return d.toISOString().slice(0, 10);
 }
 
 export type TrendStatus = 'insufficient' | 'gaining' | 'stalled' | 'on_track' | 'fast';

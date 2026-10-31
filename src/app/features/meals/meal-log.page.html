@@ -90,6 +90,30 @@
 
       <ion-content class="ion-padding modal-body">
         @if (tab() === 'kcal') {
+          @if (previous() && !draftItems().length) {
+            <button type="button" class="repeat" (click)="repeatPrevious()">
+              <span class="repeat-title">↺ Repetir {{ mealLabels[editing()!].toLowerCase() }} anterior</span>
+              <span class="repeat-sub">{{ previous()!.kcal }} kcal · {{ previous()!.date }}</span>
+            </button>
+          }
+          @if (favorites().length) {
+            <div class="fav-head">
+              <span class="field-label">Favoritas</span>
+              <button type="button" class="link" (click)="manageFavs.set(!manageFavs())">{{ manageFavs() ? 'Listo' : 'Editar' }}</button>
+            </div>
+            <div class="favs">
+              @for (fav of favorites(); track fav.id) {
+                <span class="fav">
+                  <button type="button" class="fav-main" (click)="applyFavorite(fav)">
+                    <b>★ {{ fav.name }}</b><small>{{ favKcal(fav) }} kcal</small>
+                  </button>
+                  @if (manageFavs()) {
+                    <button type="button" class="fav-del" (click)="removeFavorite(fav.id)" [attr.aria-label]="'Borrar ' + fav.name">✕</button>
+                  }
+                </span>
+              }
+            </div>
+          }
           @if (draftItems().length) {
             <ion-list lines="full" class="items">
               @for (item of draftItems(); track $index) {
@@ -114,6 +138,17 @@
             </ion-list>
           }
 
+          @if (draftItems().length) {
+            @if (showFavForm()) {
+              <div class="fav-form">
+                <ion-input fill="outline" label="Nombre de la favorita" labelPlacement="stacked" placeholder="Ej. Desayuno de siempre"
+                  [(ngModel)]="favName" (keyup.enter)="saveFavorite()" />
+                <ion-button (click)="saveFavorite()" [disabled]="!favName.trim()">Guardar</ion-button>
+              </div>
+            } @else {
+              <button type="button" class="link save-fav" (click)="showFavForm.set(true)">★ Guardar como favorita</button>
+            }
+          }
           <ion-searchbar placeholder="Buscar alimento (ej. milanesa, mate)" [debounce]="150"
             (ionInput)="foodQuery.set($any($event.target).value ?? '')" />
           <div class="cats" role="group" aria-label="Categorías">

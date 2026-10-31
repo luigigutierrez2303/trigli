@@ -13,12 +13,13 @@ import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
-import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, MealItem } from '../energy/energy';
+import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, mergeItems, MealItem } from '../energy/energy';
 import { flagsOfItems, Food, FOOD_CATEGORIES, FOODS } from '../energy/foods';
 import { ProfileService } from '../energy/profile.service';
 import {
   ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
+import { FavoriteMeal, FavoriteService } from './favorite.service';
 import { MealLog, MealService } from './meal.service';
 
 const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
@@ -39,6 +40,7 @@ export class MealLogPage implements OnInit {
   private readonly toast = inject(ToastController);
   private readonly route = inject(ActivatedRoute);
   private readonly profiles = inject(ProfileService);
+  private readonly favoriteService = inject(FavoriteService);
 
   readonly flagDefs = FLAG_DEFS;
   /** Catálogo en orden alfabético para recorrerlo con el buscador. */
@@ -93,6 +95,14 @@ export class MealLogPage implements OnInit {
     const found = q ? inCat.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : inCat;
     return found.slice(0, q || cat ? 60 : 15);
   });
+  // Favoritas y repetir
+  readonly favorites = signal<FavoriteMeal[]>([]);
+  /** Última comida del mismo tipo registrada antes; se ofrece para repetir. */
+  readonly previous = signal<MealLog | null>(null);
+  readonly manageFavs = signal(false);
+  readonly showFavForm = signal(false);
+  favName = '';
+  readonly favKcal = (fav: FavoriteMeal) => itemsKcal(fav.items);
   manualName = '';
   manualKcalRaw = signal('');
   readonly editing = signal<MealType | null>(null);
@@ -129,6 +139,7 @@ export class MealLogPage implements OnInit {
 
   ngOnInit() {
     if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
+    this.favoriteService.list().then((list) => this.favorites.set(list)).catch(() => undefined);
   }
 
   /** Meta diaria y kcal quemadas; se recarga cuando cambia el perfil, el peso o los entrenos. */
@@ -174,6 +185,11 @@ export class MealLogPage implements OnInit {
     this.manualName = '';
     this.manualKcalRaw.set('');
     this.tab.set('kcal');
+    this.manageFavs.set(false);
+    this.showFavForm.set(false);
+    this.favName = '';
+    this.previous.set(null);
+    this.meals.latestOfType(type, this.date()).then((p) => this.previous.set(p)).catch(() => undefined);
     this.editing.set(type);
   }
 
@@ -200,6 +216,49 @@ export class MealLogPage implements OnInit {
     this.draftItems.update((items) => [...items, { name: this.manualName.trim() || 'Otro', kcal: Math.round(kcal), qty: 1 }]);
     this.manualName = '';
     this.manualKcalRaw.set('');
+  }
+
+  /** Marcas manuales de un conjunto de flags: las que no vienen de los alimentos. */
+  private manualFlags(flags: MealFlags, items: MealItem[]): MealFlags {
+    const fromItems = flagsOfItems(items.map((i) => i.name));
+    return Object.fromEntries(Object.entries(flags).filter(([k, v]) => v && !fromItems[k]));
+  }
+
+  /** Copia a la comida en edición los alimentos y marcas de otra (una favorita o la última del tipo). */
+  private applyMeal(items: MealItem[], flags: MealFlags) {
+    this.draftItems.update((current) => mergeItems(current, items));
+    this.draftFlags.update((current) => ({ ...current, ...this.manualFlags(flags, items) }));
+  }
+
+  repeatPrevious() {
+    const p = this.previous();
+    if (p) this.applyMeal(p.items, p.flags);
+  }
+
+  applyFavorite(fav: FavoriteMeal) {
+    this.applyMeal(fav.items, fav.flags);
+  }
+
+  async saveFavorite() {
+    const name = this.favName.trim();
+    if (!name || !this.draftItems().length) return;
+    try {
+      const fav = await this.favoriteService.add(name, this.draftItems(), this.manualFlags(this.draftFlags(), this.draftItems()));
+      this.favorites.update((list) => [fav, ...list]);
+      this.favName = '';
+      this.showFavForm.set(false);
+    } catch (e) {
+      this.showError(e);
+    }
+  }
+
+  async removeFavorite(id: string) {
+    try {
+      await this.favoriteService.remove(id);
+      this.favorites.update((list) => list.filter((f) => f.id !== id));
+    } catch (e) {
+      this.showError(e);
+    }
   }
 
   /** Gramos de un ítem que tiene peso de referencia. */

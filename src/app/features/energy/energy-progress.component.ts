@@ -46,7 +46,7 @@ const addDays = (iso: string, delta: number) => {
       }
 
       @if (proteinTarget(); as goal) {
-        <ion-card class="tile" [attr.data-status]="proteinPct() >= 1 ? 'on_track' : 'stalled'">
+        <ion-card class="tile protein" [attr.data-status]="proteinPct() >= 1 ? 'on_track' : 'stalled'">
           <ion-card-content>
             <div class="eyebrow">Proteína de hoy</div>
             <div class="big">{{ todayProtein() }}<small> / {{ goal }} g</small></div>
@@ -59,6 +59,11 @@ const addDays = (iso: string, delta: number) => {
   `,
   styles: `
     :host { display: contents; }
+    @media (max-width: 599px) {
+      .tile.protein { grid-column: 1 / -1; }
+      .big { font-size: 2rem; }
+      .msg, .fine { font-size: 0.8125rem; }
+    }
     .tile { margin: 0; height: 100%; border-top: 4px solid var(--status-color, var(--ion-color-medium)); }
     .tile[data-status='on_track'] { --status-color: var(--trigli-ok-text); }
     .tile[data-status='stalled'], .tile[data-status='fast'] { --status-color: var(--trigli-warn-text); }

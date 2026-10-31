@@ -43,6 +43,7 @@ import { DayEnergy, ProfileService } from './profile.service';
   `,
   styles: `
     :host { display: contents; }
+    @media (max-width: 599px) { .tile { grid-column: 1 / -1; } }
     .tile { margin: 0; height: 100%; border-top: 4px solid var(--kcal-color, var(--ion-color-medium)); }
     .tile[data-kcal='ok'] { --kcal-color: var(--trigli-ok-text); }
     .tile[data-kcal='low'], .tile[data-kcal='close'] { --kcal-color: var(--trigli-warn-text); }

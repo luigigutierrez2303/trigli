@@ -120,3 +120,22 @@ ion-modal {
   ion-searchbar { --background: var(--trigli-surface-2); --box-shadow: none; --border-radius: var(--trigli-radius-md); }
 }
 ion-modal::part(content) { background: var(--ion-card-background); }
+
+/* Contraste: el verde lima no se lee sobre fondo claro, así que los botones de texto usan el verde del texto primario. */
+ion-button[fill='clear']:not([color]) { --color: var(--trigli-primary-text); }
+ion-toolbar ion-buttons ion-button:not([fill='clear']):not([fill='outline']):not([color]) {
+  --background: var(--ion-color-primary); --color: var(--ion-color-primary-contrast);
+}
+ion-toolbar ion-buttons ion-button:not([fill='clear']):not([fill='outline']):not([color])::part(native) { color: var(--ion-color-primary-contrast); }
+
+/* "Outline" de Ionic solo existe en modo md; la app usa ios, así que los campos se dibujan a mano. */
+ion-input[fill='outline'], ion-select[fill='outline'], ion-textarea[fill='outline'] {
+  --padding-start: 0; --padding-end: 0;
+  min-height: 60px;
+  padding: 8px 14px;
+  border: 1px solid var(--ion-border-color);
+  border-radius: var(--trigli-radius-md);
+  background: var(--trigli-surface-2);
+  box-sizing: border-box;
+  &:focus-within { border-color: var(--trigli-primary-text); }
+}
