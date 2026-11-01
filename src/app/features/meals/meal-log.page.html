@@ -162,6 +162,9 @@
               <button type="button" class="food" (click)="addFood(f)">
                 <span><b>{{ f.name }}</b><small>{{ f.portion }}</small></span>
                 <span class="food-kcal">{{ f.kcal }} kcal</span>
+                @if (isCustom(f)) {
+                  <span class="food-del" role="button" aria-label="Quitar de mi lista" (click)="removeCustom(f, $event)">×</span>
+                }
               </button>
             } @empty {
               <p class="muted">No lo tenemos en la lista. Cargalo a mano abajo.</p>
@@ -174,6 +177,8 @@
               [value]="manualKcalRaw()" (ionInput)="manualKcalRaw.set($any($event.target).value ?? '')" />
             <ion-button (click)="addManual()" [disabled]="!canAddManual()">Agregar</ion-button>
           </div>
+          <button type="button" class="link save-fav" (click)="saveManualFood()"
+            [disabled]="!canAddManual() || !manualName.trim()">+ Guardar en mi lista de alimentos</button>
         } @else {
         <p class="muted">Los alimentos que cargás en Calorías se marcan solos acá. Sumá a mano lo que falte.</p>
         <ion-searchbar placeholder="Buscar comida (ej. milanesa, salmón)" [debounce]="150"

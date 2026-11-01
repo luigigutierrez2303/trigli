@@ -150,6 +150,7 @@ ion-modal.meal-modal {
   small { color: var(--ion-color-medium); }
 }
 .food-kcal { font-weight: 600; white-space: nowrap; }
+.food-del { margin-left: 10px; padding: 0 6px; font-size: 20px; line-height: 1; color: var(--ion-color-medium); }
 .manual { display: grid; grid-template-columns: 1fr 96px auto; gap: 8px; align-items: end; margin-bottom: 16px; }
 
 .cats {

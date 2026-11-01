@@ -338,13 +338,135 @@ export const FOODS: Food[] = [
   f('Grasas, semillas y salsas', 'Mayonesa', '1 cda', 90, 0),
   f('Grasas, semillas y salsas', 'Salsa de tomate', '½ taza', 50, 2),
   f('Grasas, semillas y salsas', 'Ketchup', '1 cda', 15, 0),
+  f('Grasas, semillas y salsas', 'Guasacaca', '2 cdas', 45, 0),
+  f('Grasas, semillas y salsas', 'Salsa rosada', '1 cda', 70, 0),
+
+  // Comida venezolana
+  f('Desayuno y panificados', 'Arepa de harina de maíz (sola)', '1 unidad (120 g)', 210, 4, 'whiteBread'),
+  f('Desayuno y panificados', 'Arepa asada o al horno (sin fritura)', '1 unidad (100 g)', 180, 4, 'whiteBread'),
+  f('Desayuno y panificados', 'Arepa frita', '1 unidad (120 g)', 290, 4, 'whiteBread'),
+  f('Desayuno y panificados', 'Arepa de maíz pilado', '1 unidad (120 g)', 200, 5),
+  f('Desayuno y panificados', 'Cachapa con queso de mano', '1 unidad', 430, 16, 'creamCheese'),
+  f('Desayuno y panificados', 'Cachito de jamón', '1 unidad', 330, 10, 'pastries'),
+  f('Desayuno y panificados', 'Pan de jamón', '1 porción', 330, 10, 'whiteBread'),
+  f('Desayuno y panificados', 'Golfeado', '1 unidad', 380, 8, 'pastries'),
+  f('Desayuno y panificados', 'Pan canilla', '1 unidad (40 g)', 110, 4, 'whiteBread'),
+  f('Desayuno y panificados', 'Casabe', '1 torta (50 g)', 170, 1),
+  f('Quesos', 'Queso blanco duro', '30 g', 100, 7, 'creamCheese'),
+  f('Quesos', 'Queso de mano', '30 g', 85, 6, 'creamCheese'),
+  f('Quesos', 'Queso telita', '30 g', 75, 5, 'freshCheese'),
+  f('Quesos', 'Queso llanero', '30 g', 95, 7, 'creamCheese'),
+  f('Lácteos y huevos', 'Nata', '1 cda', 60, 0, 'creamCheese'),
+  f('Lácteos y huevos', 'Suero o cuajada', '3 cdas (50 g)', 80, 5, 'freshCheese'),
+  f('Verduras', 'Tajadas de plátano maduro fritas', '4 tajadas', 250, 1, 'fries'),
+  f('Verduras', 'Plátano maduro al horno', '½ unidad', 110, 1, 'potatoSweet'),
+  f('Verduras', 'Plátano verde sancochado', '½ unidad', 100, 1, 'potatoSweet'),
+  f('Verduras', 'Tostones', '4 unidades', 280, 2, 'fries'),
+  f('Verduras', 'Yuca sancochada', '1 porción (100 g)', 160, 1, 'potatoSweet'),
+  f('Verduras', 'Yuca frita', '1 porción (100 g)', 290, 1, 'fries'),
+  f('Verduras', 'Ñame u ocumo sancochado', '1 porción (100 g)', 115, 2, 'potatoSweet'),
+  f('Verduras', 'Apio criollo', '1 porción (100 g)', 100, 2, 'potatoSweet'),
+  f('Verduras', 'Auyama (calabaza)', '1 taza', 50, 2, 'cookedVeg'),
+  f('Legumbres y cereales', 'Caraotas negras guisadas', '1 plato', 240, 15, 'lentils'),
+  f('Legumbres y cereales', 'Caraotas con azúcar (estilo criollo)', '1 plato', 290, 15, 'lentils'),
+  f('Legumbres y cereales', 'Quinchoncho', '1 plato', 230, 14, 'lentils'),
+  f('Legumbres y cereales', 'Arvejas guisadas', '1 plato', 220, 13, 'lentils'),
+  f('Legumbres y cereales', 'Granos mixtos (frijoles, arvejas)', '1 plato', 240, 14, 'lentils'),
+  f('Legumbres y cereales', 'Harina de maíz precocida', '3 cdas (30 g)', 105, 2),
+  f('Legumbres y cereales', 'Arroz con coco', '1 taza cocido', 290, 4, 'whiteRice'),
+  f('Carnes', 'Carne mechada', '1 porción (150 g)', 290, 32),
+  f('Carnes', 'Pollo guisado', '1 porción (150 g)', 230, 30, 'chicken'),
+  f('Carnes', 'Pollo en salsa criolla', '1 porción (150 g)', 250, 28, 'chicken'),
+  f('Carnes', 'Chicharrón', '30 g', 170, 8),
+  f('Carnes', 'Cochino frito', '100 g', 350, 22),
+  f('Carnes', 'Pernil', '100 g', 230, 25),
+  f('Carnes', 'Chorizo parrillero', '1 unidad', 260, 12, 'choripan'),
+  f('Pescados y mariscos', 'Pescado frito', '1 porción (150 g)', 330, 28),
+  f('Pescados y mariscos', 'Pescado a la plancha', '1 porción (150 g)', 160, 30, 'whiteFish'),
+  f('Pescados y mariscos', 'Cazón guisado', '1 porción (150 g)', 180, 28, 'whiteFish'),
+  f('Pescados y mariscos', 'Ceviche', '1 porción', 150, 22, 'whiteFish'),
+  f('Pescados y mariscos', 'Pepitona o mejillones', '1 porción (100 g)', 90, 12),
+  f('Platos y comidas', 'Pabellón criollo', '1 plato', 750, 42, 'whiteRice'),
+  f('Platos y comidas', 'Pabellón con arepa', '1 plato con arepa', 960, 46, 'whiteRice'),
+  f('Platos y comidas', 'Arepa reina pepiada', '1 unidad', 440, 20, 'whiteBread'),
+  f('Platos y comidas', 'Arepa pelúa (carne y queso)', '1 unidad', 520, 28, 'whiteBread'),
+  f('Platos y comidas', 'Arepa domino (caraotas y queso)', '1 unidad', 430, 16, 'whiteBread'),
+  f('Platos y comidas', 'Arepa con queso', '1 unidad', 340, 11, 'whiteBread'),
+  f('Platos y comidas', 'Arepa con carne mechada', '1 unidad', 450, 24, 'whiteBread'),
+  f('Platos y comidas', 'Arepa con perico (huevos revueltos)', '1 unidad', 380, 14, 'whiteBread'),
+  f('Platos y comidas', 'Arepa con jamón y queso', '1 unidad', 410, 18, 'whiteBread'),
+  f('Platos y comidas', 'Arepa con pollo y aguacate', '1 unidad', 420, 22, 'whiteBread'),
+  f('Platos y comidas', 'Empanada venezolana de queso', '1 unidad', 330, 10, 'friedEmpanada'),
+  f('Platos y comidas', 'Empanada venezolana de carne', '1 unidad', 340, 12, 'friedEmpanada'),
+  f('Platos y comidas', 'Empanada venezolana de cazón', '1 unidad', 320, 12, 'friedEmpanada'),
+  f('Platos y comidas', 'Empanada venezolana de pollo', '1 unidad', 330, 12, 'friedEmpanada'),
+  f('Platos y comidas', 'Tequeños', '4 unidades', 390, 10, 'fastFood'),
+  f('Platos y comidas', 'Hallaca', '1 unidad', 460, 20, 'whiteRice'),
+  f('Platos y comidas', 'Bollo pelón', '1 unidad', 280, 8),
+  f('Platos y comidas', 'Mandocas', '2 unidades', 330, 6, 'fries'),
+  f('Platos y comidas', 'Sancocho', '1 plato', 380, 24),
+  f('Platos y comidas', 'Hervido de gallina', '1 plato', 320, 22),
+  f('Platos y comidas', 'Mondongo', '1 plato', 360, 22),
+  f('Platos y comidas', 'Asado negro con puré', '1 plato', 640, 38),
+  f('Platos y comidas', 'Pasticho', '1 porción', 480, 22, 'pasta'),
+  f('Platos y comidas', 'Pepito', '1 unidad', 780, 40, 'fastFood'),
+  f('Platos y comidas', 'Perro caliente venezolano', '1 unidad', 520, 14, 'choripan'),
+  f('Platos y comidas', 'Hamburguesa venezolana', '1 unidad', 720, 32, 'fastFood'),
+  f('Frituras y snacks', 'Tostones con queso', '4 unidades', 360, 8, 'fries'),
+  f('Frituras y snacks', 'Cotufas', '2 tazas', 60, 2, 'snacks'),
+  f('Frituras y snacks', 'Platanitos (chips de plátano)', 'un puñado (30 g)', 150, 1, 'snacks'),
+  f('Frituras y snacks', 'Pelotica de plátano', '1 unidad', 190, 3, 'fries'),
+  f('Bebidas', 'Papelón con limón', '1 vaso (250 ml)', 110, 0, 'sugar'),
+  f('Bebidas', 'Malta', '1 botella (250 ml)', 130, 1, 'soda'),
+  f('Bebidas', 'Chicha venezolana', '1 vaso (250 ml)', 230, 4, 'juice'),
+  f('Bebidas', 'Batido de frutas con leche', '1 vaso (300 ml)', 190, 5, 'juice'),
+  f('Bebidas', 'Jugo de parchita sin azúcar', '1 vaso (250 ml)', 70, 1),
+  f('Bebidas', 'Jugo de guayaba o mango natural', '1 vaso (250 ml)', 120, 1, 'juice'),
+  f('Bebidas', 'Ron', '1 medida (45 ml)', 100, 0, 'spirits'),
+  f('Bebidas', 'Ron con cola', '1 vaso', 190, 0, 'spirits'),
+  f('Bebidas', 'Cerveza Polar', '1 botella (355 ml)', 150, 1, 'beer'),
+  f('Bebidas', 'Café con leche venezolano (marrón)', '1 taza', 90, 3),
+  f('Bebidas', 'Café negrito (con azúcar)', '1 tacita', 40, 0, 'sugar'),
+  f('Bebidas', 'Guarapo de caña', '1 vaso (250 ml)', 140, 0, 'sugar'),
+  f('Frutas', 'Parchita', '1 unidad', 20, 0, 'wholeFruit'),
+  f('Frutas', 'Guayaba', '1 unidad', 40, 1, 'wholeFruit'),
+  f('Frutas', 'Patilla', '1 taza', 45, 1, 'wholeFruit'),
+  f('Frutas', 'Lechosa (papaya)', '1 taza', 60, 1, 'wholeFruit'),
+  f('Frutas', 'Cambur', '1 mediano', 105, 1, 'wholeFruit'),
+  f('Frutas', 'Níspero', '2 unidades', 45, 0, 'wholeFruit'),
+  f('Dulces y postres', 'Quesillo', '1 porción', 280, 7, 'cake'),
+  f('Dulces y postres', 'Tres leches', '1 porción', 390, 8, 'cake'),
+  f('Dulces y postres', 'Torta de zanahoria venezolana', '1 porción', 360, 4, 'cake'),
+  f('Dulces y postres', 'Bienmesabe', '1 porción', 340, 5, 'cake'),
+  f('Dulces y postres', 'Majarete', '1 porción', 220, 4, 'cake'),
+  f('Dulces y postres', 'Arroz con leche', '1 taza', 250, 6, 'cake'),
+  f('Dulces y postres', 'Dulce de lechosa', '1 porción', 220, 1, 'candy'),
+  f('Dulces y postres', 'Pan dulce venezolano', '1 rebanada', 200, 4, 'pastries'),
+  f('Dulces y postres', 'Pionono', '1 unidad', 350, 5, 'cake'),
+  f('Dulces y postres', 'Helado de coco', '1 bocha', 150, 2, 'iceCream'),
+  f('Dulces y postres', 'Chocolate Savoy o Cacao', '1 barra (30 g)', 160, 2, 'alfajor'),
+  f('Dulces y postres', 'Susy o Cocosette', '1 unidad', 120, 1, 'cake'),
+  f('Dulces y postres', 'Pirulí', '1 unidad', 80, 1, 'candy'),
 ];
 
+/** Alimento propio del usuario: suma uno nuevo, pisa el del catálogo con el mismo nombre o lo oculta. */
+export interface UserFood extends Food {
+  hidden: boolean;
+}
+
+/** Catálogo base + ajustes del usuario. Gana lo del usuario; lo oculto no aparece. */
+export function mergeCatalog(base: Food[], mine: UserFood[]): Food[] {
+  const byName = new Map(mine.map((u) => [u.name, u]));
+  const kept = base.filter((b) => !byName.has(b.name));
+  const own = mine.filter((u) => !u.hidden).map(({ hidden: _hidden, ...food }) => food);
+  return [...kept, ...own].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+}
+
 /** Marcas de calidad que corresponden a los alimentos cargados por calorías. */
-export function flagsOfItems(names: string[]): Record<string, boolean> {
+export function flagsOfItems(names: string[], catalog: Food[] = FOODS): Record<string, boolean> {
   const out: Record<string, boolean> = {};
   for (const name of names) {
-    const flag = FOODS.find((f) => f.name === name)?.flag;
+    const flag = catalog.find((f) => f.name === name)?.flag;
     if (flag) out[flag] = true;
   }
   return out;

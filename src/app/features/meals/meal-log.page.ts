@@ -14,7 +14,8 @@ import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
 import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, mergeItems, MealItem } from '../energy/energy';
-import { flagsOfItems, Food, FOOD_CATEGORIES, FOODS } from '../energy/foods';
+import { flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
+import { FoodsService } from '../energy/foods.service';
 import { ProfileService } from '../energy/profile.service';
 import {
   ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
@@ -41,6 +42,7 @@ export class MealLogPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly profiles = inject(ProfileService);
   private readonly favoriteService = inject(FavoriteService);
+  private readonly foodsService = inject(FoodsService);
 
   readonly flagDefs = FLAG_DEFS;
   /** Catálogo en orden alfabético para recorrerlo con el buscador. */
@@ -91,7 +93,8 @@ export class MealLogPage implements OnInit {
   readonly visibleKcalFoods = computed(() => {
     const q = normalize(this.foodQuery());
     const cat = this.foodCat();
-    const inCat = cat ? FOODS.filter((f) => f.cat === cat) : FOODS;
+    const all = this.foodsService.catalog();
+    const inCat = cat ? all.filter((f) => f.cat === cat) : all;
     const found = q ? inCat.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : inCat;
     return found.slice(0, q || cat ? 60 : 15);
   });
@@ -109,7 +112,7 @@ export class MealLogPage implements OnInit {
   readonly draftFlags = signal<MealFlags>({});
   draftNotes = '';
   /** Marcas que salen solas de los alimentos cargados por calorías. */
-  readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems().map((i) => i.name)));
+  readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems().map((i) => i.name), this.foodsService.catalog()));
   readonly effectiveFlags = computed<MealFlags>(() => ({ ...this.draftFlags(), ...this.derivedFlags() }));
   readonly draftScore = computed(() => scoreMeal(this.effectiveFlags()));
   readonly saving = signal(false);
@@ -139,6 +142,7 @@ export class MealLogPage implements OnInit {
 
   ngOnInit() {
     if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
+    this.foodsService.load().catch(() => undefined);
     this.favoriteService.list().then((list) => this.favorites.set(list)).catch(() => undefined);
   }
 
@@ -175,7 +179,7 @@ export class MealLogPage implements OnInit {
   open(type: MealType) {
     const existing = this.byType().get(type);
     // Lo que venga de alimentos se recalcula solo: acá queda solo lo marcado a mano.
-    const fromItems = flagsOfItems((existing?.items ?? []).map((i) => i.name));
+    const fromItems = flagsOfItems((existing?.items ?? []).map((i) => i.name), this.foodsService.catalog());
     this.draftFlags.set(Object.fromEntries(Object.entries(existing?.flags ?? {}).filter(([k]) => !fromItems[k])));
     this.draftNotes = existing?.notes ?? '';
     this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
@@ -218,9 +222,39 @@ export class MealLogPage implements OnInit {
     this.manualKcalRaw.set('');
   }
 
+  /** Guarda lo escrito a mano como alimento propio para encontrarlo la próxima vez. */
+  async saveManualFood() {
+    const kcal = this.manualKcal();
+    const name = this.manualName.trim();
+    if (!this.canAddManual() || kcal === null || !name) return;
+    const food: Food = { name, cat: 'Platos y comidas', portion: '1 porción', kcal: Math.round(kcal), protein: 0 };
+    try {
+      await this.foodsService.save(food);
+      this.addFood(food);
+      this.manualName = '';
+      this.manualKcalRaw.set('');
+      (await this.toast.create({ message: 'Guardado en tu lista', duration: 1500 })).present();
+    } catch {
+      (await this.toast.create({ message: 'No se pudo guardar el alimento', duration: 2500, color: 'danger' })).present();
+    }
+  }
+
+  isCustom(food: Food): boolean {
+    return this.foodsService.custom().some((c) => c.name === food.name);
+  }
+
+  async removeCustom(food: Food, event: Event) {
+    event.stopPropagation();
+    try {
+      await this.foodsService.remove(food.name);
+    } catch {
+      (await this.toast.create({ message: 'No se pudo quitar el alimento', duration: 2500, color: 'danger' })).present();
+    }
+  }
+
   /** Marcas manuales de un conjunto de flags: las que no vienen de los alimentos. */
   private manualFlags(flags: MealFlags, items: MealItem[]): MealFlags {
-    const fromItems = flagsOfItems(items.map((i) => i.name));
+    const fromItems = flagsOfItems(items.map((i) => i.name), this.foodsService.catalog());
     return Object.fromEntries(Object.entries(flags).filter(([k, v]) => v && !fromItems[k]));
   }
 
