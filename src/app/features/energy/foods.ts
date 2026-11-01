@@ -462,6 +462,45 @@ export function mergeCatalog(base: Food[], mine: UserFood[]): Food[] {
   return [...kept, ...own].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 }
 
+/** De dónde sale un alimento del catálogo que ve el usuario. */
+export type FoodOrigin = 'base' | 'modified' | 'custom';
+
+export function foodOrigin(name: string, base: Food[], mine: UserFood[]): FoodOrigin {
+  if (!mine.some((u) => u.name === name)) return 'base';
+  return base.some((b) => b.name === name) ? 'modified' : 'custom';
+}
+
+/** Lo que se escribe en el formulario de un alimento (todo texto, como viene de los campos). */
+export interface FoodDraft {
+  name: string;
+  cat: string;
+  portion: string;
+  kcal: string;
+  protein: string;
+  grams: string;
+  flag: string;
+}
+
+const num = (raw: string): number => (raw.trim() ? Number(raw.trim().replace(',', '.')) : NaN);
+
+/** Alimento listo para guardar, o null si algo del formulario es inválido. */
+export function parseFoodDraft(d: FoodDraft): Food | null {
+  const name = d.name.trim();
+  const portion = d.portion.trim();
+  const kcal = num(d.kcal);
+  const protein = d.protein.trim() ? num(d.protein) : 0;
+  const grams = d.grams.trim() ? num(d.grams) : undefined;
+  if (!name || name.length > 80 || !portion || portion.length > 60) return null;
+  if (!(FOOD_CATEGORIES as readonly string[]).includes(d.cat)) return null;
+  if (!Number.isFinite(kcal) || kcal < 0 || kcal > 5000) return null;
+  if (!Number.isFinite(protein) || protein < 0 || protein > 500) return null;
+  if (grams !== undefined && (!Number.isInteger(grams) || grams <= 0 || grams > 5000)) return null;
+  return {
+    name, cat: d.cat as FoodCategory, portion, kcal: Math.round(kcal), protein: Math.round(protein * 10) / 10,
+    ...(grams ? { grams } : {}), ...(d.flag ? { flag: d.flag } : {}),
+  };
+}
+
 /** Marcas de calidad que corresponden a los alimentos cargados por calorías. */
 export function flagsOfItems(names: string[], catalog: Food[] = FOODS): Record<string, boolean> {
   const out: Record<string, boolean> = {};

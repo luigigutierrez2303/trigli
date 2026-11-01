@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Supabase } from '../../core/supabase';
-import { Food, FoodCategory, FOODS, mergeCatalog, UserFood } from './foods';
+import { Food, FoodCategory, FoodOrigin, foodOrigin, FOODS, mergeCatalog, UserFood } from './foods';
 
 const COLS = 'name, cat, portion, kcal, protein, grams, flag';
 
@@ -20,6 +20,20 @@ export class FoodsService {
 
   readonly catalog = computed(() => mergeCatalog(this.base(), this.mine()));
   readonly custom = computed(() => this.mine().filter((u) => !u.hidden));
+  /** Alimentos del catálogo base que el usuario ocultó. */
+  readonly hidden = computed(() => {
+    const base = this.base();
+    return this.mine().filter((u) => u.hidden && base.some((b) => b.name === u.name)).map(({ hidden: _h, ...food }) => food as Food);
+  });
+
+  origin(name: string): FoodOrigin {
+    return foodOrigin(name, this.base(), this.mine());
+  }
+
+  /** El del catálogo base con ese nombre, para comparar o restaurar. */
+  baseFood(name: string): Food | undefined {
+    return this.base().find((b) => b.name === name);
+  }
 
   async load(): Promise<void> {
     const [base, mine] = await Promise.all([
@@ -38,7 +52,7 @@ export class FoodsService {
     this.mine.update((list) => [...list.filter((u) => u.name !== food.name), { ...food, hidden: false }]);
   }
 
-  /** Quita un alimento propio; si pisaba uno del catálogo, vuelve el original. */
+  /** Quita un alimento propio o vuelve a mostrar uno oculto; si pisaba uno del catálogo, vuelve el original. */
   async remove(name: string): Promise<void> {
     const { error } = await this.db.from('user_food').delete().eq('name', name);
     if (error) throw error;

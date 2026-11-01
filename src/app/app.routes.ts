@@ -32,6 +32,10 @@ export const routes: Routes = [
         path: 'cuenta',
         loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage),
       },
+      {
+        path: 'alimentos',
+        loadComponent: () => import('./features/foods/foods.page').then((m) => m.FoodsPage),
+      },
       { path: '', redirectTo: 'resumen', pathMatch: 'full' },
     ],
   },

@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonInput, IonItem, IonList,
   IonIcon, IonLabel, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonText, ToastController,
@@ -31,7 +32,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
 @Component({
   selector: 'app-account',
   imports: [
-    FormsModule, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonInput,
+    FormsModule, RouterLink, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonInput,
     IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel, IonIcon,
   ],
   template: `
@@ -126,6 +127,14 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
           </ion-button>
           @if (goalError()) { <ion-text color="danger"><p>{{ goalError() }}</p></ion-text> }
           <p class="fine">Es una estimación. Si tomás medicación o tenés una condición de salud, consultalo con tu médico o nutricionista.</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header><ion-card-title>Mis alimentos</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <p class="fine">Corregí calorías y porciones, sumá tus comidas u ocultá las que no usás.</p>
+          <ion-button expand="block" fill="outline" routerLink="/alimentos">Editar mis alimentos</ion-button>
         </ion-card-content>
       </ion-card>
 

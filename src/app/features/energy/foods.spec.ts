@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_FLAG_DEFS } from '../meals/meal-scoring';
-import { flagsOfItems, FOOD_CATEGORIES, FOODS, mergeCatalog, UserFood } from './foods';
+import { flagsOfItems, FoodDraft, foodOrigin, FOOD_CATEGORIES, FOODS, mergeCatalog, parseFoodDraft, UserFood } from './foods';
 
 describe('foods', () => {
   it('no repite nombres (se usan para derivar la calidad)', () => {
@@ -57,6 +57,35 @@ describe('foods', () => {
     it('deriva las marcas de calidad desde el catálogo fusionado', () => {
       const merged = mergeCatalog(FOODS, [mine({ name: 'Mi ensalada', flag: 'salad' })]);
       expect(flagsOfItems(['Mi ensalada'], merged)).toEqual({ salad: true });
+    });
+  });
+
+  describe('parseFoodDraft', () => {
+    const draft = (over: Partial<FoodDraft> = {}): FoodDraft => ({ name: ' Arepa rellena ', cat: 'Platos y comidas', portion: '1 unidad', kcal: '350,4', protein: '12,25', grams: '', flag: '', ...over });
+
+    it('limpia y convierte los textos del formulario', () => {
+      expect(parseFoodDraft(draft())).toEqual({ name: 'Arepa rellena', cat: 'Platos y comidas', portion: '1 unidad', kcal: 350, protein: 12.3 });
+    });
+
+    it('guarda gramos y marca solo si se completaron', () => {
+      expect(parseFoodDraft(draft({ grams: '150', flag: 'salad' }))).toMatchObject({ grams: 150, flag: 'salad' });
+    });
+
+    it('rechaza datos inválidos', () => {
+      for (const bad of [{ name: ' ' }, { portion: '' }, { kcal: '' }, { kcal: '-1' }, { kcal: '9000' }, { protein: 'x' }, { grams: '0' }, { grams: '1,5' }, { cat: 'Otra' }]) {
+        expect(parseFoodDraft(draft(bad)), JSON.stringify(bad)).toBeNull();
+      }
+    });
+  });
+
+  describe('foodOrigin', () => {
+    const own = (name: string): UserFood => ({ name, cat: 'Platos y comidas', portion: '1', kcal: 1, protein: 0, hidden: false });
+
+    it('distingue base, modificado y propio', () => {
+      const mine = [own('Huevo'), own('Mi plato')];
+      expect(foodOrigin('Salmón', FOODS, mine)).toBe('base');
+      expect(foodOrigin('Huevo', FOODS, mine)).toBe('modified');
+      expect(foodOrigin('Mi plato', FOODS, mine)).toBe('custom');
     });
   });
 });
