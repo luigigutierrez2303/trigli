@@ -1,15 +1,19 @@
-# Importar entrenos y peso desde Apple Salud
+# Importar energía activa y peso desde Apple Salud
 
 Fitbeing escribe en Apple Salud; un Atajo de iOS lee de ahí y le manda los datos a la Edge Function `importar-salud`.
+
+Los Atajos no pueden leer los entrenamientos de Salud (no hay tipo "Entrenamientos" en "Buscar muestras de Salud"), así que se importa el **total diario de energía activa**. En Actividad aparece como una fila "Actividad del reloj" por día, sin minutos (no suma al objetivo de aeróbico); se actualiza al reenviar el mismo día.
 
 ## Despliegue (una vez)
 
 ```bash
-supabase db push
-supabase functions deploy importar-salud --no-verify-jwt
+npx supabase db push
+npx supabase functions deploy importar-salud --no-verify-jwt
 ```
 
 `--no-verify-jwt` es necesario: el Atajo no tiene sesión, se autentica con el código personal (header `x-trigli-token`).
+
+La función usa la service role, que necesita permisos explícitos sobre las tablas (migración `service_role_grants`).
 
 ## Código personal
 
@@ -17,18 +21,14 @@ Mi cuenta → "Reloj (Apple Salud)" → Generar código. Se guarda solo el hash;
 
 ## Atajo (app Atajos)
 
-1. **Buscar muestras de Salud**: Entrenamientos, fecha de inicio es en los últimos 2 días, orden por fecha de inicio.
-2. **Repetir con cada** entrenamiento → armar un diccionario:
-   - `id`: fecha de inicio con formato ISO 8601 (identifica el entreno y evita duplicados)
+1. **Buscar muestras de Salud**: Tipo "Energía de actividad", Fecha de inicio en los últimos 2 días, **Agrupar por Día**, **Unidad kcal**.
+2. **Repetir con cada** muestra → diccionario con:
    - `date`: fecha de inicio con formato personalizado `yyyy-MM-dd`
-   - `minutes`: duración en minutos
-   - `kcal`: energía activa
-   - `activity`: tipo de entrenamiento
-3. **Buscar muestras de Salud**: Peso corporal, última, → diccionario `weight` con `date` (`yyyy-MM-dd`) y `kg`.
-4. **Obtener contenido de URL**:
-   - URL: `https://<tu-proyecto>.supabase.co/functions/v1/importar-salud`
-   - Método POST, cuerpo JSON `{ "workouts": [...], "weight": {...} }`
-   - Header `x-trigli-token`: tu código
-5. Automatización (pestaña Automatización): "Hora del día" a la noche, o "Cerrar app Fitbeing". Desactivá "Preguntar antes de ejecutar".
+   - `kcal`: Valor
+   - y "Obtener Diccionario" como último paso del bucle.
+3. Tras **Terminar repetición**: **Establecer variable** `entrenos` con "Repetir resultados" de ese primer bucle (si no, el cuerpo toma los resultados del último bucle).
+4. Peso: **Buscar muestras de Salud** "Peso corporal", límite 1 → diccionario `weight_dict` con `date` (`yyyy-MM-dd`) y `kg`.
+5. **Obtener contenido de URL**: POST a `https://<tu-proyecto>.supabase.co/functions/v1/importar-salud`, encabezados `x-trigli-token` y `Content-Type: application/json`, cuerpo JSON con `days` (la variable `entrenos`) y `weight` (`weight_dict`).
+6. Automatización (pestaña Automatización): "Hora del día" a la noche. Desactivá "Preguntar antes de ejecutar".
 
-Reenviar es seguro: los entrenos ya importados se ignoran y el peso del día se actualiza.
+La respuesta es `{"imported":0,"days":N,"weight":true|false}`. La función también acepta `workouts` (entrenos sueltos con `id`, `date`, `minutes`, `kcal`, `activity`) por si una fuente futura los expone.

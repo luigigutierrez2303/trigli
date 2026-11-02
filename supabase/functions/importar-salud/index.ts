@@ -1,6 +1,7 @@
 // Edge Function: recibe entrenos y peso desde un Atajo de iOS (Apple Salud) y los guarda para el dueño del token.
 // Se despliega con --no-verify-jwt: la autenticación es el token personal (header x-trigli-token), que se compara por hash.
-// Body: { workouts?: [{ id, date, minutes, kcal?, activity? }], weight?: { date, kg } }
+// Body: { workouts?: [{ id, date, minutes, kcal?, activity? }], days?: [{ date, kcal }], weight?: { date, kg } }
+// days: total diario de energía activa; una fila por día (se actualiza al reenviar) y sin duración.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const MAX_WORKOUTS = 50;
@@ -13,7 +14,24 @@ const sha256 = async (s: string) =>
     .map((b) => b.toString(16).padStart(2, '0')).join('');
 
 const isDate = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-const num = (v: unknown) => (typeof v === 'number' ? v : typeof v === 'string' ? Number(v.replace(',', '.')) : NaN);
+// Atajos manda las medidas como texto con unidad ("1 min", "3 kcal", "70,5 kg"): se toma el número.
+const num = (v: unknown) => {
+  if (typeof v === 'number') return v;
+  const m = typeof v === 'string' ? v.match(/-?\d+(?:[.,]\d+)?/) : null;
+  return m ? Number(m[0].replace(',', '.')) : NaN;
+};
+
+/** Duración en minutos: número a secas (minutos) o texto con unidad ("1 h 5 min", "90 seg"). */
+const minutesOf = (v: unknown) => {
+  if (typeof v !== 'string') return num(v);
+  const parts = [...v.matchAll(/(\d+(?:[.,]\d+)?)\s*(h|hr|hora|min|m|seg|s)/gi)];
+  if (!parts.length) return num(v);
+  return parts.reduce((t, [, n, u]) => {
+    const x = Number(n.replace(',', '.'));
+    const unit = u.toLowerCase();
+    return t + (unit.startsWith('h') ? x * 60 : unit === 'seg' || unit === 's' ? x / 60 : x);
+  }, 0);
+};
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method' }, 405);
@@ -33,7 +51,7 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
 
   const workouts = (Array.isArray(body.workouts) ? body.workouts : []).slice(0, MAX_WORKOUTS).flatMap((w: any) => {
-    const minutes = Math.round(num(w?.minutes));
+    const minutes = Math.max(1, Math.round(minutesOf(w?.minutes)));
     const kcal = Math.round(num(w?.kcal));
     if (!isDate(w?.date) || !(minutes > 0 && minutes < 1000) || typeof w?.id !== 'string' || !w.id) return [];
     return [{
@@ -43,6 +61,23 @@ Deno.serve(async (req) => {
       source: 'health', external_id: w.id.slice(0, 100),
     }];
   });
+
+  const days = (Array.isArray(body.days) ? body.days : []).slice(0, MAX_WORKOUTS).flatMap((d: any) => {
+    const kcal = Math.round(num(d?.kcal));
+    if (!isDate(d?.date) || !(kcal >= 0 && kcal <= 5000)) return [];
+    return [{
+      user_id: userId, date: d.date, type: 'cardio', duration_min: 0, kcal,
+      activity: null, source: 'health', external_id: `day-${d.date}`,
+    }];
+  });
+  if (days.length) {
+    // Sin ignoreDuplicates: el total del día crece mientras pasa el día.
+    const { error } = await db.from('workout').upsert(days, { onConflict: 'user_id,external_id' });
+    if (error) {
+      console.error('days', error.message);
+      return json({ error: 'db' }, 500);
+    }
+  }
 
   let imported = 0;
   if (workouts.length) {
@@ -68,5 +103,5 @@ Deno.serve(async (req) => {
     weight = true;
   }
 
-  return json({ imported, weight });
+  return json({ imported, days: days.length, weight });
 });

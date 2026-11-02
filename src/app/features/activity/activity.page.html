@@ -40,7 +40,7 @@
           @for (w of dayCardio(); track w.id) {
             <ion-item>
               <ion-label>
-                <h2>{{ activityLabel(w.activity) ?? 'Cardio' }} · {{ w.duration_min }} min</h2>
+                <h2>{{ activityLabel(w.activity) ?? (w.duration_min ? 'Cardio' : 'Actividad del reloj') }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
                 @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas</p> }
                 @if (w.notes) { <p>{{ w.notes }}</p> }
               </ion-label>
