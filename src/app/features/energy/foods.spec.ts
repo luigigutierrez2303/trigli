@@ -89,3 +89,11 @@ describe('foods', () => {
     });
   });
 });
+
+describe('café con leche', () => {
+  it('sin azúcar cuenta como bebida sin azúcar y con azúcar como azucarada', () => {
+    expect(flagsOfItems(['Café con leche'])).toEqual({ unsweetened: true });
+    expect(flagsOfItems(['Café con leche venezolano (marrón)'])).toEqual({ unsweetened: true });
+    expect(flagsOfItems(['Café con leche con azúcar'])).toEqual({ sugar: true });
+  });
+});

@@ -47,7 +47,8 @@ export const FOODS: Food[] = [
   // Bebidas
   f('Bebidas', 'Mate cebado', '1 termo, sin azúcar', 0, 0, 'unsweetened'),
   f('Bebidas', 'Mate con azúcar', '1 termo', 80, 0, 'sugar'),
-  f('Bebidas', 'Café con leche', '1 taza', 70, 3),
+  f('Bebidas', 'Café con leche', '1 taza, sin azúcar', 70, 3, 'unsweetened'),
+  f('Bebidas', 'Café con leche con azúcar', '1 taza', 100, 3, 'sugar'),
   f('Bebidas', 'Café solo', '1 taza', 5, 0, 'unsweetened'),
   f('Bebidas', 'Té o infusión', '1 taza, sin azúcar', 2, 0, 'unsweetened'),
   f('Bebidas', 'Agua o soda', '1 vaso', 0, 0, 'water'),
@@ -425,7 +426,7 @@ export const FOODS: Food[] = [
   f('Bebidas', 'Ron', '1 medida (45 ml)', 100, 0, 'spirits'),
   f('Bebidas', 'Ron con cola', '1 vaso', 190, 0, 'spirits'),
   f('Bebidas', 'Cerveza Polar', '1 botella (355 ml)', 150, 1, 'beer'),
-  f('Bebidas', 'Café con leche venezolano (marrón)', '1 taza', 90, 3),
+  f('Bebidas', 'Café con leche venezolano (marrón)', '1 taza, sin azúcar', 90, 3, 'unsweetened'),
   f('Bebidas', 'Café negrito (con azúcar)', '1 tacita', 40, 0, 'sugar'),
   f('Bebidas', 'Guarapo de caña', '1 vaso (250 ml)', 140, 0, 'sugar'),
   f('Frutas', 'Parchita', '1 unidad', 20, 0, 'wholeFruit'),
