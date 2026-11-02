@@ -71,11 +71,30 @@ Deno.serve(async (req) => {
     }];
   });
   if (days.length) {
-    // Sin ignoreDuplicates: el total del día crece mientras pasa el día.
-    const { error } = await db.from('workout').upsert(days, { onConflict: 'user_id,external_id' });
-    if (error) {
-      console.error('days', error.message);
+    // Los minutos de un día los carga el usuario a mano: si la fila ya existe solo se actualizan las kcal.
+    const byId = new Map(days.map((d) => [d.external_id, d]));
+    const { data: existing, error: lookupError } = await db.from('workout').select('external_id')
+      .eq('user_id', userId).in('external_id', [...byId.keys()]);
+    if (lookupError) {
+      console.error('days lookup', lookupError.message);
       return json({ error: 'db' }, 500);
+    }
+    const have = new Set((existing ?? []).map((r) => r.external_id as string));
+    const fresh = [...byId.values()].filter((d) => !have.has(d.external_id));
+    if (fresh.length) {
+      const { error } = await db.from('workout').insert(fresh);
+      if (error) {
+        console.error('days insert', error.message);
+        return json({ error: 'db' }, 500);
+      }
+    }
+    for (const d of byId.values()) {
+      if (!have.has(d.external_id)) continue;
+      const { error } = await db.from('workout').update({ kcal: d.kcal }).eq('user_id', userId).eq('external_id', d.external_id);
+      if (error) {
+        console.error('days update', error.message);
+        return json({ error: 'db' }, 500);
+      }
     }
   }
 

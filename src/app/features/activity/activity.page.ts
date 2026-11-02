@@ -2,10 +2,10 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, AlertController, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, trashOutline, walkOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import {
   cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, weekEnd, weekStart, weightDelta,
@@ -29,6 +29,7 @@ export class ActivityPage implements OnInit {
   private readonly profiles = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastController);
+  private readonly alerts = inject(AlertController);
 
   readonly weeklyGoal = WEEKLY_CARDIO_GOAL_MIN;
 
@@ -97,7 +98,7 @@ export class ActivityPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, trashOutline, walkOutline });
+    addIcons({ chevronBack, chevronForward, createOutline, trashOutline, walkOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD abre Actividad en ese día.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const fecha = params.get('fecha');
@@ -157,6 +158,35 @@ export class ActivityPage implements OnInit {
       this.showError(e);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async editMinutes(w: CardioWorkout) {
+    const alert = await this.alerts.create({
+      header: 'Minutos de actividad',
+      inputs: [{ name: 'minutes', type: 'number', min: 1, placeholder: 'Minutos', value: w.duration_min || undefined }],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Guardar',
+          handler: (v: { minutes: string }) => {
+            const min = parseDecimal(v.minutes);
+            if (!isValidMinutes(min)) return false;
+            this.saveMinutes(w.id, min!);
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async saveMinutes(id: string, minutes: number) {
+    try {
+      await this.activity.setMinutes(id, minutes);
+      this.weekCardio.update((list) => list.map((w) => (w.id === id ? { ...w, duration_min: minutes } : w)));
+    } catch (e) {
+      this.showError(e);
     }
   }
 

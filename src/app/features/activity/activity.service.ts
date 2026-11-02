@@ -9,6 +9,8 @@ export interface CardioWorkout {
   notes: string | null;
   activity: string | null;
   kcal: number | null;
+  /** 'health': total diario importado del reloj. */
+  source: string;
 }
 
 export interface BodyMetric {
@@ -17,7 +19,7 @@ export interface BodyMetric {
   waist_cm: number | null;
 }
 
-const WORKOUT_COLS = 'id, date, duration_min, notes, activity, kcal';
+const WORKOUT_COLS = 'id, date, duration_min, notes, activity, kcal, source';
 const METRIC_COLS = 'date, weight_kg, waist_cm';
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +51,13 @@ export class ActivityService {
     if (error) throw error;
     this.profiles.notifyChange();
     return data as CardioWorkout;
+  }
+
+  /** Minutos de una fila importada del reloj (llegan sin duración). */
+  async setMinutes(id: string, minutes: number): Promise<void> {
+    const { error } = await this.db.from('workout').update({ duration_min: minutes }).eq('id', id);
+    if (error) throw error;
+    this.profiles.notifyChange();
   }
 
   async removeWorkout(id: string): Promise<void> {

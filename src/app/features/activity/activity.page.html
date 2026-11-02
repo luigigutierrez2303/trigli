@@ -40,10 +40,15 @@
           @for (w of dayCardio(); track w.id) {
             <ion-item>
               <ion-label>
-                <h2>{{ activityLabel(w.activity) ?? (w.duration_min ? 'Cardio' : 'Actividad del reloj') }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
+                <h2>{{ activityLabel(w.activity) ?? (w.source === 'health' ? 'Actividad del reloj' : 'Cardio') }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
                 @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas</p> }
                 @if (w.notes) { <p>{{ w.notes }}</p> }
               </ion-label>
+              @if (w.source === 'health') {
+                <ion-button slot="end" fill="clear" (click)="editMinutes(w)" aria-label="Poner minutos">
+                  <ion-icon slot="icon-only" name="create-outline" />
+                </ion-button>
+              }
               <ion-button slot="end" fill="clear" color="danger" (click)="removeCardio(w.id)" aria-label="Borrar">
                 <ion-icon slot="icon-only" name="trash-outline" />
               </ion-button>
