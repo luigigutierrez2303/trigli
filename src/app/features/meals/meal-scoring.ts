@@ -138,6 +138,11 @@ export function scoreMeal(flags: MealFlags): number {
   return Math.max(MIN, Math.min(MAX, BASE + delta));
 }
 
+/** Una comida sin alimentos, marcas ni notas no dice nada: no se guarda (y si existía, se borra). */
+export function isEmptyMeal(flags: MealFlags, itemCount: number, notes: string | null): boolean {
+  return itemCount === 0 && !notes?.trim() && !Object.values(flags).some(Boolean);
+}
+
 /** Score diario 0-100: promedio de comidas registradas * 10. null si no hay comidas. */
 export function scoreDay(mealScores: readonly number[]): number | null {
   if (mealScores.length === 0) return null;

@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonHeader,
+  IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonFooter, IonHeader,
   IonIcon, IonItem, IonLabel, IonInput, IonList, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTextarea, IonTitle, IonToolbar,
   ToastController,
 } from '@ionic/angular';
@@ -13,14 +13,16 @@ import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
-import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, mergeItems, MealItem } from '../energy/energy';
-import { flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
+import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, itemsProtein, mergeItems, MealItem, proteinGoal } from '../energy/energy';
+import { emojiOf, flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
 import { FoodsService } from '../energy/foods.service';
 import { ProposedItem } from '../energy/meal-analysis';
 import { MealAiError, MealAiService } from './meal-ai.service';
+import { frequentItems, HistoryMeal, QTY_CHOICES, streakDays, suggestProtein } from './meal-helpers';
+import { SpeechService } from './speech';
 import { ProfileService } from '../energy/profile.service';
 import {
-  ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
+  ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
 import { FavoriteMeal, FavoriteService } from './favorite.service';
 import { MealLog, MealService } from './meal.service';
@@ -31,7 +33,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   selector: 'app-meal-log',
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
-    IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
+    IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
     IonSegment, IonSegmentButton,
   ],
   templateUrl: './meal-log.page.html',
@@ -46,6 +48,7 @@ export class MealLogPage implements OnInit {
   private readonly favoriteService = inject(FavoriteService);
   private readonly foodsService = inject(FoodsService);
   private readonly mealAi = inject(MealAiService);
+  private readonly speech = inject(SpeechService);
 
   readonly flagDefs = FLAG_DEFS;
   /** Catálogo en orden alfabético para recorrerlo con el buscador. */
@@ -101,6 +104,43 @@ export class MealLogPage implements OnInit {
     const found = q ? inCat.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : inCat;
     return found.slice(0, q || cat ? 60 : 15);
   });
+  // Historia: frecuentes por tipo de comida y racha de días
+  readonly history = signal<HistoryMeal[]>([]);
+  readonly weight = signal<number | null>(null);
+  readonly qtyChoices = QTY_CHOICES;
+  readonly streak = computed(() => streakDays(this.history().map((h) => h.date), toIsoDate(new Date())));
+  /** Lo que más suele cargar en esta comida, sin lo que ya está en el borrador. */
+  readonly frequent = computed(() => {
+    const type = this.editing();
+    if (!type) return [];
+    const inDraft = new Set(this.draftItems().map((i) => i.name));
+    return frequentItems(this.history(), type, 10).filter((i) => !inDraft.has(i.name)).slice(0, 8);
+  });
+  emoji(name: string): string {
+    return emojiOf(name, this.foodsService.catalog().find((f) => f.name === name)?.cat);
+  }
+
+  // Resumen fijo del editor: cuánto queda del día y de proteína con lo que se está cargando
+  readonly draftProtein = computed(() => itemsProtein(this.draftItems()));
+  private readonly otherEntries = computed(() => this.entries().filter((e) => e.meal_type !== this.editing()));
+  readonly afterRemaining = computed(() => {
+    const b = this.balance();
+    if (!b) return null;
+    const others = this.otherEntries().reduce((sum, e) => sum + (e.kcal ?? 0), 0);
+    return b.budget - others - this.draftKcal();
+  });
+  readonly missingProtein = computed(() => {
+    const w = this.weight();
+    if (!w) return null;
+    const others = this.otherEntries().reduce((sum, e) => sum + itemsProtein(e.items ?? []), 0);
+    return Math.max(0, proteinGoal(w) - others - this.draftProtein());
+  });
+  readonly suggestions = computed(() => {
+    const missing = this.missingProtein();
+    const remaining = this.afterRemaining();
+    return missing === null || remaining === null ? [] : suggestProtein(this.foodsService.catalog(), remaining, missing);
+  });
+
   // Análisis con IA (texto o foto)
   readonly aiText = signal('');
   readonly aiImage = signal<File | null>(null);
@@ -108,6 +148,44 @@ export class MealLogPage implements OnInit {
   readonly aiError = signal<string | null>(null);
   readonly proposals = signal<ProposedItem[]>([]);
   readonly canAnalyze = computed(() => !this.aiBusy() && (!!this.aiText().trim() || !!this.aiImage()));
+
+  readonly speechSupported = this.speech.supported;
+  readonly listening = this.speech.listening;
+  /** Nombres de alimentos estimados por la IA que ya se guardaron en "Mis alimentos". */
+  readonly savedEstimates = signal<ReadonlySet<string>>(new Set());
+
+  /** Dicta lo que comió; al terminar de hablar se analiza solo. */
+  toggleDictation() {
+    if (this.listening()) return this.speech.stop();
+    this.aiError.set(null);
+    this.speech.start((text, error) => {
+      if (text) {
+        this.aiText.update((t) => (t.trim() ? `${t.trim()} ${text}` : text));
+        void this.analyze();
+      } else if (error && error !== 'no-speech' && error !== 'aborted') {
+        this.aiError.set(error === 'not-allowed' ? 'Dale permiso al micrófono para dictar.' : 'No pudimos escuchar. Probá de nuevo.');
+      }
+    });
+  }
+
+  /** Enter analiza; Shift+Enter hace un salto de línea. */
+  onAiKey(event: Event) {
+    const e = event as KeyboardEvent;
+    if (e.shiftKey) return;
+    e.preventDefault();
+    void this.analyze();
+  }
+
+  async saveEstimate(p: ProposedItem) {
+    const food: Food = { name: p.item.name, cat: 'Platos y comidas', portion: p.portion || '1 porción', kcal: p.item.kcal, protein: p.item.protein ?? 0 };
+    try {
+      await this.foodsService.save(food);
+      this.savedEstimates.update((s) => new Set(s).add(food.name));
+      (await this.toast.create({ message: 'Guardado en Mis alimentos', duration: 1500 })).present();
+    } catch {
+      (await this.toast.create({ message: 'No se pudo guardar el alimento', duration: 2500, color: 'danger' })).present();
+    }
+  }
 
   pickPhoto(input: HTMLInputElement) {
     this.aiImage.set(input.files?.[0] ?? null);
@@ -190,6 +268,7 @@ export class MealLogPage implements OnInit {
   ngOnInit() {
     if (!this.route.snapshot.queryParamMap.has('fecha')) this.load();
     this.foodsService.load().catch(() => undefined);
+    this.meals.recent(60).then((h) => this.history.set(h)).catch(() => undefined);
     this.favoriteService.list().then((list) => this.favorites.set(list)).catch(() => undefined);
   }
 
@@ -199,6 +278,7 @@ export class MealLogPage implements OnInit {
       const [profile, weight, energy] = await Promise.all([
         this.profiles.get(), this.profiles.latestWeight(), this.profiles.dayEnergy(this.date()),
       ]);
+      this.weight.set(weight ?? null);
       this.target.set(profile && weight ? dailyPlan(profile, weight, toIsoDate(new Date())).target : null);
       this.burned.set(energy.burned);
     } catch { /* el balance es opcional */ }
@@ -253,6 +333,10 @@ export class MealLogPage implements OnInit {
       const same = items.find((i) => i.name === food.name && i.kcal === food.kcal && i.protein === food.protein);
       return same ? items.map((i) => (i === same ? { ...i, qty: i.qty + 1 } : i)) : [...items, { name: food.name, kcal: food.kcal, protein: food.protein, ...(food.grams ? { refGrams: food.grams } : {}), qty: 1 }];
     });
+  }
+
+  addFrequent(item: MealItem) {
+    this.draftItems.update((items) => mergeItems(items, [item]));
   }
 
   readonly manualKcal = computed(() => parseDecimal(this.manualKcalRaw()));
@@ -360,6 +444,24 @@ export class MealLogPage implements OnInit {
     );
   }
 
+  /** Fija la cantidad de porciones de un ítem (los botones ½ · 1 · 1½ · 2). */
+  setQty(index: number, qty: number) {
+    this.draftItems.update((items) => items.map((item, i) => (i === index ? { ...item, qty } : item)));
+  }
+
+  /** Quita un ítem del borrador y ofrece deshacer. */
+  removeItem(index: number) {
+    const item = this.draftItems()[index];
+    if (!item) return;
+    this.draftItems.update((items) => items.filter((_, i) => i !== index));
+    this.undoToast(`Quitaste ${item.name}`, () => this.draftItems.update((items) => [...items.slice(0, index), item, ...items.slice(index)]));
+  }
+
+  private async undoToast(message: string, onUndo: () => void) {
+    const t = await this.toast.create({ message, duration: 5000, buttons: [{ text: 'Deshacer', role: 'cancel', handler: onUndo }] });
+    t.present();
+  }
+
   changeQty(index: number, delta: number) {
     this.draftItems.update((items) =>
       items.flatMap((item, i) => (i !== index ? [item] : item.qty + delta <= 0 ? [] : [{ ...item, qty: item.qty + delta }])),
@@ -373,13 +475,17 @@ export class MealLogPage implements OnInit {
   async save() {
     const type = this.editing();
     if (!type) return;
+    if (isEmptyMeal(this.effectiveFlags(), this.draftItems().length, this.draftNotes)) return this.remove();
     this.saving.set(true);
     try {
       const saved = await this.meals.save(
         this.date(), type, this.effectiveFlags(), this.draftNotes, this.draftItems(), this.draftItems().length ? this.draftKcal() : null,
       );
+      const wasComplete = this.entries().length >= MEAL_ORDER.length;
       this.entries.update((list) => [...list.filter((e) => e.meal_type !== type), saved]);
+      this.history.update((h) => [{ date: saved.date, meal_type: saved.meal_type, items: saved.items }, ...h.filter((x) => !(x.date === saved.date && x.meal_type === saved.meal_type))]);
       this.close();
+      if (!wasComplete && this.entries().length >= MEAL_ORDER.length) this.celebrate();
     } catch (e) {
       this.showError(e);
     } finally {
@@ -393,10 +499,29 @@ export class MealLogPage implements OnInit {
     try {
       await this.meals.remove(existing.id);
       this.entries.update((list) => list.filter((e) => e.id !== existing.id));
+      this.history.update((h) => h.filter((x) => !(x.date === existing.date && x.meal_type === existing.meal_type)));
       this.close();
+      this.undoToast(`Borraste ${this.mealLabels[existing.meal_type].toLowerCase()}`, () => void this.restore(existing));
     } catch (e) {
       this.showError(e);
     }
+  }
+
+  /** Vuelve a guardar una comida borrada. */
+  private async restore(meal: MealLog) {
+    try {
+      const saved = await this.meals.save(meal.date, meal.meal_type, meal.flags, meal.notes, meal.items, meal.kcal);
+      if (saved.date === this.date()) this.entries.update((list) => [...list.filter((e) => e.meal_type !== saved.meal_type), saved]);
+      this.history.update((h) => [{ date: saved.date, meal_type: saved.meal_type, items: saved.items }, ...h]);
+    } catch (e) {
+      this.showError(e);
+    }
+  }
+
+  private async celebrate() {
+    const n = this.streak();
+    const message = n >= 2 ? `🎉 ¡Día completo! 🔥 ${n} días seguidos` : '🎉 ¡Día completo! Registraste las 4 comidas';
+    (await this.toast.create({ message, duration: 3500, color: 'success', position: 'top' })).present();
   }
 
   flagLabels(flags: MealFlags): string {

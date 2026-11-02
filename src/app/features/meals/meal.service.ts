@@ -1,7 +1,9 @@
 import { inject, Injectable } from '@angular/core';
+import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { ProfileService } from '../energy/profile.service';
 import { MealItem } from '../energy/energy';
+import { HistoryMeal } from './meal-helpers';
 import { MealFlags, MealType, scoreMeal } from './meal-scoring';
 
 export interface MealLog {
@@ -29,6 +31,19 @@ export class MealService {
       .eq('date', date);
     if (error) throw error;
     return data as MealLog[];
+  }
+
+  /** Comidas de los últimos `days` días: alimenta los frecuentes y la racha. */
+  async recent(days: number): Promise<HistoryMeal[]> {
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    const { data, error } = await this.db
+      .from('meal_log')
+      .select('date, meal_type, items')
+      .gte('date', toIsoDate(from))
+      .order('date', { ascending: false });
+    if (error) throw error;
+    return data as HistoryMeal[];
   }
 
   /** La comida más reciente del mismo tipo anterior a `date` (para repetirla). */

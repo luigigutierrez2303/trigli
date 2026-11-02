@@ -120,6 +120,13 @@ ion-searchbar { padding-inline: 0; }
 
 /* En pantallas anchas el editor es un diálogo centrado; en celular ocupa toda la pantalla. */
 ion-modal.meal-modal {
+  /* En celular el editor sube desde abajo como una hoja. */
+  @media (max-width: 767px) {
+    --height: 94%;
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+
   @media (min-width: 768px) {
     --width: 640px;
     --height: min(88vh, 760px);
@@ -210,3 +217,42 @@ ion-modal.meal-modal {
 .proposal { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--ion-background-color, #fff); }
 .proposal span { display: flex; flex-direction: column; min-width: 0; }
 .proposal small { color: var(--ion-color-medium); }
+
+.emo { flex: none; font-size: 1.4rem; line-height: 1; width: 1.8rem; text-align: center; }
+.grow { flex: 1; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px;
+  border: 1px solid var(--ion-border-color); border-radius: 999px; background: var(--trigli-surface-2);
+  color: var(--ion-text-color); font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  &:active { transform: scale(0.97); }
+}
+.qty-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.qchip {
+  min-width: 40px; min-height: 32px; padding: 0 10px; border: 1px solid var(--ion-border-color); border-radius: 999px;
+  background: transparent; color: var(--ion-text-color); font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+  &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+}
+.item-del { padding: 8px 10px; border: 0; background: transparent; color: var(--ion-color-medium); font: inherit; cursor: pointer; }
+
+.summary {
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--ion-card-background, var(--ion-background-color));
+  border-top: 1px solid var(--ion-border-color);
+  &::before { display: none; }
+}
+.sum-row { display: flex; justify-content: space-around; gap: 8px; text-align: center; }
+.sum-cell {
+  display: flex; flex-direction: column; align-items: center; line-height: 1.15;
+  b { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+  small { color: var(--ion-color-medium); font-size: 0.75rem; }
+  &.over b { color: var(--trigli-bad-text); }
+}
+.sum-sug { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.8125rem; color: var(--ion-color-medium); }
+.pop { display: inline-block; animation: pop 0.28s ease-out; }
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } }

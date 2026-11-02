@@ -462,6 +462,37 @@ export function mergeCatalog(base: Food[], mine: UserFood[]): Food[] {
   return [...kept, ...own].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 }
 
+const EMOJI_BY_NAME: [RegExp, string][] = [
+  [/arepa|cachapa|tequen|empanada|\bpan\b|tostada|medialuna|cachito|golfeado/, '🫓'],
+  [/pizza/, '🍕'], [/hamburguesa|pepito|choripan|pancho|perro/, '🍔'], [/papas fritas|tostones|yuca frita/, '🍟'],
+  [/huevo|omelette|perico/, '🥚'], [/queso|mozzarella|provol|ricota|nata/, '🧀'], [/cafe|\bmate\b|\bte\b/, '☕'], [/leche|yogur|chocolatada/, '🥛'],
+  [/cerveza|polar/, '🍺'], [/vino|espumante/, '🍷'], [/fernet|\bgin\b|whisky|\bron\b|tragos/, '🥃'],
+  [/gaseosa|malta|energizante/, '🥤'], [/jugo|licuado|batido|papelon|guarapo|chicha/, '🧃'],
+  [/pollo|pechuga|suprema|muslo|alitas/, '🍗'], [/salmon|trucha|merluza|pescado|atun|sardina|caballa|cazon|lenguado|ceviche/, '🐟'],
+  [/langostino|rabas|pepitona/, '🦐'], [/arroz/, '🍚'], [/fideos|noquis|ravioles|pasticho/, '🍝'],
+  [/palta|aguacate/, '🥑'], [/banana|cambur/, '🍌'], [/manzana/, '🍎'], [/naranja|mandarina/, '🍊'], [/frutilla|arandano/, '🍓'],
+  [/\buvas?\b/, '🍇'], [/sandia|patilla/, '🍉'], [/anana|mango|lechosa|parchita|guayaba/, '🍍'], [/tomate/, '🍅'],
+  [/zanahoria/, '🥕'], [/brocoli/, '🥦'], [/lechuga|ensalada|rucula|espinaca|acelga/, '🥗'], [/\bpapas?\b|batata|yuca|name|ocumo|platano/, '🥔'],
+  [/choclo|cotufas|pochoclo/, '🌽'], [/helado/, '🍨'], [/chocolate|alfajor|brownie/, '🍫'], [/torta|quesillo|tres leches|flan/, '🍰'],
+  [/almendra|nuez|nueces|\bmani\b|castana|caju|semilla/, '🥜'], [/lenteja|garbanzo|poroto|caraota|quinchoncho/, '🫘'],
+  [/asado|bife|lomo|carne|costilla|vacio|entrana|milanesa|chorizo|matambre|cerdo|pernil/, '🥩'],
+];
+
+const EMOJI_BY_CATEGORY: Record<FoodCategory, string> = {
+  'Bebidas': '🥤', 'Desayuno y panificados': '🥐', 'Lácteos y huevos': '🥛', 'Quesos': '🧀', 'Fiambres y embutidos': '🥓',
+  'Carnes': '🥩', 'Pescados y mariscos': '🐟', 'Verduras': '🥬', 'Frutas': '🍎', 'Legumbres y cereales': '🌾',
+  'Platos y comidas': '🍽️', 'Frituras y snacks': '🍿', 'Dulces y postres': '🍰', 'Grasas, semillas y salsas': '🫒',
+};
+
+const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/** Un emoji que ayuda a reconocer el alimento de un vistazo; si no hay uno específico, el de su categoría. */
+export function emojiOf(name: string, cat?: string): string {
+  const n = plain(name);
+  const hit = EMOJI_BY_NAME.find(([re]) => re.test(n));
+  return hit?.[1] ?? EMOJI_BY_CATEGORY[cat as FoodCategory] ?? '🍽️';
+}
+
 /** De dónde sale un alimento del catálogo que ve el usuario. */
 export type FoodOrigin = 'base' | 'modified' | 'custom';
 

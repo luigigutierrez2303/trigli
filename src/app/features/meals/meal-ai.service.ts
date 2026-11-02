@@ -5,6 +5,7 @@ import { Food } from '../energy/foods';
 import { ProposedItem, resolveAnalysis } from '../energy/meal-analysis';
 
 const MAX_SIDE = 1024;
+const REQUEST_TIMEOUT_MS = 35_000;
 
 /** Achica la foto a JPEG de hasta 1024 px y la devuelve en base64 (sin el prefijo data:). */
 async function toJpegBase64(file: File): Promise<string> {
@@ -23,6 +24,7 @@ const MESSAGES: Record<string, string> = {
   not_configured: 'El análisis con IA todavía no está disponible.',
   image: 'No pudimos usar esa foto. Probá con otra.',
   upstream: 'El servicio de IA no respondió. Probá de nuevo en un rato.',
+  upstream_timeout: 'La IA tardó demasiado en responder. Probá de nuevo.',
   upstream_busy: 'El servicio de IA está saturado. Probá de nuevo en un minuto.',
 };
 
@@ -44,7 +46,7 @@ export class MealAiService {
       }
     }
     const body = { text: input.text.trim() || undefined, image, catalog: catalog.map((f) => f.name) };
-    const { data, error } = await this.db.functions.invoke('analizar-comida', { body });
+    const { data, error } = await this.db.functions.invoke('analizar-comida', { body, timeout: REQUEST_TIMEOUT_MS });
     if (error) {
       let code = '';
       if (error instanceof FunctionsHttpError) code = (await error.context.json().catch(() => null))?.error ?? '';

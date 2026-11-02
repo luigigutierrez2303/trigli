@@ -2,8 +2,11 @@
 // Usa la API de Gemini (tiene nivel gratuito). Secrets: GEMINI_API_KEY (obligatorio), GEMINI_MODEL, AI_DAILY_LIMIT (opcionales).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.8-flash';
 const DAILY_LIMIT = Number(Deno.env.get('AI_DAILY_LIMIT') ?? '20');
+// Menos razonamiento = respuesta más rápida; alcanza para identificar alimentos. Valores: low, medium, high.
+const THINKING_LEVEL = Deno.env.get('GEMINI_THINKING') ?? 'low';
+const GEMINI_TIMEOUT_MS = 25_000;
 const MAX_TEXT = 600;
 const MAX_IMAGE_B64 = 1_500_000;
 const MAX_CATALOG = 800;
@@ -90,23 +93,37 @@ Deno.serve(async (req) => {
   }];
   if (image) parts.push({ inlineData: { mimeType: 'image/jpeg', data: image } });
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+  const started = Date.now();
+  let res: Response;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+    signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
     method: 'POST',
     headers: { 'x-goog-api-key': apiKey, 'content-type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM }] },
       contents: [{ role: 'user', parts }],
-      generationConfig: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA, temperature: 0.2, maxOutputTokens: 2000 },
+      generationConfig: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA, temperature: 0.2, maxOutputTokens: 2000, thinkingConfig: { thinkingLevel: THINKING_LEVEL } },
     }),
-  });
+    });
+  } catch (e) {
+    console.error(`Gemini sin respuesta tras ${Date.now() - started} ms (${MODEL}): ${e}`);
+    return json({ error: 'upstream_timeout' }, 504);
+  }
+  console.log(`Gemini ${res.status} en ${Date.now() - started} ms (${MODEL})`);
   if (res.status === 429) return json({ error: 'upstream_busy' }, 503);
-  if (!res.ok) return json({ error: 'upstream' }, 502);
+  if (!res.ok) {
+    const detail = (await res.text()).slice(0, 500);
+    console.error(`Gemini ${res.status} (${MODEL}): ${detail}`);
+    return json({ error: 'upstream', status: res.status }, 502);
+  }
 
   const data = await res.json();
   const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   try {
     return json({ items: JSON.parse(raw ?? '{}').items ?? [] });
   } catch {
+    console.error(`Gemini respuesta ilegible (${MODEL}): ${JSON.stringify(data).slice(0, 500)}`);
     return json({ error: 'upstream' }, 502);
   }
 });

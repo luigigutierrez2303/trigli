@@ -17,6 +17,7 @@
         } @else {
           {{ entries().length }}/4 comidas
           @if (hadAlcohol()) { · con alcohol }
+          @if (streak() >= 2) { · 🔥 {{ streak() }} días seguidos }
         }
       </div>
     </ion-card-content>
@@ -96,6 +97,16 @@
               <span class="repeat-sub">{{ previous()!.kcal }} kcal · {{ previous()!.date }}</span>
             </button>
           }
+          @if (frequent().length) {
+            <div class="field-label">Lo que más comés</div>
+            <div class="chips">
+              @for (it of frequent(); track it.name) {
+                <button type="button" class="chip" (click)="addFrequent(it)">
+                  <span aria-hidden="true">{{ emoji(it.name) }}</span> {{ it.name }}
+                </button>
+              }
+            </div>
+          }
           @if (favorites().length) {
             <div class="fav-head">
               <span class="field-label">Favoritas</span>
@@ -118,21 +129,30 @@
             <ion-list lines="full" class="items">
               @for (item of draftItems(); track $index) {
                 <ion-item>
+                  <span slot="start" class="emo" aria-hidden="true">{{ emoji(item.name) }}</span>
                   <ion-label>
                     <h3>{{ item.name }}</h3>
                     <p>{{ item.kcal * item.qty | number: '1.0-0' }} kcal</p>
+                    @if (!item.refGrams) {
+                      <div class="qty-chips" role="group" aria-label="Porciones">
+                        @if (!qtyChoices.includes($any(item.qty))) {
+                          <button type="button" class="qchip on" disabled>{{ qtyLabel(item.qty) }}</button>
+                        }
+                        @for (q of qtyChoices; track q) {
+                          <button type="button" class="qchip" [class.on]="item.qty === q" (click)="setQty($index, q)">{{ qtyLabel(q) }}</button>
+                        }
+                        <button type="button" class="qchip" (click)="changeQty($index, 1)" aria-label="Una porción más">+1</button>
+                      </div>
+                    }
                   </ion-label>
-                  <div slot="end" class="qty">
-                    @if (item.refGrams) {
+                  @if (item.refGrams) {
+                    <div slot="end" class="qty">
                       <ion-input class="grams" fill="outline" type="number" inputmode="numeric" aria-label="Gramos"
                         [value]="gramsOf(item)" (ionChange)="setGrams($index, $any($event.target).value ?? '')" />
                       <span class="unit">g</span>
-                    } @else {
-                      <ion-button fill="outline" size="small" (click)="changeQty($index, -1)" aria-label="Menos">−</ion-button>
-                      <span>{{ qtyLabel(item.qty) }}</span>
-                      <ion-button fill="outline" size="small" (click)="changeQty($index, 1)" aria-label="Más">+</ion-button>
-                    }
-                  </div>
+                    </div>
+                  }
+                  <button slot="end" type="button" class="item-del" (click)="removeItem($index)" [attr.aria-label]="'Quitar ' + item.name">✕</button>
                 </ion-item>
               }
             </ion-list>
@@ -151,13 +171,19 @@
           }
           <div class="ai-box">
             <b>✨ Contanos qué comiste</b>
-            <ion-textarea [value]="aiText()" (ionInput)="aiText.set($any($event.target).value ?? '')" [autoGrow]="true" rows="2" maxlength="600"
+            <ion-textarea [value]="aiText()" (ionInput)="aiText.set($any($event.target).value ?? '')" (keydown.enter)="onAiKey($event)" [autoGrow]="true" rows="2" maxlength="600"
               placeholder="Ej. dos arepas con queso de mano y un café con leche" aria-label="Qué comiste" />
             <div class="ai-actions">
               <input #photo type="file" accept="image/*" capture="environment" hidden (change)="pickPhoto(photo)" />
               <ion-button size="small" fill="outline" (click)="photo.click()">
                 {{ aiImage() ? '📷 Cambiar foto' : '📷 Sacar foto' }}
               </ion-button>
+              @if (speechSupported) {
+                <ion-button size="small" [fill]="listening() ? 'solid' : 'outline'" [color]="listening() ? 'danger' : 'primary'"
+                  (click)="toggleDictation()" [attr.aria-pressed]="listening()">
+                  {{ listening() ? '⏹ Escuchando…' : '🎤 Dictar' }}
+                </ion-button>
+              }
               @if (aiImage()) { <small class="muted">{{ aiImage()!.name }}</small> }
               <ion-button size="small" (click)="analyze()" [disabled]="!canAnalyze()">
                 {{ aiBusy() ? 'Analizando…' : 'Analizar' }}
@@ -168,7 +194,8 @@
               <div class="proposals">
                 @for (p of proposals(); track p) {
                   <div class="proposal">
-                    <span>
+                    <span class="emo" aria-hidden="true">{{ emoji(p.item.name) }}</span>
+                    <span class="grow">
                       <b>{{ p.item.name }}</b>
                       <small>
                         {{ qtyLabel(p.item.qty) }} × {{ p.item.kcal }} kcal
@@ -176,6 +203,9 @@
                         @if (p.uncertain) { · revisá este }
                       </small>
                     </span>
+                    @if (p.estimated && !savedEstimates().has(p.item.name)) {
+                      <button type="button" class="link" (click)="saveEstimate(p)">+ Mis alimentos</button>
+                    }
                     <button type="button" class="food-del" aria-label="Descartar" (click)="dropProposal(p)">×</button>
                   </div>
                 }
@@ -197,7 +227,8 @@
           <div class="food-list">
             @for (f of visibleKcalFoods(); track f.name + f.kcal) {
               <button type="button" class="food" (click)="addFood(f)">
-                <span><b>{{ f.name }}</b><small>{{ f.portion }}</small></span>
+                <span class="emo" aria-hidden="true">{{ emoji(f.name) }}</span>
+                <span class="grow"><b>{{ f.name }}</b><small>{{ f.portion }}</small></span>
                 <span class="food-kcal">{{ f.kcal }} kcal</span>
                 @if (isCustom(f)) {
                   <span class="food-del" role="button" aria-label="Quitar de mi lista" (click)="removeCustom(f, $event)">×</span>
@@ -260,6 +291,33 @@
           </ion-button>
         }
       </ion-content>
+
+      <ion-footer class="summary">
+        <div class="sum-row" aria-live="polite">
+          <div class="sum-cell">
+            @for (n of [draftKcal()]; track n) { <b class="pop">{{ n }}</b> }
+            <small>kcal</small>
+          </div>
+          <div class="sum-cell">
+            @for (n of [draftProtein()]; track n) { <b class="pop">{{ n }}</b> }
+            <small>g proteína</small>
+          </div>
+          @if (afterRemaining(); as left) {
+            <div class="sum-cell" [class.over]="left < 0">
+              @for (n of [left]; track n) { <b class="pop">{{ left < 0 ? -left : left }}</b> }
+              <small>{{ left < 0 ? 'de más hoy' : 'te quedan hoy' }}</small>
+            </div>
+          }
+        </div>
+        @if (suggestions().length) {
+          <div class="sum-sug">
+            <span>Te faltan <b>{{ missingProtein() }} g</b> de proteína:</span>
+            @for (f of suggestions(); track f.name) {
+              <button type="button" class="chip" (click)="addFood(f)"><span aria-hidden="true">{{ emoji(f.name) }}</span> {{ f.name }}</button>
+            }
+          </div>
+        }
+      </ion-footer>
     </ng-template>
   </ion-modal>
 </ion-content>

@@ -1,4 +1,4 @@
-import { ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, scoreDay, scoreMeal } from './meal-scoring';
+import { ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, scoreDay, scoreMeal } from './meal-scoring';
 
 describe('meal scoring', () => {
   it('neutral meal scores the base', () => {
@@ -61,5 +61,18 @@ describe('meal scoring', () => {
     expect(levelForDay(70)).toBe('good');
     expect(levelForDay(69)).toBe('warn');
     expect(levelForDay(39)).toBe('bad');
+  });
+});
+
+describe('isEmptyMeal', () => {
+  it('es vacía sin alimentos, marcas ni notas', () => {
+    expect(isEmptyMeal({}, 0, null)).toBe(true);
+    expect(isEmptyMeal({ salad: false }, 0, '  ')).toBe(true);
+  });
+
+  it('deja de ser vacía con alimentos, una marca o una nota', () => {
+    expect(isEmptyMeal({}, 1, null)).toBe(false);
+    expect(isEmptyMeal({ salad: true }, 0, null)).toBe(false);
+    expect(isEmptyMeal({}, 0, 'cena liviana')).toBe(false);
   });
 });
