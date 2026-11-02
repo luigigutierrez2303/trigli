@@ -149,6 +149,43 @@
               <button type="button" class="link save-fav" (click)="showFavForm.set(true)">★ Guardar como favorita</button>
             }
           }
+          <div class="ai-box">
+            <b>✨ Contanos qué comiste</b>
+            <ion-textarea [(ngModel)]="aiText" [autoGrow]="true" rows="2" maxlength="600"
+              placeholder="Ej. dos arepas con queso de mano y un café con leche" aria-label="Qué comiste" />
+            <div class="ai-actions">
+              <input #photo type="file" accept="image/*" capture="environment" hidden (change)="pickPhoto(photo)" />
+              <ion-button size="small" fill="outline" (click)="photo.click()">
+                {{ aiImage() ? '📷 Cambiar foto' : '📷 Sacar foto' }}
+              </ion-button>
+              @if (aiImage()) { <small class="muted">{{ aiImage()!.name }}</small> }
+              <ion-button size="small" (click)="analyze()" [disabled]="!canAnalyze()">
+                {{ aiBusy() ? 'Analizando…' : 'Analizar' }}
+              </ion-button>
+            </div>
+            @if (aiError()) { <p class="ai-error" role="alert">{{ aiError() }}</p> }
+            @if (proposals().length) {
+              <div class="proposals">
+                @for (p of proposals(); track p) {
+                  <div class="proposal">
+                    <span>
+                      <b>{{ p.item.name }}</b>
+                      <small>
+                        {{ qtyLabel(p.item.qty) }} × {{ p.item.kcal }} kcal
+                        @if (p.estimated) { · estimado por IA }
+                        @if (p.uncertain) { · revisá este }
+                      </small>
+                    </span>
+                    <button type="button" class="food-del" aria-label="Descartar" (click)="dropProposal(p)">×</button>
+                  </div>
+                }
+                <div class="ai-actions">
+                  <ion-button size="small" fill="clear" color="medium" (click)="clearAnalysis()">Descartar</ion-button>
+                  <ion-button size="small" (click)="acceptProposals()">Agregar a la comida</ion-button>
+                </div>
+              </div>
+            }
+          </div>
           <ion-searchbar placeholder="Buscar alimento (ej. milanesa, mate)" [debounce]="150"
             (ionInput)="foodQuery.set($any($event.target).value ?? '')" />
           <div class="cats" role="group" aria-label="Categorías">

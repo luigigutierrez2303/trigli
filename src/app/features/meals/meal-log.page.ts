@@ -16,6 +16,8 @@ import { parseDecimal } from '../activity/activity';
 import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, mergeItems, MealItem } from '../energy/energy';
 import { flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
 import { FoodsService } from '../energy/foods.service';
+import { ProposedItem } from '../energy/meal-analysis';
+import { MealAiError, MealAiService } from './meal-ai.service';
 import { ProfileService } from '../energy/profile.service';
 import {
   ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
@@ -43,6 +45,7 @@ export class MealLogPage implements OnInit {
   private readonly profiles = inject(ProfileService);
   private readonly favoriteService = inject(FavoriteService);
   private readonly foodsService = inject(FoodsService);
+  private readonly mealAi = inject(MealAiService);
 
   readonly flagDefs = FLAG_DEFS;
   /** Catálogo en orden alfabético para recorrerlo con el buscador. */
@@ -98,6 +101,50 @@ export class MealLogPage implements OnInit {
     const found = q ? inCat.filter((f) => normalize(`${f.name} ${f.portion}`).includes(q)) : inCat;
     return found.slice(0, q || cat ? 60 : 15);
   });
+  // Análisis con IA (texto o foto)
+  aiText = '';
+  readonly aiImage = signal<File | null>(null);
+  readonly aiBusy = signal(false);
+  readonly aiError = signal<string | null>(null);
+  readonly proposals = signal<ProposedItem[]>([]);
+  readonly canAnalyze = computed(() => !this.aiBusy() && (!!this.aiText.trim() || !!this.aiImage()));
+
+  pickPhoto(input: HTMLInputElement) {
+    this.aiImage.set(input.files?.[0] ?? null);
+    input.value = '';
+  }
+
+  async analyze() {
+    if (!this.canAnalyze()) return;
+    this.aiBusy.set(true);
+    this.aiError.set(null);
+    try {
+      const found = await this.mealAi.analyze({ text: this.aiText, image: this.aiImage() }, this.foodsService.catalog());
+      this.proposals.set(found);
+      if (!found.length) this.aiError.set('No encontramos comida ahí. Probá describiéndola con otras palabras.');
+    } catch (e) {
+      this.aiError.set(e instanceof MealAiError ? e.message : 'No pudimos analizar la comida. Probá de nuevo.');
+    }
+    this.aiBusy.set(false);
+  }
+
+  dropProposal(p: ProposedItem) {
+    this.proposals.update((list) => list.filter((x) => x !== p));
+  }
+
+  /** Suma lo propuesto al borrador de la comida y limpia el análisis. */
+  acceptProposals() {
+    this.draftItems.update((items) => mergeItems(items, this.proposals().map((p) => p.item)));
+    this.clearAnalysis();
+  }
+
+  clearAnalysis() {
+    this.proposals.set([]);
+    this.aiText = '';
+    this.aiImage.set(null);
+    this.aiError.set(null);
+  }
+
   // Favoritas y repetir
   readonly favorites = signal<FavoriteMeal[]>([]);
   /** Última comida del mismo tipo registrada antes; se ofrece para repetir. */

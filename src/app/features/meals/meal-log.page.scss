@@ -202,3 +202,11 @@ ion-modal.meal-modal {
 .fav-del { padding: 0 12px; border: 0; border-left: 1px solid var(--ion-border-color); background: transparent; color: var(--ion-color-danger); cursor: pointer; font: inherit; }
 .fav-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin: 8px 0 12px; }
 .save-fav { display: block; margin: 0 0 4px; }
+
+.ai-box { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; padding: 12px 14px; border-radius: 14px; background: var(--trigli-primary-soft); }
+.ai-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.ai-error { margin: 0; font-size: 13px; color: var(--ion-color-danger); }
+.proposals { display: flex; flex-direction: column; gap: 6px; }
+.proposal { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--ion-background-color, #fff); }
+.proposal span { display: flex; flex-direction: column; min-width: 0; }
+.proposal small { color: var(--ion-color-medium); }
