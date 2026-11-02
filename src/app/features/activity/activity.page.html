@@ -41,14 +41,13 @@
             <ion-item>
               <ion-label>
                 <h2>{{ activityLabel(w.activity) ?? (w.source === 'health' ? 'Actividad de Salud' : 'Cardio') }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
-                @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas</p> }
+                @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas@if (w.source === 'health') { · de Salud }</p> }
+                @if (w.source !== 'health' && hasHealthDay()) { <p>Sus kcal no suman al balance: el total de Salud ya las incluye.</p> }
                 @if (w.notes) { <p>{{ w.notes }}</p> }
               </ion-label>
-              @if (w.source === 'health') {
-                <ion-button slot="end" fill="clear" (click)="editMinutes(w)" aria-label="Poner minutos">
-                  <ion-icon slot="icon-only" name="create-outline" />
-                </ion-button>
-              }
+              <ion-button slot="end" fill="clear" (click)="startEdit(w)" aria-label="Editar">
+                <ion-icon slot="icon-only" name="create-outline" />
+              </ion-button>
               <ion-button slot="end" fill="clear" color="danger" (click)="removeCardio(w.id)" aria-label="Borrar">
                 <ion-icon slot="icon-only" name="trash-outline" />
               </ion-button>
@@ -59,7 +58,16 @@
         <div class="empty-state"><div class="icon"><ion-icon name="walk-outline" /></div><h3>Sin cardio este día</h3><p>Una caminata de 30 minutos ya suma para la meta semanal.</p></div>
       }
 
-      <div class="field-label">Actividad</div>
+      @if (suggestions().length && !editingId()) {
+        <div class="field-label">Repetir</div>
+        <div class="chips">
+          @for (c of suggestions(); track c.activity + c.minutes) {
+            <button type="button" class="chip" [disabled]="saving()" (click)="quickAdd(c)">{{ comboLabel(c) }}</button>
+          }
+        </div>
+      }
+
+      <div id="cardio-form" class="field-label">{{ editingId() ? 'Editando cardio' : 'Actividad' }}</div>
       <div class="chips" role="radiogroup" aria-label="Tipo de actividad">
         @for (a of activities; track a.key) {
           <button type="button" class="chip" role="radio" [class.on]="activityKey() === a.key" [attr.aria-checked]="activityKey() === a.key"
@@ -79,9 +87,10 @@
         <ion-input fill="outline" label="Nota" labelPlacement="stacked" placeholder="Opcional"
           [value]="cardioNotes()" (ionInput)="cardioNotes.set($any($event.target).value ?? '')" />
       </div>
-      <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="addCardio()">
-        Agregar cardio{{ cardioKcal() !== null ? ' (≈ ' + cardioKcal() + ' kcal)' : '' }}
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="editingId() ? saveEdit() : addCardio()">
+        @if (editingId()) { Guardar cambios } @else { Agregar cardio{{ cardioKcal() !== null ? ' (≈ ' + cardioKcal() + ' kcal)' : '' }} }
       </ion-button>
+      @if (editingId()) { <ion-button expand="block" fill="clear" color="medium" (click)="cancelEdit()">Cancelar</ion-button> }
       @if (cardioKcal() === null && minutes()) { <ion-note class="ion-padding-top">Cargá tu peso más abajo para estimar las kcal.</ion-note> }
     </ion-card-content>
   </ion-card>

@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Supabase } from '../../core/supabase';
+import { BurnRow, burnedKcal } from '../activity/activity';
 import { EnergyProfile, itemsProtein, MealItem, WeightPoint } from './energy';
 
 const COLS = 'sex, birth_date, height_cm, goal_weight_kg, activity_level, weekly_loss_kg';
@@ -58,7 +59,7 @@ export class ProfileService {
   async energyBetween(from: string, to: string): Promise<WeekEnergyDay[]> {
     const [meals, workouts] = await Promise.all([
       this.db.from('meal_log').select('date, kcal, items').gte('date', from).lte('date', to),
-      this.db.from('workout').select('date, kcal').gte('date', from).lte('date', to),
+      this.db.from('workout').select('date, kcal, type, source').gte('date', from).lte('date', to),
     ]);
     if (meals.error) throw meals.error;
     if (workouts.error) throw workouts.error;
@@ -73,7 +74,13 @@ export class ProfileService {
       d.eaten += (m.kcal as number | null) ?? 0;
       d.protein += itemsProtein((m.items ?? []) as MealItem[]);
     }
-    for (const w of workouts.data) day(w.date as string).burned += (w.kcal as number | null) ?? 0;
+    const byDay = new Map<string, BurnRow[]>();
+    for (const w of workouts.data) {
+      const list = byDay.get(w.date as string) ?? [];
+      list.push({ type: w.type as string, kcal: w.kcal as number | null, source: w.source as string });
+      byDay.set(w.date as string, list);
+    }
+    for (const [date, rows] of byDay) day(date).burned = burnedKcal(rows);
     return [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
   }
 

@@ -1,5 +1,5 @@
 import {
-  cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, weekEnd, weekStart, weightDelta,
+  burnedKcal, cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
 } from './activity';
 
 describe('activity', () => {
@@ -41,5 +41,31 @@ describe('activity', () => {
   it('weight delta rounds to one decimal', () => {
     expect(weightDelta(82.4, 83)).toBe(-0.6);
     expect(weightDelta(82, null)).toBeNull();
+  });
+
+  it('burned kcal ignores manual cardio on days with a Salud total, but keeps strength', () => {
+    const rows = [
+      { type: 'cardio', kcal: 95, source: 'health' },
+      { type: 'cardio', kcal: 200, source: 'manual' },
+      { type: 'strength', kcal: 150, source: 'manual' },
+    ];
+    expect(burnedKcal(rows)).toBe(245);
+    expect(burnedKcal(rows.slice(1))).toBe(350);
+    expect(burnedKcal([])).toBe(0);
+  });
+
+  it('top combos orders by repetitions, then recency, and skips Salud rows', () => {
+    const rows = [
+      { activity: 'run', duration_min: 20, source: 'manual' },
+      { activity: 'walk_fast', duration_min: 40, source: 'manual' },
+      { activity: 'walk_fast', duration_min: 40, source: 'manual' },
+      { activity: null, duration_min: 30, source: 'manual' },
+      { activity: 'walk_fast', duration_min: 15, source: 'health' },
+    ];
+    expect(topCombos(rows)).toEqual([
+      { activity: 'walk_fast', minutes: 40, count: 2 },
+      { activity: 'run', minutes: 20, count: 1 },
+    ]);
+    expect(topCombos(rows, 1)).toHaveLength(1);
   });
 });

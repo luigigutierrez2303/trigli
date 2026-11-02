@@ -44,3 +44,41 @@ export const isValidMinutes = (min: number | null): min is number =>
 export function weightDelta(current: number | null, previous: number | null): number | null {
   return current === null || previous === null ? null : Math.round((current - previous) * 10) / 10;
 }
+
+export interface BurnRow {
+  type: string;
+  kcal: number | null;
+  source: string;
+}
+
+/**
+ * Kcal quemadas en un día. Si hay un total de Salud, el cardio cargado a mano no suma
+ * (esas kcal ya están en el total); la fuerza sí, porque el teléfono no la mide.
+ */
+export function burnedKcal(rows: BurnRow[]): number {
+  const hasHealth = rows.some((r) => r.type === 'cardio' && r.source === 'health');
+  return rows.reduce((sum, r) => {
+    if (hasHealth && r.type === 'cardio' && r.source !== 'health') return sum;
+    return sum + (r.kcal ?? 0);
+  }, 0);
+}
+
+export interface CardioCombo {
+  activity: string;
+  minutes: number;
+  count: number;
+}
+
+/** Las combinaciones tipo + minutos que más repetís (a mano), para cargarlas de un toque. Recibe las filas de la más nueva a la más vieja. */
+export function topCombos(rows: { activity: string | null; duration_min: number; source: string }[], limit = 4): CardioCombo[] {
+  const combos = new Map<string, CardioCombo>();
+  for (const r of rows) {
+    if (r.source === 'health' || !r.activity || r.duration_min <= 0) continue;
+    const key = `${r.activity}|${r.duration_min}`;
+    const found = combos.get(key);
+    if (found) found.count++;
+    else combos.set(key, { activity: r.activity, minutes: r.duration_min, count: 1 });
+  }
+  // sort es estable: a igual cantidad queda primero la más reciente
+  return [...combos.values()].sort((a, b) => b.count - a.count).slice(0, limit);
+}

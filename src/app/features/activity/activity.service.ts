@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Supabase } from '../../core/supabase';
+import { toIsoDate } from '../../core/date';
 import { ProfileService } from '../energy/profile.service';
 
 export interface CardioWorkout {
@@ -53,11 +54,29 @@ export class ActivityService {
     return data as CardioWorkout;
   }
 
-  /** Minutos de una fila importada de Salud (llegan sin duración). */
-  async setMinutes(id: string, minutes: number): Promise<void> {
-    const { error } = await this.db.from('workout').update({ duration_min: minutes }).eq('id', id);
+  /** Corrige un cardio (también el total importado de Salud, que llega sin minutos). */
+  async updateCardio(
+    id: string, values: { duration_min: number; activity: string; notes: string | null; kcal?: number },
+  ): Promise<CardioWorkout> {
+    const { data, error } = await this.db.from('workout').update(values).eq('id', id).select(WORKOUT_COLS).single();
     if (error) throw error;
     this.profiles.notifyChange();
+    return data as CardioWorkout;
+  }
+
+  /** Cardios de los últimos 60 días, del más nuevo al más viejo, para sugerir los que más repetís. */
+  async recentCardio(): Promise<Pick<CardioWorkout, 'activity' | 'duration_min' | 'source'>[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - 60);
+    const { data, error } = await this.db
+      .from('workout')
+      .select('activity, duration_min, source')
+      .eq('type', 'cardio')
+      .gte('date', toIsoDate(since))
+      .order('date', { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    return data as Pick<CardioWorkout, 'activity' | 'duration_min' | 'source'>[];
   }
 
   async removeWorkout(id: string): Promise<void> {

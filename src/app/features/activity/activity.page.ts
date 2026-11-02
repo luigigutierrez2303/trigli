@@ -2,13 +2,13 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, AlertController, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import {
-  cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, weekEnd, weekStart, weightDelta,
+  CardioCombo, cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
   WEEKLY_CARDIO_GOAL_MIN,
 } from './activity';
 import { CARDIO_ACTIVITIES, cardioActivity, kcalBurned } from '../energy/energy';
@@ -29,7 +29,6 @@ export class ActivityPage implements OnInit {
   private readonly profiles = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastController);
-  private readonly alerts = inject(AlertController);
 
   readonly weeklyGoal = WEEKLY_CARDIO_GOAL_MIN;
 
@@ -39,9 +38,15 @@ export class ActivityPage implements OnInit {
   readonly metric = signal<BodyMetric | null>(null);
   readonly prevWeight = signal<number | null>(null);
   readonly saving = signal(false);
+  /** Cardio que se está corrigiendo con el formulario de abajo (null = cargando uno nuevo). */
+  readonly editingId = signal<string | null>(null);
+  readonly suggestions = signal<CardioCombo[]>([]);
 
   readonly isToday = computed(() => this.date() === toIsoDate(new Date()));
   readonly dayCardio = computed(() => this.weekCardio().filter((w) => w.date === this.date()));
+  readonly editing = computed(() => this.weekCardio().find((w) => w.id === this.editingId()) ?? null);
+  /** Con un total de Salud en el día, el cardio manual no suma kcal al balance. */
+  readonly hasHealthDay = computed(() => this.dayCardio().some((w) => w.source === 'health'));
   readonly progress = computed(() => cardioProgress(this.weekCardio().reduce((sum, w) => sum + w.duration_min, 0)));
   readonly delta = computed(() => weightDelta(this.metric()?.weight_kg ?? null, this.prevWeight()));
   readonly dateLabel = computed(() =>
@@ -72,6 +77,7 @@ export class ActivityPage implements OnInit {
     return days.map((d) => ({ ...d, pct: d.minutes ? Math.max((d.minutes / top) * 100, 8) : 0 }));
   });
   readonly activityLabel = (key: string | null) => cardioActivity(key)?.label ?? null;
+  readonly comboLabel = (c: CardioCombo) => `${this.activityLabel(c.activity) ?? c.activity} · ${c.minutes} min`;
   /** Último peso conocido, para estimar las kcal del cardio. */
   private readonly lastWeight = signal<number | null>(null);
   readonly cardioKcal = computed(() => {
@@ -115,12 +121,14 @@ export class ActivityPage implements OnInit {
   async load() {
     const date = this.date();
     try {
-      const [cardio, metric, prev, lastWeight] = await Promise.all([
+      const [cardio, metric, prev, lastWeight, recent] = await Promise.all([
         this.activity.cardioBetween(weekStart(date), weekEnd(date)),
         this.activity.metricByDate(date),
         this.activity.previousWeight(date),
         this.profiles.latestWeight(),
+        this.activity.recentCardio().catch(() => []),
       ]);
+      this.suggestions.set(topCombos(recent));
       this.weekCardio.set(cardio);
       this.metric.set(metric);
       this.prevWeight.set(prev);
@@ -161,32 +169,43 @@ export class ActivityPage implements OnInit {
     }
   }
 
-  async editMinutes(w: CardioWorkout) {
-    const alert = await this.alerts.create({
-      header: 'Minutos de actividad',
-      inputs: [{ name: 'minutes', type: 'number', min: 1, placeholder: 'Minutos', value: w.duration_min || undefined }],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Guardar',
-          handler: (v: { minutes: string }) => {
-            const min = parseDecimal(v.minutes);
-            if (!isValidMinutes(min)) return false;
-            this.saveMinutes(w.id, min!);
-            return true;
-          },
-        },
-      ],
-    });
-    await alert.present();
+  async quickAdd(c: CardioCombo) {
+    this.activityKey.set(c.activity);
+    this.minutesRaw.set(String(c.minutes));
+    await this.addCardio();
   }
 
-  private async saveMinutes(id: string, minutes: number) {
+  startEdit(w: CardioWorkout) {
+    this.editingId.set(w.id);
+    this.activityKey.set(w.activity ?? this.activityKey());
+    this.minutesRaw.set(w.duration_min ? String(w.duration_min) : '');
+    this.cardioNotes.set(w.notes ?? '');
+    document.getElementById('cardio-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+    this.minutesRaw.set('');
+    this.cardioNotes.set('');
+  }
+
+  async saveEdit() {
+    const w = this.editing();
+    if (!w || !this.canAddCardio()) return;
+    this.saving.set(true);
     try {
-      await this.activity.setMinutes(id, minutes);
-      this.weekCardio.update((list) => list.map((w) => (w.id === id ? { ...w, duration_min: minutes } : w)));
+      // El total de Salud conserva sus kcal; las de un cardio manual se recalculan con el tipo y los minutos nuevos.
+      const kcal = w.source === 'health' ? null : this.cardioKcal();
+      const saved = await this.activity.updateCardio(w.id, {
+        duration_min: this.minutes()!, activity: this.activityKey(), notes: this.cardioNotes().trim() || null,
+        ...(kcal !== null ? { kcal } : {}),
+      });
+      this.weekCardio.update((list) => list.map((x) => (x.id === saved.id ? saved : x)));
+      this.cancelEdit();
     } catch (e) {
       this.showError(e);
+    } finally {
+      this.saving.set(false);
     }
   }
 
@@ -194,6 +213,7 @@ export class ActivityPage implements OnInit {
     try {
       await this.activity.removeWorkout(id);
       this.weekCardio.update((list) => list.filter((w) => w.id !== id));
+      if (this.editingId() === id) this.cancelEdit();
     } catch (e) {
       this.showError(e);
     }
