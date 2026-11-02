@@ -63,6 +63,55 @@
         </ion-card-content>
       </ion-card>
     </div>
+
+    <div class="week-rows" role="table" aria-label="Semana por día">
+      <div class="mrow head" role="row">
+        <div class="mcell day" role="columnheader">Día</div>
+        <div class="mcell" role="columnheader">Score</div>
+        @for (m of mealOrder; track m) { <div class="mcell" role="columnheader">{{ mealLabels[m].slice(0, 3) }}</div> }
+        <div class="mcell" role="columnheader">Cardio</div>
+        <div class="mcell" role="columnheader">Peso</div>
+      </div>
+      @for (d of grid(); track d.date; let i = $index) {
+        <div class="mrow" [class.today]="d.isToday" [class.future]="d.isFuture" role="row">
+          <div class="mcell day" role="rowheader">
+            {{ dayHeader(d, i) }}@if (d.strengthMin !== null) { <span class="dot" role="img" aria-label="Hizo fuerza"></span> }
+          </div>
+          <div class="mcell" role="cell">
+            @if (d.dayScore !== null) {
+              <span class="chip" [attr.data-level]="d.dayLevel">{{ d.dayScore }}</span>
+            } @else if (!d.isFuture) {
+              <span class="dash">—</span>
+            }
+          </div>
+          @for (m of mealOrder; track m) {
+            @let meal = d.meals[m];
+            <a class="mcell link" role="cell" [class.future]="d.isFuture" [routerLink]="d.isFuture ? null : ['/comidas']" [queryParams]="mealQuery(d, m)"
+              [attr.aria-label]="mealLabels[m] + ' ' + d.date">
+              @if (meal) {
+                <span class="meal-score" [attr.data-level]="meal.level">{{ meal.score }}</span>
+              } @else if (d.isToday) {
+                <ion-icon name="add-circle-outline" class="add" />
+              } @else if (!d.isFuture) {
+                <span class="dash">—</span>
+              }
+            </a>
+          }
+          <a class="mcell link" role="cell" [class.future]="d.isFuture" [routerLink]="d.isFuture ? null : ['/actividad']" [queryParams]="{ fecha: d.date }">
+            @if (d.cardioMin !== null) { {{ d.cardioMin }}′ } @else if (!d.isFuture) { <span class="dash">—</span> }
+          </a>
+          <a class="mcell link" role="cell" [class.future]="d.isFuture" [routerLink]="d.isFuture ? null : ['/actividad']" [queryParams]="{ fecha: d.date }">
+            @if (d.weightKg !== null) { {{ decimal(d.weightKg) }} } @else if (!d.isFuture) { <span class="dash">—</span> }
+          </a>
+        </div>
+      }
+      <div class="week-sum">
+        <span>Score <b>{{ summary().avgScore ?? '—' }}</b></span>
+        <span>Cardio <b>{{ cardio().minutes }} / 150 min</b></span>
+        <span>Fuerza <b>{{ summary().strengthSessions }}</b></span>
+      </div>
+    </div>
+    <p class="muted week-legend"><span class="dot"></span> Día con fuerza</p>
   </div>
 
   <div class="desktop-only desk">
