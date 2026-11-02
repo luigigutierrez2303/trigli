@@ -152,8 +152,8 @@ export const FOODS: Food[] = [
   f('Carnes', 'Hamburguesa casera', '1 unidad', 280, 22),
   f('Carnes', 'Albóndigas', '3 unidades', 250, 18),
   f('Carnes', 'Lomo de cerdo', '1 porción (150 g)', 240, 35),
-  f('Carnes', 'Bondiola de cerdo', '1 porción (150 g)', 380, 28, 'grill'),
-  f('Carnes', 'Costillitas de cerdo', '1 porción (200 g)', 560, 38, 'grill'),
+  f('Carnes', 'Bondiola de cerdo', '1 porción (150 g)', 380, 28, 'fattyCut'),
+  f('Carnes', 'Costillitas de cerdo', '1 porción (200 g)', 560, 38, 'fattyCut'),
   f('Carnes', 'Cordero', '1 porción (150 g)', 340, 32),
 
   // Cortes por 100 g (cocidos): elegí los gramos que comiste

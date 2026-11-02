@@ -75,6 +75,7 @@ export const FLAG_DEFS: readonly FlagDef[] = [
   food('choripan', 'Choripán / pancho', '', -3),
   // Carnes, pescados y huevo
   food('grill', 'Asado / achuras', 'Costillar, vacío, chinchulines, morcilla', -2),
+  food('fattyCut', 'Carne grasa', 'Bondiola, costillitas de cerdo', -1),
   food('coldCuts', 'Fiambres', 'Salame, jamón, mortadela, paleta', -2),
   food('sausage', 'Chorizo / salchicha', '', -2),
   food('chicken', 'Pollo sin piel', 'Hervido, al horno o a la plancha', 1),
