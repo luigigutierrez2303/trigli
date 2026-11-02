@@ -97,3 +97,19 @@ describe('café con leche', () => {
     expect(flagsOfItems(['Café con leche con azúcar'])).toEqual({ sugar: true });
   });
 });
+
+describe('marcas que suman según la cantidad', () => {
+  it('una pizca de frutos secos no suma, media porción sí', () => {
+    expect(flagsOfItems([{ name: 'Almendras o nueces', qty: 0.25 }])).toEqual({});
+    expect(flagsOfItems([{ name: 'Almendras o nueces', qty: 0.5 }])).toEqual({ nutsSeeds: true });
+    expect(flagsOfItems([{ name: 'Almendras o nueces' }])).toEqual({ nutsSeeds: true });
+  });
+
+  it('las marcas que restan cuentan con cualquier cantidad', () => {
+    expect(flagsOfItems([{ name: 'Papas fritas', qty: 0.25 }])).toEqual({ fries: true });
+  });
+
+  it('con all se ignora la cantidad, para separar lo manual de lo que viene de los alimentos', () => {
+    expect(flagsOfItems([{ name: 'Almendras o nueces', qty: 0.25 }], undefined, true)).toEqual({ nutsSeeds: true });
+  });
+});

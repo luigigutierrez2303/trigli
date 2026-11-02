@@ -237,7 +237,7 @@ export class MealLogPage implements OnInit {
   readonly draftFlags = signal<MealFlags>({});
   draftNotes = '';
   /** Marcas que salen solas de los alimentos cargados por calorías. */
-  readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems().map((i) => i.name), this.foodsService.catalog()));
+  readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems(), this.foodsService.catalog()));
   readonly effectiveFlags = computed<MealFlags>(() => ({ ...this.draftFlags(), ...this.derivedFlags() }));
   readonly draftScore = computed(() => scoreMeal(this.effectiveFlags()));
   readonly saving = signal(false);
@@ -306,7 +306,7 @@ export class MealLogPage implements OnInit {
   open(type: MealType) {
     const existing = this.byType().get(type);
     // Lo que venga de alimentos se recalcula solo: acá queda solo lo marcado a mano.
-    const fromItems = flagsOfItems((existing?.items ?? []).map((i) => i.name), this.foodsService.catalog());
+    const fromItems = flagsOfItems(existing?.items ?? [], this.foodsService.catalog(), true);
     this.draftFlags.set(Object.fromEntries(Object.entries(existing?.flags ?? {}).filter(([k]) => !fromItems[k])));
     this.draftNotes = existing?.notes ?? '';
     this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
@@ -394,7 +394,7 @@ export class MealLogPage implements OnInit {
 
   /** Marcas manuales de un conjunto de flags: las que no vienen de los alimentos. */
   private manualFlags(flags: MealFlags, items: MealItem[]): MealFlags {
-    const fromItems = flagsOfItems(items.map((i) => i.name), this.foodsService.catalog());
+    const fromItems = flagsOfItems(items, this.foodsService.catalog(), true);
     return Object.fromEntries(Object.entries(flags).filter(([k, v]) => v && !fromItems[k]));
   }
 

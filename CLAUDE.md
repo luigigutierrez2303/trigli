@@ -29,15 +29,18 @@ Hecho (detalle en `docs/asesor/estado-actual.md`):
 - Acceso con Google o email + contraseña (con recuperación). Schema con RLS, grants y bucket de avatares.
 - Comidas: score derivado de los alimentos, calorías con catálogo `energy/foods.ts` (~265 alimentos, categorías, gramos opcionales), favoritas y repetir comida anterior.
 - Balance calórico (`features/energy/`): meta en Mi cuenta (Mifflin-St Jeor + déficit, piso 1500/1200 kcal), kcal de ejercicio por MET ((MET−1)×kg×h), tendencia de peso con promedio móvil, déficit semanal, proteína 1,6 g/kg, gráfico de peso con meta (`weight-chart.component.ts`).
-- Actividad (cardio con tipo y kcal, peso, cintura), fuerza con doble progresión, laboratorio con gráfico de TG (`line-chart.component.ts`), Resumen semanal.
+- Actividad (cardio con tipo y kcal, editable y con "Repetir" de los combos frecuentes; peso y cintura con gráfico; kcal de la semana contra la anterior), fuerza con doble progresión, laboratorio con gráfico de TG (`line-chart.component.ts`), Resumen semanal (tabla de escritorio y, en celular, una fila por día).
 - Mi cuenta: foto, meta, apariencia (automático/claro/oscuro vía clase `ion-palette-dark`), contraseña.
 - Importación desde Apple Salud (`importar-salud`, Atajo de iOS, guía en `docs/atajo-salud.md`): total diario de energía activa (lo estima el iPhone, no Fitbeing) y peso. Los entrenos de Fitbeing no se pueden leer con Atajos y Strava exige suscripción; los minutos se cargan a mano con el lápiz de la fila "Actividad de Salud". La función se despliega con `--no-verify-jwt` y usa la service role (grants en la migración `service_role_grants`).
+- Análisis de comidas con IA (texto y foto): Edge Function `analizar-comida` con Gemini (secret `GEMINI_API_KEY`, límite diario `AI_DAILY_LIMIT`), cliente en `meal-ai.service.ts`.
+- La PWA busca y aplica versiones nuevas al volver a la app (`core/app-update.ts`).
 - Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta. Marca "Descenso" (verde bosque #0F3D3E + lima #C8F169).
 
 Notas de UI:
 - La app usa modo iOS de Ionic: `fill="outline"` no existe ahí, los campos se dibujan en `theme/components.scss`.
 - Un servicio que cambia comidas, entrenos, peso o perfil debe llamar `ProfileService.notifyChange()` para que las tarjetas de balance se recarguen.
 
-Pendiente (requieren infraestructura/secretos del usuario):
+Reglas del score a recordar: las marcas que suman (omega-3, fibra, grasas buenas) piden al menos media porción (`MIN_BONUS_QTY` en `foods.ts`); las que restan cuentan con cualquier cantidad. Si el balance tiene el total de Salud del día, el cardio manual no suma kcal (`burnedKcal`).
+
+Pendiente (requiere infraestructura/secretos del usuario):
 1. Notificaciones push (VAPID + Edge Function + cron)
-2. Foto + IA para clasificar comidas (Edge Function con API key de Anthropic)

@@ -1,5 +1,5 @@
 import {
-  burnedKcal, cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
+  burnedKcal, cardioProgress, compareWeeks, metricPoints, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
 } from './activity';
 
 describe('activity', () => {
@@ -67,5 +67,19 @@ describe('activity', () => {
       { activity: 'run', minutes: 20, count: 1 },
     ]);
     expect(topCombos(rows, 1)).toHaveLength(1);
+  });
+
+  it('compares weeks only when the previous one has data', () => {
+    expect(compareWeeks(1200, 900)).toEqual({ now: 1200, previous: 900, delta: 300 });
+    expect(compareWeeks(500, 900).delta).toBe(-400);
+    expect(compareWeeks(500, 0).delta).toBeNull();
+  });
+
+  it('metric points skip days without a measurement', () => {
+    expect(metricPoints([
+      { date: '2026-10-30', value: 95 },
+      { date: '2026-10-31', value: null },
+      { date: '2026-11-01', value: 94.5 },
+    ])).toEqual([{ label: '2026-10-30', value: 95 }, { label: '2026-11-01', value: 94.5 }]);
   });
 });

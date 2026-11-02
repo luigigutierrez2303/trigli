@@ -8,18 +8,19 @@ import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
 import { toIsoDate } from '../../core/date';
 import {
-  CardioCombo, cardioProgress, isValidMinutes, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
+  CardioCombo, cardioProgress, compareWeeks, isValidMinutes, metricPoints, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
   WEEKLY_CARDIO_GOAL_MIN,
 } from './activity';
 import { CARDIO_ACTIVITIES, cardioActivity, kcalBurned } from '../energy/energy';
 import { ProfileService } from '../energy/profile.service';
+import { LineChartComponent } from '../labs/line-chart.component';
 import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
 
 @Component({
   selector: 'app-activity',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar,
+    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar, LineChartComponent,
   ],
   templateUrl: './activity.page.html',
   styleUrl: './activity.page.scss',
@@ -41,6 +42,14 @@ export class ActivityPage implements OnInit {
   /** Cardio que se está corrigiendo con el formulario de abajo (null = cargando uno nuevo). */
   readonly editingId = signal<string | null>(null);
   readonly suggestions = signal<CardioCombo[]>([]);
+  /** Kcal quemadas en la semana en pantalla y en la anterior (cardio, fuerza y el total de Salud). */
+  readonly weekKcal = signal<{ now: number; previous: number } | null>(null);
+  readonly waistRows = signal<{ date: string; waist_cm: number }[]>([]);
+  readonly waistPoints = computed(() => metricPoints(this.waistRows().map((r) => ({ date: r.date, value: r.waist_cm }))));
+  readonly kcalCompare = computed(() => {
+    const w = this.weekKcal();
+    return w ? compareWeeks(w.now, w.previous) : null;
+  });
 
   readonly isToday = computed(() => this.date() === toIsoDate(new Date()));
   readonly dayCardio = computed(() => this.weekCardio().filter((w) => w.date === this.date()));
@@ -121,13 +130,22 @@ export class ActivityPage implements OnInit {
   async load() {
     const date = this.date();
     try {
-      const [cardio, metric, prev, lastWeight, recent] = await Promise.all([
+      const prevMonday = new Date(weekStart(date) + 'T12:00:00');
+      prevMonday.setDate(prevMonday.getDate() - 7);
+      const prevStart = toIsoDate(prevMonday);
+      const [cardio, metric, prev, lastWeight, recent, thisWeek, lastWeek, waist] = await Promise.all([
         this.activity.cardioBetween(weekStart(date), weekEnd(date)),
         this.activity.metricByDate(date),
         this.activity.previousWeight(date),
         this.profiles.latestWeight(),
         this.activity.recentCardio().catch(() => []),
+        this.profiles.energyBetween(weekStart(date), weekEnd(date)).catch(() => []),
+        this.profiles.energyBetween(prevStart, weekEnd(prevStart)).catch(() => []),
+        this.activity.waistSeries().catch(() => []),
       ]);
+      const burned = (days: { burned: number }[]) => days.reduce((sum, d) => sum + d.burned, 0);
+      this.weekKcal.set({ now: burned(thisWeek), previous: burned(lastWeek) });
+      this.waistRows.set(waist);
       this.suggestions.set(topCombos(recent));
       this.weekCardio.set(cardio);
       this.metric.set(metric);
@@ -227,6 +245,7 @@ export class ActivityPage implements OnInit {
       if (this.weightRaw().trim() !== '') values.weight_kg = this.weight()!;
       if (this.waistRaw().trim() !== '') values.waist_cm = this.waist()!;
       this.metric.set(await this.activity.saveMetric(this.date(), values));
+      this.waistRows.set(await this.activity.waistSeries().catch(() => this.waistRows()));
       this.lastWeight.set(await this.profiles.latestWeight());
     } catch (e) {
       this.showError(e);

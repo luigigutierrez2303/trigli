@@ -29,6 +29,15 @@
 
 .week-sub { margin-top: 8px; }
 
+.week-kcal {
+  margin-top: 6px;
+  font-size: 0.875rem;
+  color: var(--ion-color-medium);
+  b { color: var(--ion-text-color); font-weight: 500; }
+  span { margin-left: 6px; }
+  span[data-level='good'] { color: var(--ion-color-success); }
+}
+
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

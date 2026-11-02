@@ -91,6 +91,20 @@ export class ActivityService {
     return data as BodyMetric | null;
   }
 
+  /** Cintura registrada en los últimos 180 días, de la más vieja a la más nueva. */
+  async waistSeries(): Promise<{ date: string; waist_cm: number }[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - 180);
+    const { data, error } = await this.db
+      .from('body_metric')
+      .select('date, waist_cm')
+      .not('waist_cm', 'is', null)
+      .gte('date', toIsoDate(since))
+      .order('date');
+    if (error) throw error;
+    return data.map((r) => ({ date: r.date as string, waist_cm: Number(r.waist_cm) }));
+  }
+
   /** Última medición de peso anterior a `date`, para mostrar la variación. */
   async previousWeight(date: string): Promise<number | null> {
     const { data, error } = await this.db

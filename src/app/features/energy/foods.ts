@@ -1,3 +1,5 @@
+import { ALL_FLAG_DEFS } from '../meals/meal-scoring';
+
 export const FOOD_CATEGORIES = [
   'Bebidas',
   'Desayuno y panificados',
@@ -533,12 +535,26 @@ export function parseFoodDraft(d: FoodDraft): Food | null {
   };
 }
 
-/** Marcas de calidad que corresponden a los alimentos cargados por calorías. */
-export function flagsOfItems(names: string[], catalog: Food[] = FOODS): Record<string, boolean> {
+/** Una marca que suma (omega-3, fibra, grasas buenas…) pide al menos media porción: una pizca no cuenta. */
+export const MIN_BONUS_QTY = 0.5;
+
+const FLAG_WEIGHT = new Map(ALL_FLAG_DEFS.map((d) => [d.key, d.weight]));
+
+/**
+ * Marcas de calidad que corresponden a los alimentos cargados por calorías.
+ * `all` ignora la cantidad: sirve para saber qué marcas vienen de los alimentos (y no son manuales).
+ */
+export function flagsOfItems(
+  items: readonly (string | { name: string; qty?: number })[], catalog: Food[] = FOODS, all = false,
+): Record<string, boolean> {
   const out: Record<string, boolean> = {};
-  for (const name of names) {
+  for (const item of items) {
+    const { name, qty } = typeof item === 'string' ? { name: item, qty: undefined } : item;
     const flag = catalog.find((f) => f.name === name)?.flag;
-    if (flag) out[flag] = true;
+    if (!flag) continue;
+    const bonus = (FLAG_WEIGHT.get(flag) ?? 0) > 0;
+    if (!all && bonus && qty !== undefined && qty < MIN_BONUS_QTY) continue;
+    out[flag] = true;
   }
   return out;
 }

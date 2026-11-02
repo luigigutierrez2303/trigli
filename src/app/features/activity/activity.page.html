@@ -19,6 +19,14 @@
           Faltan {{ progress().remaining }} min
         }
       </div>
+      @if (kcalCompare(); as k) {
+        @if (k.now || k.previous) {
+          <div class="week-kcal">
+            <b>{{ k.now }}</b> kcal quemadas
+            @if (k.delta !== null) { <span [attr.data-level]="k.delta >= 0 ? 'good' : 'warn'">{{ k.delta > 0 ? '+' : '' }}{{ k.delta }} vs la semana anterior</span> }
+          </div>
+        }
+      }
       <div class="days" role="group" aria-label="Minutos por día de la semana">
         @for (d of weekDays(); track d.date) {
           <button type="button" class="day" [class.sel]="d.selected" [class.future]="d.future" [disabled]="d.future"
@@ -116,6 +124,10 @@
       </div>
       @if (!canSaveMetric() && (weightRaw() || waistRaw())) {
         <ion-note color="danger">Revisá los valores: peso 20–300 kg, cintura 30–250 cm.</ion-note>
+      }
+      @if (waistPoints().length > 1) {
+        <div class="field-label">Cintura (cm)</div>
+        <app-line-chart [points]="waistPoints()" [width]="600" [height]="140" ariaLabel="Cintura en los últimos meses" />
       }
       <ion-button expand="block" class="ion-margin-top" [disabled]="!canSaveMetric() || saving()" (click)="saveMetric()">
         Guardar

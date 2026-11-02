@@ -82,3 +82,19 @@ export function topCombos(rows: { activity: string | null; duration_min: number;
   // sort es estable: a igual cantidad queda primero la más reciente
   return [...combos.values()].sort((a, b) => b.count - a.count).slice(0, limit);
 }
+
+export interface WeekCompare {
+  now: number;
+  previous: number;
+  /** now − previous; null si la semana anterior no tiene datos con qué comparar. */
+  delta: number | null;
+}
+
+export function compareWeeks(now: number, previous: number): WeekCompare {
+  return { now, previous, delta: previous > 0 ? now - previous : null };
+}
+
+/** Puntos de un gráfico solo con los días que tienen medición. */
+export function metricPoints(rows: { date: string; value: number | null }[]): { label: string; value: number }[] {
+  return rows.flatMap((r) => (r.value === null ? [] : [{ label: r.date, value: r.value }]));
+}
