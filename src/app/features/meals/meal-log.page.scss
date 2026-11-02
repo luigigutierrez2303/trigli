@@ -227,13 +227,16 @@ ion-modal.meal-modal {
   color: var(--ion-text-color); font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer;
   &:active { transform: scale(0.97); }
 }
-.qty-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+/* Cada botón de porción llena el ancho en partes iguales y mide 44 px de alto: cómodo para el pulgar. */
+.qty-chips { display: flex; gap: 8px; margin-top: 8px; padding-bottom: 4px; }
 .qchip {
-  min-width: 40px; min-height: 32px; padding: 0 10px; border: 1px solid var(--ion-border-color); border-radius: 999px;
-  background: transparent; color: var(--ion-text-color); font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+  flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 6px; border: 1px solid var(--ion-border-color); border-radius: 12px;
+  background: transparent; color: var(--ion-text-color); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  &:active { transform: scale(0.96); }
   &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
 }
-.item-del { padding: 8px 10px; border: 0; background: transparent; color: var(--ion-color-medium); font: inherit; cursor: pointer; }
+.item-del { min-width: 44px; min-height: 44px; padding: 8px 10px; touch-action: manipulation; border: 0; background: transparent; color: var(--ion-color-medium); font: inherit; cursor: pointer; }
 
 .summary {
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
