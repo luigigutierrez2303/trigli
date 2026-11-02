@@ -14,6 +14,7 @@ import { isValidWeight, parseDecimal } from '../activity/activity';
 import { ActivityService } from '../activity/activity.service';
 import { ACTIVITY_LEVELS, ActivityLevel, dailyPlan, EnergyProfile, LOSS_PACES, Sex, weeksToGoal } from '../energy/energy';
 import { ProfileService } from '../energy/profile.service';
+import { HealthLinkComponent } from './health-link.component';
 
 const MIN_PASSWORD = 6;
 const AVATAR_SIZE = 256;
@@ -33,7 +34,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
   selector: 'app-account',
   imports: [
     FormsModule, RouterLink, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonInput,
-    IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel, IonIcon,
+    IonButton, IonText, IonSelect, IonSelectOption, IonSegment, IonSegmentButton, IonLabel, IonIcon, HealthLinkComponent,
   ],
   template: `
     <ion-content class="ion-padding">
@@ -129,6 +130,8 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
           <p class="fine">Es una estimación. Si tomás medicación o tenés una condición de salud, consultalo con tu médico o nutricionista.</p>
         </ion-card-content>
       </ion-card>
+
+      <app-health-link />
 
       <ion-card>
         <ion-card-header><ion-card-title>Mis alimentos</ion-card-title></ion-card-header>
