@@ -259,3 +259,9 @@ ion-modal.meal-modal {
   100% { transform: scale(1); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+.photo-tag {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; max-width: 160px; padding: 0 10px;
+  border: 1px solid var(--ion-border-color); border-radius: 999px; background: transparent;
+  color: var(--ion-color-medium); font: inherit; font-size: 0.75rem; cursor: pointer; touch-action: manipulation;
+  .photo-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

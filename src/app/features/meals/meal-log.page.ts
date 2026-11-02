@@ -320,12 +320,21 @@ export class MealLogPage implements OnInit {
     this.showFavForm.set(false);
     this.favName = '';
     this.previous.set(null);
+    this.clearAnalysis();
+    this.savedEstimates.set(new Set());
     this.meals.latestOfType(type, this.date()).then((p) => this.previous.set(p)).catch(() => undefined);
     this.editing.set(type);
   }
 
   close() {
+    if (this.listening()) this.speech.stop();
+    this.clearAnalysis();
+    this.savedEstimates.set(new Set());
     this.editing.set(null);
+  }
+
+  removePhoto() {
+    this.aiImage.set(null);
   }
 
   addFood(food: Food) {

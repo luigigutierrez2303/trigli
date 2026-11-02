@@ -184,7 +184,11 @@
                   {{ listening() ? '⏹ Escuchando…' : '🎤 Dictar' }}
                 </ion-button>
               }
-              @if (aiImage()) { <small class="muted">{{ aiImage()!.name }}</small> }
+              @if (aiImage()) {
+                <button type="button" class="photo-tag" (click)="removePhoto()" aria-label="Quitar la foto">
+                  <span class="photo-name">{{ aiImage()!.name }}</span> ✕
+                </button>
+              }
               <ion-button size="small" (click)="analyze()" [disabled]="!canAnalyze()">
                 {{ aiBusy() ? 'Analizando…' : 'Analizar' }}
               </ion-button>

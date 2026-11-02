@@ -60,3 +60,27 @@ describe('MealLogPage: porciones por fila', () => {
     expect(page.draftItems().map((i) => i.qty)).toEqual([2, 1]);
   });
 });
+
+describe('MealLogPage: análisis con IA', () => {
+  it('cerrar el editor limpia texto, foto y propuestas', () => {
+    const page = setup();
+    page.aiText.set('Comí queso');
+    page.aiImage.set(new File(['x'], 'foto.jpg'));
+    page.proposals.set([{ item: item('Queso'), portion: '1', estimated: false } as never]);
+
+    page.close();
+
+    expect(page.aiText()).toBe('');
+    expect(page.aiImage()).toBeNull();
+    expect(page.proposals()).toEqual([]);
+  });
+
+  it('quitar la foto deja el texto', () => {
+    const page = setup();
+    page.aiText.set('Comí queso');
+    page.aiImage.set(new File(['x'], 'foto.jpg'));
+    page.removePhoto();
+    expect(page.aiImage()).toBeNull();
+    expect(page.aiText()).toBe('Comí queso');
+  });
+});
