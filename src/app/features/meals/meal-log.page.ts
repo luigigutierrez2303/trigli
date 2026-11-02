@@ -102,12 +102,12 @@ export class MealLogPage implements OnInit {
     return found.slice(0, q || cat ? 60 : 15);
   });
   // Análisis con IA (texto o foto)
-  aiText = '';
+  readonly aiText = signal('');
   readonly aiImage = signal<File | null>(null);
   readonly aiBusy = signal(false);
   readonly aiError = signal<string | null>(null);
   readonly proposals = signal<ProposedItem[]>([]);
-  readonly canAnalyze = computed(() => !this.aiBusy() && (!!this.aiText.trim() || !!this.aiImage()));
+  readonly canAnalyze = computed(() => !this.aiBusy() && (!!this.aiText().trim() || !!this.aiImage()));
 
   pickPhoto(input: HTMLInputElement) {
     this.aiImage.set(input.files?.[0] ?? null);
@@ -119,7 +119,7 @@ export class MealLogPage implements OnInit {
     this.aiBusy.set(true);
     this.aiError.set(null);
     try {
-      const found = await this.mealAi.analyze({ text: this.aiText, image: this.aiImage() }, this.foodsService.catalog());
+      const found = await this.mealAi.analyze({ text: this.aiText(), image: this.aiImage() }, this.foodsService.catalog());
       this.proposals.set(found);
       if (!found.length) this.aiError.set('No encontramos comida ahí. Probá describiéndola con otras palabras.');
     } catch (e) {
@@ -140,7 +140,7 @@ export class MealLogPage implements OnInit {
 
   clearAnalysis() {
     this.proposals.set([]);
-    this.aiText = '';
+    this.aiText.set('');
     this.aiImage.set(null);
     this.aiError.set(null);
   }

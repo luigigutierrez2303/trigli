@@ -151,7 +151,7 @@
           }
           <div class="ai-box">
             <b>✨ Contanos qué comiste</b>
-            <ion-textarea [(ngModel)]="aiText" [autoGrow]="true" rows="2" maxlength="600"
+            <ion-textarea [value]="aiText()" (ionInput)="aiText.set($any($event.target).value ?? '')" [autoGrow]="true" rows="2" maxlength="600"
               placeholder="Ej. dos arepas con queso de mano y un café con leche" aria-label="Qué comiste" />
             <div class="ai-actions">
               <input #photo type="file" accept="image/*" capture="environment" hidden (change)="pickPhoto(photo)" />
