@@ -21,7 +21,11 @@ Deno.serve(async (req) => {
   if (!token || token.length < 32) return json({ error: 'unauthorized' }, 401);
 
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-  const { data: row } = await db.from('health_token').select('user_id').eq('token_hash', await sha256(token)).maybeSingle();
+  const { data: row, error: tokenError } = await db.from('health_token').select('user_id').eq('token_hash', await sha256(token)).maybeSingle();
+  if (tokenError) {
+    console.error('health_token', tokenError.message);
+    return json({ error: 'db' }, 500);
+  }
   if (!row) return json({ error: 'unauthorized' }, 401);
   const userId = row.user_id as string;
 
@@ -45,7 +49,10 @@ Deno.serve(async (req) => {
     // ignoreDuplicates: lo ya importado (o editado a mano después) no se pisa.
     const { data, error } = await db.from('workout')
       .upsert(workouts, { onConflict: 'user_id,external_id', ignoreDuplicates: true }).select('id');
-    if (error) return json({ error: 'db' }, 500);
+    if (error) {
+      console.error('db', error.message);
+      return json({ error: 'db' }, 500);
+    }
     imported = data?.length ?? 0;
   }
 
@@ -54,7 +61,10 @@ Deno.serve(async (req) => {
   if (isDate(body.weight?.date) && kg >= 30 && kg <= 250) {
     const { error } = await db.from('body_metric')
       .upsert({ user_id: userId, date: body.weight.date, weight_kg: kg }, { onConflict: 'user_id,date' });
-    if (error) return json({ error: 'db' }, 500);
+    if (error) {
+      console.error('db', error.message);
+      return json({ error: 'db' }, 500);
+    }
     weight = true;
   }
 
