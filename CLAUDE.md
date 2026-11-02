@@ -31,6 +31,7 @@ Hecho (detalle en `docs/asesor/estado-actual.md`):
 - Balance calórico (`features/energy/`): meta en Mi cuenta (Mifflin-St Jeor + déficit, piso 1500/1200 kcal), kcal de ejercicio por MET ((MET−1)×kg×h), tendencia de peso con promedio móvil, déficit semanal, proteína 1,6 g/kg, gráfico de peso con meta (`weight-chart.component.ts`).
 - Actividad (cardio con tipo y kcal, peso, cintura), fuerza con doble progresión, laboratorio con gráfico de TG (`line-chart.component.ts`), Resumen semanal.
 - Mi cuenta: foto, meta, apariencia (automático/claro/oscuro vía clase `ion-palette-dark`), contraseña.
+- Importación desde Apple Salud (`importar-salud`, Atajo de iOS, guía en `docs/atajo-salud.md`): total diario de energía activa (lo estima el iPhone, no Fitbeing) y peso. Los entrenos de Fitbeing no se pueden leer con Atajos y Strava exige suscripción; los minutos se cargan a mano con el lápiz de la fila "Actividad de Salud". La función se despliega con `--no-verify-jwt` y usa la service role (grants en la migración `service_role_grants`).
 - Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta. Marca "Descenso" (verde bosque #0F3D3E + lima #C8F169).
 
 Notas de UI:

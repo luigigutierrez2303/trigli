@@ -9,7 +9,7 @@ export interface CardioWorkout {
   notes: string | null;
   activity: string | null;
   kcal: number | null;
-  /** 'health': total diario importado del reloj. */
+  /** 'health': total diario de energía activa importado de Apple Salud (lo estima el iPhone). */
   source: string;
 }
 
@@ -53,7 +53,7 @@ export class ActivityService {
     return data as CardioWorkout;
   }
 
-  /** Minutos de una fila importada del reloj (llegan sin duración). */
+  /** Minutos de una fila importada de Salud (llegan sin duración). */
   async setMinutes(id: string, minutes: number): Promise<void> {
     const { error } = await this.db.from('workout').update({ duration_min: minutes }).eq('id', id);
     if (error) throw error;

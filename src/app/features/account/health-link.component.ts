@@ -15,9 +15,9 @@ export async function sha256Hex(s: string): Promise<string> {
   imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonText],
   template: `
     <ion-card>
-      <ion-card-header><ion-card-title>Reloj (Apple Salud)</ion-card-title></ion-card-header>
+      <ion-card-header><ion-card-title>Apple Salud</ion-card-title></ion-card-header>
       <ion-card-content>
-        <p class="fine">Un Atajo de iOS manda tus entrenos y tu peso de Apple Salud a Trigli. Generá un código y pegalo en el Atajo.</p>
+        <p class="fine">Un Atajo de iOS manda tu peso y tu actividad del día (kcal) de Apple Salud a Trigli. Generá un código y pegalo en el Atajo.</p>
         @if (token(); as t) {
           <code class="token">{{ t }}</code>
           <p class="fine">Copialo ahora: no lo volvemos a mostrar. Si generás otro, el anterior deja de funcionar.</p>

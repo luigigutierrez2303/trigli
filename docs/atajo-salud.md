@@ -2,7 +2,7 @@
 
 Fitbeing escribe en Apple Salud; un Atajo de iOS lee de ahí y le manda los datos a la Edge Function `importar-salud`.
 
-Los Atajos no pueden leer los entrenamientos de Salud (no hay tipo "Entrenamientos" en "Buscar muestras de Salud"), así que se importa el **total diario de energía activa**. En Actividad aparece como una fila "Actividad del reloj" por día, sin minutos (no suma al objetivo de aeróbico); se actualiza al reenviar el mismo día.
+Los Atajos no pueden leer los entrenamientos de Salud (no hay tipo "Entrenamientos" en "Buscar muestras de Salud"), así que se importa el **total diario de energía activa**. En Actividad aparece como una fila "Actividad de Salud" por día. Las kcal las estima el iPhone (no Fitbeing), así que los minutos se cargan a mano con el lápiz de esa fila; recién ahí suman al objetivo de aeróbico. Al reenviar el mismo día solo se actualizan las kcal.
 
 ## Despliegue (una vez)
 
@@ -17,7 +17,7 @@ La función usa la service role, que necesita permisos explícitos sobre las tab
 
 ## Código personal
 
-Mi cuenta → "Reloj (Apple Salud)" → Generar código. Se guarda solo el hash; generar otro invalida el anterior.
+Mi cuenta → "Apple Salud" → Generar código. Se guarda solo el hash; generar otro invalida el anterior.
 
 ## Atajo (app Atajos)
 
