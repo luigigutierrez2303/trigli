@@ -127,7 +127,7 @@
           }
           @if (draftItems().length) {
             <ion-list lines="full" class="items">
-              @for (item of draftItems(); track $index) {
+              @for (item of draftItems(); track $index; let i = $index) {
                 <ion-item>
                   <span slot="start" class="emo" aria-hidden="true">{{ emoji(item.name) }}</span>
                   <ion-label>
@@ -139,20 +139,20 @@
                           <button type="button" class="qchip on" disabled>{{ qtyLabel(item.qty) }}</button>
                         }
                         @for (q of qtyChoices; track q) {
-                          <button type="button" class="qchip" [class.on]="item.qty === q" (click)="setQty($index, q)">{{ qtyLabel(q) }}</button>
+                          <button type="button" class="qchip" [class.on]="item.qty === q" (click)="setQty(i, q)">{{ qtyLabel(q) }}</button>
                         }
-                        <button type="button" class="qchip" (click)="changeQty($index, 1)" aria-label="Una porción más">+1</button>
+                        <button type="button" class="qchip" (click)="changeQty(i, 1)" aria-label="Una porción más">+1</button>
                       </div>
                     }
                   </ion-label>
                   @if (item.refGrams) {
                     <div slot="end" class="qty">
                       <ion-input class="grams" fill="outline" type="number" inputmode="numeric" aria-label="Gramos"
-                        [value]="gramsOf(item)" (ionChange)="setGrams($index, $any($event.target).value ?? '')" />
+                        [value]="gramsOf(item)" (ionChange)="setGrams(i, $any($event.target).value ?? '')" />
                       <span class="unit">g</span>
                     </div>
                   }
-                  <button slot="end" type="button" class="item-del" (click)="removeItem($index)" [attr.aria-label]="'Quitar ' + item.name">✕</button>
+                  <button slot="end" type="button" class="item-del" (click)="removeItem(i)" [attr.aria-label]="'Quitar ' + item.name">✕</button>
                 </ion-item>
               }
             </ion-list>
