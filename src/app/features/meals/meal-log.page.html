@@ -41,6 +41,8 @@
     <ion-card class="kcal-card"><ion-card-content><b>{{ dayKcal() }} kcal</b> hoy. Cargá tu meta en Mi cuenta para ver cuánto te queda.</ion-card-content></ion-card>
   }
 
+  <app-water-card [date]="date()" />
+
   @if (repeatable().length) {
     <button type="button" class="repeat repeat-day" [disabled]="saving()" (click)="repeatYesterday()">
       <span class="repeat-title">↺ Repetir lo de ayer</span>
@@ -48,6 +50,15 @@
     </button>
   }
 
+  @if (loading() && !entries().length) {
+    <ion-card aria-hidden="true">
+      <ion-card-content>
+        <ion-skeleton-text animated style="width: 45%; height: 18px" />
+        <ion-skeleton-text animated style="width: 100%; height: 14px" />
+        <ion-skeleton-text animated style="width: 80%; height: 14px" />
+      </ion-card-content>
+    </ion-card>
+  }
   <ion-list lines="full">
     @for (type of mealOrder; track type) {
       @let entry = byType().get(type);

@@ -8,6 +8,15 @@
       <ion-button fill="clear" (click)="shiftDay(1)" [disabled]="isToday()" aria-label="Día siguiente"><ion-icon slot="icon-only" name="chevron-forward" /></ion-button>
     </div>
   </div>
+  @if (!loaded()) {
+    <ion-card aria-hidden="true">
+      <ion-card-content>
+        <ion-skeleton-text animated style="width: 45%; height: 18px" />
+        <ion-skeleton-text animated style="width: 100%; height: 14px" />
+        <ion-skeleton-text animated style="width: 80%; height: 14px" />
+      </ion-card-content>
+    </ion-card>
+  }
   <ion-card class="week-card" [attr.data-level]="progress().done ? 'good' : 'warn'">
     <ion-card-content>
       <div class="eyebrow">Aeróbico semanal</div>

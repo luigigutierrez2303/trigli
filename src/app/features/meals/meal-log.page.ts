@@ -7,10 +7,11 @@ import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonFooter, IonHeader,
   IonIcon, IonItem, IonLabel, IonInput, IonList, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTextarea, IonTitle, IonToolbar,
   ToastController,
-  IonRefresher, IonRefresherContent,
+  IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
+import { WaterCardComponent } from '../water/water-card.component';
 import { finishRefresh } from '../../core/refresh';
 import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
@@ -37,7 +38,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
-    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
+    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',

@@ -21,3 +21,13 @@
 .muted {
   color: var(--ion-color-medium);
 }
+
+.plan-card { .eyebrow { color: var(--trigli-primary-text); } }
+.plan-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.plan-focus { margin: 4px 0 12px; color: var(--ion-color-step-650, var(--ion-color-medium)); font-size: 0.9375rem; }
+.plan-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.plan-chip {
+  min-height: 40px; padding: 8px 14px; border: 1px solid var(--ion-border-color); border-radius: 999px;
+  background: var(--trigli-surface-2); color: var(--ion-text-color); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+  &.on { background: var(--ion-color-primary); border-color: var(--trigli-primary-text); color: var(--ion-color-primary-contrast); }
+}

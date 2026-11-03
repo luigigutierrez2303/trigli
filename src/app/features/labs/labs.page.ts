@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonRefresher, IonRefresherContent,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { trashOutline, flaskOutline } from 'ionicons/icons';
@@ -31,7 +31,7 @@ const isLabValue = (n: number | null): n is number => n !== null && Number.isInt
   selector: 'app-labs',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonItem, IonLabel, IonBadge, IonInput, IonRefresher, IonRefresherContent, LineChartComponent,
+    IonCardTitle, IonCardContent, IonItem, IonLabel, IonBadge, IonInput, IonRefresher, IonRefresherContent, IonSkeletonText, LineChartComponent,
   ],
   templateUrl: './labs.page.html',
   styleUrl: './labs.page.scss',
@@ -48,6 +48,7 @@ export class LabsPage implements OnInit {
 
   readonly results = signal<LabResult[]>([]);
   readonly saving = signal(false);
+  readonly loaded = signal(false);
   /** Cada intervalo entre dos análisis de TG con lo que pasó en el medio (los últimos tres). */
   readonly intervals = signal<{ from: string; to: string; tgFrom: number; tgTo: number; stats: PeriodStats }[]>([]);
 
@@ -91,9 +92,11 @@ export class LabsPage implements OnInit {
   private async load() {
     try {
       this.results.set(await this.labs.all());
+      this.loaded.set(true);
       this.loadIntervals();
     } catch (e) {
       this.notify.error(e);
+      this.loaded.set(true);
     }
   }
 

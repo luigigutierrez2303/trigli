@@ -3,6 +3,21 @@
   <div class="page-head">
     <h1>Fuerza</h1>
   </div>
+  @if (exercises().length) {
+    <ion-card class="plan-card">
+      <ion-card-content>
+        <div class="eyebrow">Hoy toca</div>
+        <div class="plan-title">{{ todayPlan().label }}</div>
+        <p class="plan-focus">{{ todayPlan().focus }}. Tocá un ejercicio para cargarlo.</p>
+        <div class="plan-chips">
+          @for (name of todayPlan().exercises; track name) {
+            <button type="button" class="plan-chip" [class.on]="exerciseId() === idByName().get(name)" (click)="pickPlanned(name)">{{ name }}</button>
+          }
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
   <ion-card>
     <ion-card-header><ion-card-title>Sesión de hoy</ion-card-title></ion-card-header>
     <ion-card-content>

@@ -5,6 +5,7 @@ import {
 import { addIcons } from 'ionicons';
 import { barbellOutline, trashOutline } from 'ionicons/icons';
 import { finishRefresh } from '../../core/refresh';
+import { nextDay } from './training-plan';
 import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import { isValidMinutes, parseDecimal } from '../activity/activity';
@@ -49,6 +50,15 @@ export class StrengthPage implements OnInit {
     const min = parseDecimal(this.durationRaw());
     return w && isValidMinutes(min) ? kcalBurned(STRENGTH_MET, w, min) : null;
   });
+
+  /** El día del plan que toca, según la última sesión cargada. */
+  readonly todayPlan = computed(() => nextDay(this.sessions()[0]?.workout_set.map((w) => w.exercise?.name ?? '') ?? null));
+  readonly idByName = computed(() => new Map(this.exercises().map((e) => [e.name, e.id])));
+
+  pickPlanned(name: string) {
+    const id = this.idByName().get(name);
+    if (id) this.selectExercise(id);
+  }
 
   readonly nameById = computed(() => new Map(this.exercises().map((e) => [e.id, e.name])));
   readonly suggestion = computed(() => (this.exerciseId() ? suggestNext(this.lastSets()) : null));

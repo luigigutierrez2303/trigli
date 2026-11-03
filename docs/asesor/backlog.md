@@ -9,9 +9,8 @@ Prioridad: impacto sobre TG y peso / esfuerzo / riesgo. Esfuerzo: S / M / L.
 
 ## Ideas sin validar
 - Escanear código de barras de productos envasados para cargar sus kcal (M)
-- Plan de entrenamiento con mancuernas y banco: qué hacer cada día (M)
 - Funcionar sin conexión y sincronizar después (L)
-- Agua y pasos diarios (S)
+- Pasos diarios (el agua ya está; los pasos saldrían del Atajo de Salud) (S)
 - Cambiar el mail de la cuenta y borrar la cuenta (necesita Edge Function) (M)
 
 ## Hecho

@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonRefresher, IonRefresherContent, AlertController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonRefresher, IonRefresherContent, IonSkeletonText, AlertController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { add, chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
@@ -24,7 +24,7 @@ const DEFAULT_MINUTES = '30';
   selector: 'app-activity',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar, IonRefresher, IonRefresherContent, LineChartComponent,
+    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar, IonRefresher, IonRefresherContent, IonSkeletonText, LineChartComponent,
   ],
   templateUrl: './activity.page.html',
   styleUrl: './activity.page.scss',
@@ -44,6 +44,7 @@ export class ActivityPage implements OnInit {
   readonly metric = signal<BodyMetric | null>(null);
   readonly prevWeight = signal<number | null>(null);
   readonly saving = signal(false);
+  readonly loaded = signal(false);
   /** Cardio que se está corrigiendo con el formulario de abajo (null = cargando uno nuevo). */
   readonly editingId = signal<string | null>(null);
   readonly suggestions = signal<CardioCombo[]>([]);
@@ -161,10 +162,12 @@ export class ActivityPage implements OnInit {
       this.metric.set(metric);
       this.prevWeight.set(prev);
       this.lastWeight.set(lastWeight);
+      this.loaded.set(true);
       this.weightRaw.set(metric?.weight_kg != null ? String(metric.weight_kg) : '');
       this.waistRaw.set(metric?.waist_cm != null ? String(metric.waist_cm) : '');
     } catch (e) {
       this.notify.error(e);
+      this.loaded.set(true);
     }
   }
 
