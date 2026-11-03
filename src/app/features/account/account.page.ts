@@ -191,7 +191,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
     .who { min-width: 0; }
     .email { margin: 0 0 4px; font-weight: 600; word-break: break-all; }
     .signout-card { padding: 4px; }
-    .signout { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; color: var(--ion-color-danger); font: inherit; font-weight: 600; cursor: pointer; }
+    .signout { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; color: var(--trigli-bad-text); font: inherit; font-weight: 600; cursor: pointer; }
     .signout:hover { background: var(--trigli-bad-soft); }
     .signout ion-icon { font-size: 22px; }
     @media (min-width: 1024px) { ion-card { max-width: 640px; } }

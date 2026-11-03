@@ -1,9 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonRefresher, IonRefresherContent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { barbellOutline, trashOutline } from 'ionicons/icons';
+import { finishRefresh } from '../../core/refresh';
+import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import { isValidMinutes, parseDecimal } from '../activity/activity';
 import { kcalBurned, STRENGTH_MET } from '../energy/energy';
@@ -16,14 +18,14 @@ import { Exercise, NewSet, StrengthService, StrengthSession } from './strength.s
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonInput, IonSelect,
-    IonSelectOption,
+    IonSelectOption, IonRefresher, IonRefresherContent,
   ],
   templateUrl: './strength.page.html',
   styleUrl: './strength.page.scss',
 })
 export class StrengthPage implements OnInit {
   private readonly strength = inject(StrengthService);
-  private readonly toast = inject(ToastController);
+  private readonly notify = inject(NotifyService);
 
   readonly exercises = signal<Exercise[]>([]);
   readonly sessions = signal<StrengthSession[]>([]);
@@ -74,7 +76,15 @@ export class StrengthPage implements OnInit {
     addIcons({ barbellOutline, trashOutline });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+    return this.load();
+  }
+
+  refresh(ev: Event) {
+    return finishRefresh(ev, () => this.load());
+  }
+
+  private async load() {
     try {
       const [exercises, sessions, weight] = await Promise.all([
         this.strength.exercises(), this.strength.recentSessions(), this.profiles.latestWeight(),
@@ -83,7 +93,7 @@ export class StrengthPage implements OnInit {
       this.exercises.set(exercises);
       this.sessions.set(sessions);
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -93,7 +103,7 @@ export class StrengthPage implements OnInit {
     try {
       this.lastSets.set(await this.strength.lastSets(id));
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
     const s = this.suggestion();
     if (s) {
@@ -124,7 +134,7 @@ export class StrengthPage implements OnInit {
       this.exerciseId.set(null);
       this.sessions.set(await this.strength.recentSessions());
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.saving.set(false);
     }
@@ -135,7 +145,7 @@ export class StrengthPage implements OnInit {
       await this.strength.removeSession(id);
       this.sessions.update((list) => list.filter((s) => s.id !== id));
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -145,8 +155,4 @@ export class StrengthPage implements OnInit {
   }
 
 
-  private async showError(e: unknown) {
-    const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';
-    (await this.toast.create({ message, duration: 3000, color: 'danger' })).present();
-  }
 }

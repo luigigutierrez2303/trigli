@@ -2,10 +2,12 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonNote, IonProgressBar, IonRefresher, IonRefresherContent, AlertController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
+import { add, chevronBack, chevronForward, createOutline, trashOutline, walkOutline } from 'ionicons/icons';
+import { finishRefresh } from '../../core/refresh';
+import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import {
   CardioCombo, cardioProgress, compareWeeks, isValidMinutes, metricPoints, isValidWaist, isValidWeight, parseDecimal, topCombos, weekEnd, weekStart, weightDelta,
@@ -16,11 +18,13 @@ import { ProfileService } from '../energy/profile.service';
 import { LineChartComponent } from '../labs/line-chart.component';
 import { ActivityService, BodyMetric, CardioWorkout } from './activity.service';
 
+const DEFAULT_MINUTES = '30';
+
 @Component({
   selector: 'app-activity',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar, LineChartComponent,
+    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonNote, IonBadge, IonInput, IonProgressBar, IonRefresher, IonRefresherContent, LineChartComponent,
   ],
   templateUrl: './activity.page.html',
   styleUrl: './activity.page.scss',
@@ -29,7 +33,8 @@ export class ActivityPage implements OnInit {
   private readonly activity = inject(ActivityService);
   private readonly profiles = inject(ProfileService);
   private readonly route = inject(ActivatedRoute);
-  private readonly toast = inject(ToastController);
+  private readonly notify = inject(NotifyService);
+  private readonly alerts = inject(AlertController);
 
   readonly weeklyGoal = WEEKLY_CARDIO_GOAL_MIN;
 
@@ -52,7 +57,10 @@ export class ActivityPage implements OnInit {
   });
 
   readonly isToday = computed(() => this.date() === toIsoDate(new Date()));
-  readonly dayCardio = computed(() => this.weekCardio().filter((w) => w.date === this.date()));
+  /** Lo cargado a mano primero; el total de Salud (que es de todo el día) al final. */
+  readonly dayCardio = computed(() =>
+    this.weekCardio().filter((w) => w.date === this.date()).sort((a, b) => Number(a.source === 'health') - Number(b.source === 'health')),
+  );
   readonly editing = computed(() => this.weekCardio().find((w) => w.id === this.editingId()) ?? null);
   /** Con un total de Salud en el día, el cardio manual no suma kcal al balance. */
   readonly hasHealthDay = computed(() => this.dayCardio().some((w) => w.source === 'health'));
@@ -65,7 +73,8 @@ export class ActivityPage implements OnInit {
   );
 
   // Formularios
-  readonly minutesRaw = signal('');
+  readonly formOpen = signal(false);
+  readonly minutesRaw = signal(DEFAULT_MINUTES);
   readonly cardioNotes = signal('');
   readonly activities = CARDIO_ACTIVITIES;
   readonly activityKey = signal('walk_fast');
@@ -80,10 +89,11 @@ export class ActivityPage implements OnInit {
       d.setDate(d.getDate() + i);
       const date = toIsoDate(d);
       const minutes = this.weekCardio().filter((w) => w.date === date).reduce((sum, w) => sum + w.duration_min, 0);
-      return { date, name, letter: name[0], minutes, future: date > today, selected: date === this.date(), pct: 0 };
+      return { date, name, letter: name[0], minutes, future: date > today, today: date === today, selected: date === this.date(), pct: 0, goalPct: 0 };
     });
     const top = Math.max(60, ...days.map((d) => d.minutes));
-    return days.map((d) => ({ ...d, pct: d.minutes ? Math.max((d.minutes / top) * 100, 8) : 0 }));
+    const dailyGoal = WEEKLY_CARDIO_GOAL_MIN / 7;
+    return days.map((d) => ({ ...d, pct: d.minutes ? Math.max((d.minutes / top) * 100, 8) : 0, goalPct: (dailyGoal / top) * 100 }));
   });
   readonly activityLabel = (key: string | null) => cardioActivity(key)?.label ?? null;
   readonly comboLabel = (c: CardioCombo) => `${this.activityLabel(c.activity) ?? c.activity} · ${c.minutes} min`;
@@ -113,7 +123,7 @@ export class ActivityPage implements OnInit {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, createOutline, trashOutline, walkOutline });
+    addIcons({ add, chevronBack, chevronForward, createOutline, trashOutline, walkOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD abre Actividad en ese día.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const fecha = params.get('fecha');
@@ -154,8 +164,12 @@ export class ActivityPage implements OnInit {
       this.weightRaw.set(metric?.weight_kg != null ? String(metric.weight_kg) : '');
       this.waistRaw.set(metric?.waist_cm != null ? String(metric.waist_cm) : '');
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
+  }
+
+  refresh(ev: Event) {
+    return finishRefresh(ev, () => this.load());
   }
 
   goTo(date: string) {
@@ -178,13 +192,22 @@ export class ActivityPage implements OnInit {
         this.date(), this.minutes()!, this.cardioNotes(), this.activityKey(), this.cardioKcal(),
       );
       this.weekCardio.update((list) => [...list, saved]);
-      this.minutesRaw.set('');
-      this.cardioNotes.set('');
+      this.closeForm();
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.saving.set(false);
     }
+  }
+
+  openForm() {
+    this.formOpen.set(true);
+  }
+
+  private closeForm() {
+    this.formOpen.set(false);
+    this.minutesRaw.set(DEFAULT_MINUTES);
+    this.cardioNotes.set('');
   }
 
   async quickAdd(c: CardioCombo) {
@@ -195,16 +218,16 @@ export class ActivityPage implements OnInit {
 
   startEdit(w: CardioWorkout) {
     this.editingId.set(w.id);
+    this.formOpen.set(true);
     this.activityKey.set(w.activity ?? this.activityKey());
     this.minutesRaw.set(w.duration_min ? String(w.duration_min) : '');
     this.cardioNotes.set(w.notes ?? '');
-    document.getElementById('cardio-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => document.getElementById('cardio-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 
   cancelEdit() {
     this.editingId.set(null);
-    this.minutesRaw.set('');
-    this.cardioNotes.set('');
+    this.closeForm();
   }
 
   async saveEdit() {
@@ -221,10 +244,20 @@ export class ActivityPage implements OnInit {
       this.weekCardio.update((list) => list.map((x) => (x.id === saved.id ? saved : x)));
       this.cancelEdit();
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.saving.set(false);
     }
+  }
+
+  async confirmRemove(w: CardioWorkout) {
+    const label = w.source === 'health' ? 'la actividad de Salud' : (this.activityLabel(w.activity) ?? 'el cardio');
+    const alert = await this.alerts.create({
+      header: 'Borrar cardio',
+      message: `¿Borrar ${label} de este día?`,
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Borrar', role: 'destructive', handler: () => { this.removeCardio(w.id); } }],
+    });
+    await alert.present();
   }
 
   async removeCardio(id: string) {
@@ -233,7 +266,7 @@ export class ActivityPage implements OnInit {
       this.weekCardio.update((list) => list.filter((w) => w.id !== id));
       if (this.editingId() === id) this.cancelEdit();
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -248,15 +281,11 @@ export class ActivityPage implements OnInit {
       this.waistRows.set(await this.activity.waistSeries().catch(() => this.waistRows()));
       this.lastWeight.set(await this.profiles.latestWeight());
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.saving.set(false);
     }
   }
 
 
-  private async showError(e: unknown) {
-    const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';
-    (await this.toast.create({ message, duration: 3000, color: 'danger' })).present();
-  }
 }

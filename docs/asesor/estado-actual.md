@@ -1,4 +1,4 @@
-# Estado actual de Trigli (2026-10-30)
+# Estado actual de Trigli (2026-11-03)
 
 PWA para registrar alimentación y ejercicio con el objetivo de bajar triglicéridos y peso.
 Angular 22 + Ionic 9 + Supabase, deploy en Vercel. Marca "Descenso" (verde bosque + lima).
@@ -22,10 +22,12 @@ Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta.
 ## Migraciones de Supabase (hay que aplicarlas a mano)
 `init`, `grants`, `avatars`, `energy`, `favorites`. Sin `energy` no funciona la meta ni las kcal; sin `favorites`, las favoritas; sin `avatars`, la foto subida.
 
+- **Hábitos y seguimiento (2026-11):** tarjeta semanal de omega-3, fibra, alcohol y azúcar en Resumen; promedios entre análisis en Laboratorio; informe para el médico (PDF/CSV); avisos al abrir la app (comidas, peso, cintura); "Repetir lo de ayer" en Comidas; pull-to-refresh en las pestañas.
+- **Análisis de comidas con IA:** texto y foto con Gemini (Edge Function `analizar-comida`).
+
 ## Calidad
-62 tests (lógica pura: score, energía, alimentos, dashboard, laboratorio, actividad, fuerza). La interfaz se revisó en celular y desktop, claro y oscuro, con datos simulados; falta una revisión con datos reales.
+117 tests (lógica pura: score, energía, alimentos, dashboard, laboratorio, actividad, fuerza, hábitos, informe, recordatorios). La interfaz se revisó en celular y desktop, claro y oscuro, con datos simulados; falta una revisión con datos reales.
 
 ## Pendiente
 - Notificaciones push (VAPID + Edge Function + cron).
-- Foto + IA para clasificar comidas (Edge Function con API key de Anthropic).
 - Ver `backlog.md`.

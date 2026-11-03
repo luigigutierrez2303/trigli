@@ -1,4 +1,5 @@
 <ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content /></ion-refresher>
   <div class="page-head">
     <h1>Laboratorio</h1>
   </div>
@@ -31,6 +32,30 @@
     </ion-card-content>
   </ion-card>
 
+  @if (intervals().length) {
+    <ion-card>
+      <ion-card-header><ion-card-title>Qué pasó entre análisis</ion-card-title></ion-card-header>
+      <ion-card-content>
+        @for (i of intervals(); track i.to) {
+          <section class="interval">
+            <h3>
+              {{ fmtDate(i.from) }} → {{ fmtDate(i.to) }}
+              <ion-badge [attr.data-level]="i.tgTo <= i.tgFrom ? 'good' : 'bad'">TG {{ i.tgFrom }} → {{ i.tgTo }}</ion-badge>
+            </h3>
+            <dl>
+              <div><dt>Aeróbico</dt><dd>{{ i.stats.cardioMinPerWeek }} min/sem</dd></div>
+              <div><dt>Score de comidas</dt><dd>{{ i.stats.avgScore ?? '—' }}</dd></div>
+              <div><dt>Con alcohol</dt><dd>{{ decimal(i.stats.alcoholDaysPerWeek) }} días/sem</dd></div>
+              <div><dt>Pescado graso</dt><dd>{{ decimal(i.stats.fishDaysPerWeek) }} días/sem</dd></div>
+              <div><dt>Peso</dt><dd>@if (i.stats.weightChange !== null) { {{ i.stats.weightChange > 0 ? '+' : '' }}{{ decimal(i.stats.weightChange) }} kg } @else { — }</dd></div>
+            </dl>
+          </section>
+        }
+        <p class="hint">Promedios semanales de lo que registraste entre cada par de análisis consecutivos.</p>
+      </ion-card-content>
+    </ion-card>
+  }
+
   <ion-card>
     <ion-card-header><ion-card-title>Nuevo análisis</ion-card-title></ion-card-header>
     <ion-card-content>
@@ -48,6 +73,19 @@
       </ion-button>
     </ion-card-content>
   </ion-card>
+
+  @if (results().length) {
+    <ion-card>
+      <ion-card-header><ion-card-title>Informe para el médico</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <p class="hint">Tus análisis junto con peso y cintura, en una sola tabla.</p>
+        <div class="export-actions">
+          <ion-button fill="outline" [disabled]="exporting()" (click)="exportPdf()">Imprimir o PDF</ion-button>
+          <ion-button fill="outline" [disabled]="exporting()" (click)="exportCsv()">Descargar CSV</ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
 
   <ion-card>
     <ion-card-header><ion-card-title>Historial</ion-card-title></ion-card-header>

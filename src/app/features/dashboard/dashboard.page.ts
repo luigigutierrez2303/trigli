@@ -1,12 +1,17 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonProgressBar, ToastController,
+  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonProgressBar, IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addCircleOutline, chevronBack, chevronForward } from 'ionicons/icons';
+import { finishRefresh } from '../../core/refresh';
+import { ProfileService } from '../energy/profile.service';
+import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
+import { RemindersComponent } from '../reminders/reminders.component';
+import { HabitsCardComponent } from '../habits/habits-card.component';
 import { EnergyProgressComponent } from '../energy/energy-progress.component';
 import { WeightChartComponent } from '../energy/weight-chart.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
@@ -23,14 +28,16 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   selector: 'app-dashboard',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent,
+    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent, HabitsCardComponent, RemindersComponent,
+    IonRefresher, IonRefresherContent, IonSkeletonText,
   ],
   templateUrl: './dashboard.page.html',
   styleUrl: './dashboard.page.scss',
 })
 export class DashboardPage implements OnInit {
   private readonly dashboard = inject(DashboardService);
-  private readonly toast = inject(ToastController);
+  private readonly notify = inject(NotifyService);
+  private readonly profiles = inject(ProfileService);
 
   readonly dayLetters = DAY_LETTERS;
   readonly mealOrder = MEAL_ORDER;
@@ -73,6 +80,13 @@ export class DashboardPage implements OnInit {
     addIcons({ addCircleOutline, chevronBack, chevronForward });
   }
 
+  refresh(ev: Event) {
+    return finishRefresh(ev, async () => {
+      this.profiles.notifyChange();
+      await this.load();
+    });
+  }
+
   ngOnInit() {
     this.load();
   }
@@ -81,8 +95,7 @@ export class DashboardPage implements OnInit {
     try {
       this.data.set(await this.dashboard.week(this.monday(), weekEnd(this.monday())));
     } catch (e) {
-      const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';
-      (await this.toast.create({ message, duration: 3000, color: 'danger' })).present();
+      this.notify.error(e);
     }
   }
 

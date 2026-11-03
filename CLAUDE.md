@@ -33,6 +33,7 @@ Hecho (detalle en `docs/asesor/estado-actual.md`):
 - Mi cuenta: foto, meta, apariencia (automático/claro/oscuro vía clase `ion-palette-dark`), contraseña.
 - Importación desde Apple Salud (`importar-salud`, Atajo de iOS, guía en `docs/atajo-salud.md`): total diario de energía activa (lo estima el iPhone, no Fitbeing) y peso. Los entrenos de Fitbeing no se pueden leer con Atajos y Strava exige suscripción; los minutos se cargan a mano con el lápiz de la fila "Actividad de Salud". La función se despliega con `--no-verify-jwt` y usa la service role (grants en la migración `service_role_grants`).
 - Análisis de comidas con IA (texto y foto): Edge Function `analizar-comida` con Gemini (secret `GEMINI_API_KEY`, límite diario `AI_DAILY_LIMIT`), cliente en `meal-ai.service.ts`.
+- Hábitos que mueven los TG (`features/habits/`): tarjeta semanal en Resumen (pescado graso, fibra, días con alcohol y con azúcar, más una sugerencia) y, en Laboratorio, promedios semanales entre cada par de análisis (aeróbico, score, alcohol, pescado, peso). Las listas de marcas de cada factor están en `habits.ts`.
 - La PWA busca y aplica versiones nuevas al volver a la app (`core/app-update.ts`).
 - Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta. Marca "Descenso" (verde bosque #0F3D3E + lima #C8F169).
 

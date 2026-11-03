@@ -1,4 +1,5 @@
 <ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content /></ion-refresher>
   <div class="page-head">
     <h1>Actividad</h1>
     <div class="page-nav">
@@ -29,9 +30,9 @@
       }
       <div class="days" role="group" aria-label="Minutos por día de la semana">
         @for (d of weekDays(); track d.date) {
-          <button type="button" class="day" [class.sel]="d.selected" [class.future]="d.future" [disabled]="d.future"
-            [attr.aria-label]="d.name + ': ' + d.minutes + ' minutos'" [attr.aria-pressed]="d.selected" (click)="goTo(d.date)">
-            <span class="bar-wrap"><span class="bar" [style.height.%]="d.pct"></span></span>
+          <button type="button" class="day" [class.sel]="d.selected" [class.future]="d.future" [class.today]="d.today" [disabled]="d.future"
+            [attr.aria-label]="d.name + ': ' + d.minutes + ' minutos' + (d.today ? ' (hoy)' : '')" [attr.aria-pressed]="d.selected" (click)="goTo(d.date)">
+            <span class="bar-wrap"><span class="bar" [style.height.%]="d.pct"></span><span class="goal" [style.bottom.%]="d.goalPct"></span></span>
             <span class="min">{{ d.minutes || '' }}</span>
             <span class="letter">{{ d.letter }}</span>
           </button>
@@ -46,17 +47,19 @@
       @if (dayCardio().length) {
         <ion-list lines="full">
           @for (w of dayCardio(); track w.id) {
-            <ion-item>
+            <ion-item button detail="false" (click)="startEdit(w)" aria-label="Editar cardio">
               <ion-label>
-                <h2>{{ activityLabel(w.activity) ?? (w.source === 'health' ? 'Actividad de Salud' : 'Cardio') }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
-                @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas@if (w.source === 'health') { · de Salud }</p> }
-                @if (w.source !== 'health' && hasHealthDay()) { <p>Sus kcal no suman al balance: el total de Salud ya las incluye.</p> }
+                @if (w.source === 'health') {
+                  <h2>Actividad de Salud<ion-badge class="source-badge">Salud</ion-badge></h2>
+                  @if (w.kcal !== null) { <p>{{ w.kcal }} kcal activas de todo el día@if (w.duration_min) { · {{ w.duration_min }} min }</p> }
+                } @else {
+                  <h2>{{ activityLabel(w.activity) ?? 'Cardio' }}@if (w.duration_min) { · {{ w.duration_min }} min }</h2>
+                  @if (w.kcal !== null) { <p>{{ w.kcal }} kcal quemadas</p> }
+                  @if (hasHealthDay()) { <p>Sus kcal no suman al balance: el total de Salud ya las incluye.</p> }
+                }
                 @if (w.notes) { <p>{{ w.notes }}</p> }
               </ion-label>
-              <ion-button slot="end" fill="clear" (click)="startEdit(w)" aria-label="Editar">
-                <ion-icon slot="icon-only" name="create-outline" />
-              </ion-button>
-              <ion-button slot="end" fill="clear" color="danger" (click)="removeCardio(w.id)" aria-label="Borrar">
+              <ion-button slot="end" fill="clear" color="danger" class="touch" (click)="$event.stopPropagation(); confirmRemove(w)" aria-label="Borrar">
                 <ion-icon slot="icon-only" name="trash-outline" />
               </ion-button>
             </ion-item>
@@ -75,6 +78,11 @@
         </div>
       }
 
+      @if (!formOpen()) {
+        <ion-button expand="block" class="ion-margin-top" (click)="openForm()">
+          <ion-icon slot="start" name="add" />Agregar cardio
+        </ion-button>
+      } @else {
       <div id="cardio-form" class="field-label">{{ editingId() ? 'Editando cardio' : 'Actividad' }}</div>
       <div class="chips" role="radiogroup" aria-label="Tipo de actividad">
         @for (a of activities; track a.key) {
@@ -98,8 +106,9 @@
       <ion-button expand="block" class="ion-margin-top" [disabled]="!canAddCardio() || saving()" (click)="editingId() ? saveEdit() : addCardio()">
         @if (editingId()) { Guardar cambios } @else { Agregar cardio{{ cardioKcal() !== null ? ' (≈ ' + cardioKcal() + ' kcal)' : '' }} }
       </ion-button>
-      @if (editingId()) { <ion-button expand="block" fill="clear" color="medium" (click)="cancelEdit()">Cancelar</ion-button> }
+      <ion-button expand="block" fill="clear" color="medium" (click)="cancelEdit()">Cancelar</ion-button>
       @if (cardioKcal() === null && minutes()) { <ion-note class="ion-padding-top">Cargá tu peso más abajo para estimar las kcal.</ion-note> }
+      }
     </ion-card-content>
   </ion-card>
 

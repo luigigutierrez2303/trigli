@@ -55,7 +55,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ion-color-danger);
+  color: var(--trigli-bad-text);
 
   &.good { margin-top: 20px; color: var(--trigli-ok-text); }
 }
@@ -180,7 +180,7 @@ ion-modal.meal-modal {
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+  &.on { background: var(--ion-color-primary); border-color: var(--trigli-primary-text); color: var(--ion-color-primary-contrast); }
 }
 
 .qty .grams { width: 96px; --padding-start: 10px; --padding-end: 4px; min-height: 40px; text-align: right; }
@@ -206,13 +206,22 @@ ion-modal.meal-modal {
   color: var(--ion-text-color); font: inherit; cursor: pointer; line-height: 1.2;
   small { color: var(--ion-color-medium); }
 }
-.fav-del { padding: 0 12px; border: 0; border-left: 1px solid var(--ion-border-color); background: transparent; color: var(--ion-color-danger); cursor: pointer; font: inherit; }
+.fav-del { padding: 0 12px; border: 0; border-left: 1px solid var(--ion-border-color); background: transparent; color: var(--trigli-bad-text); cursor: pointer; font: inherit; }
 .fav-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; margin: 8px 0 12px; }
 .save-fav { display: block; margin: 0 0 4px; }
 
 .ai-box { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; padding: 12px 14px; border-radius: 14px; background: var(--trigli-primary-soft); }
+// El primario (lima) no se lee sobre el fondo verde claro: acá los botones usan los tonos de texto del tema.
+.ai-box ion-button.ai-btn { min-height: 40px; --box-shadow: none; --opacity: 1; }
+.ai-box ion-button.ai-tonal {
+  --background: color-mix(in srgb, var(--trigli-primary-text) 14%, transparent);
+  --background-hover: color-mix(in srgb, var(--trigli-primary-text) 22%, transparent);
+  --color: var(--trigli-primary-text);
+}
+.ai-box ion-button.ai-go { --background: var(--trigli-primary-text); --color: var(--trigli-primary-soft); }
+.ai-box ion-button.ai-go[disabled] { opacity: 0.4; }
 .ai-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
-.ai-error { margin: 0; font-size: 13px; color: var(--ion-color-danger); }
+.ai-error { margin: 0; font-size: 13px; color: var(--trigli-bad-text); }
 .proposals { display: flex; flex-direction: column; gap: 6px; }
 .proposal { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--ion-background-color, #fff); }
 .proposal span { display: flex; flex-direction: column; min-width: 0; }
@@ -234,7 +243,7 @@ ion-modal.meal-modal {
   background: transparent; color: var(--ion-text-color); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   &:active { transform: scale(0.96); }
-  &.on { background: var(--ion-color-primary); border-color: var(--ion-color-primary); color: var(--ion-color-primary-contrast); }
+  &.on { background: var(--ion-color-primary); border-color: var(--trigli-primary-text); color: var(--ion-color-primary-contrast); }
 }
 .item-del { min-width: 44px; min-height: 44px; padding: 8px 10px; touch-action: manipulation; border: 0; background: transparent; color: var(--ion-color-medium); font: inherit; cursor: pointer; }
 
@@ -265,3 +274,4 @@ ion-modal.meal-modal {
   color: var(--ion-color-medium); font: inherit; font-size: 0.75rem; cursor: pointer; touch-action: manipulation;
   .photo-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+.repeat-day { width: 100%; margin: 0 0 12px; }

@@ -41,7 +41,7 @@ ion-badge {
 }
 
 ion-progress-bar {
-  height: 10px; border-radius: 999px; --background: var(--trigli-surface-2); --progress-background: var(--ion-color-success);
+  height: 10px; border-radius: 999px; --background: var(--trigli-surface-2); --progress-background: var(--level-text, var(--trigli-ok-text));
 }
 
 ion-modal { --border-radius: var(--trigli-radius-sheet); }

@@ -43,3 +43,15 @@
 }
 
 .hint { margin: 12px 0 0; font-size: 0.8125rem; color: var(--ion-color-medium); }
+
+.interval {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ion-border-color);
+  &:first-of-type { padding-top: 0; }
+  h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 0.9375rem; font-weight: 700; }
+  dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 16px; margin: 0; }
+  dt { font-size: 0.75rem; color: var(--ion-color-step-650, var(--ion-color-medium)); }
+  dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+}
+
+.export-actions { display: flex; flex-wrap: wrap; gap: 8px; ion-button { flex: 1 1 140px; margin: 0; } }

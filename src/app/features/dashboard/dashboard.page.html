@@ -1,10 +1,22 @@
 <ion-content class="ion-padding wide">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content /></ion-refresher>
   <h1 class="mobile-only mobile-title">Resumen</h1>
+  <app-reminders class="reminders" />
   <section class="energy-grid" aria-label="Balance de calorías">
     <app-energy-today />
     <app-energy-progress />
     <app-weight-chart />
   </section>
+  @if (!data()) {
+    <ion-card class="skeleton-card" aria-hidden="true">
+      <ion-card-content>
+        <ion-skeleton-text animated style="width: 45%; height: 18px" />
+        <ion-skeleton-text animated style="width: 100%; height: 14px" />
+        <ion-skeleton-text animated style="width: 80%; height: 14px" />
+        <ion-skeleton-text animated style="width: 60%; height: 14px" />
+      </ion-card-content>
+    </ion-card>
+  }
   <div class="mobile-only">
     <div class="page-head">
       <div class="page-nav">
@@ -63,6 +75,8 @@
         </ion-card-content>
       </ion-card>
     </div>
+
+    @if (data()) { <app-habits-card [monday]="monday()" [meals]="data()!.meals" [cardioMin]="summary().cardioMin" /> }
 
     <div class="week-rows" role="table" aria-label="Semana por día">
       <div class="mrow head" role="row">
@@ -207,6 +221,8 @@
         </div>
       </div>
     </div>
+
+    @if (data()) { <div class="habits-desktop"><app-habits-card [monday]="monday()" [meals]="data()!.meals" [cardioMin]="summary().cardioMin" /></div> }
 
     <div class="tg-strip">
       <div class="tg-info">

@@ -7,9 +7,12 @@ import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonFooter, IonHeader,
   IonIcon, IonItem, IonLabel, IonInput, IonList, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTextarea, IonTitle, IonToolbar,
   ToastController,
+  IonRefresher, IonRefresherContent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
+import { finishRefresh } from '../../core/refresh';
+import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
@@ -34,7 +37,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
-    IonSegment, IonSegmentButton,
+    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -43,6 +46,7 @@ export class MealLogPage implements OnInit {
   private readonly meals = inject(MealService);
   private readonly sb = inject(Supabase);
   private readonly toast = inject(ToastController);
+  private readonly notify = inject(NotifyService);
   private readonly route = inject(ActivatedRoute);
   private readonly profiles = inject(ProfileService);
   private readonly favoriteService = inject(FavoriteService);
@@ -67,6 +71,10 @@ export class MealLogPage implements OnInit {
 
   readonly date = signal(toIsoDate(new Date()));
   readonly entries = signal<MealLog[]>([]);
+  /** Comidas del día anterior: para "repetir lo de ayer". */
+  readonly yesterday = signal<MealLog[]>([]);
+  /** Las de ayer en los momentos del día que hoy todavía están vacíos. */
+  readonly repeatable = computed(() => this.yesterday().filter((m) => !this.entries().some((e) => e.meal_type === m.meal_type)));
   readonly loading = signal(false);
 
   readonly isToday = computed(() => this.date() === toIsoDate(new Date()));
@@ -288,12 +296,49 @@ export class MealLogPage implements OnInit {
     this.loading.set(true);
     try {
       this.entries.set(await this.meals.byDate(this.date()));
+      this.loadYesterday();
       await this.loadEnergy();
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async loadYesterday() {
+    const d = new Date(this.date() + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    try {
+      this.yesterday.set(await this.meals.byDate(toIsoDate(d)));
+    } catch {
+      this.yesterday.set([]);
+    }
+  }
+
+  /** Copia al día en pantalla las comidas de ayer que hoy faltan. */
+  async repeatYesterday() {
+    const todo = this.repeatable();
+    if (!todo.length) return;
+    this.saving.set(true);
+    try {
+      for (const m of todo) {
+        const saved = await this.meals.save(this.date(), m.meal_type, m.flags, m.notes, m.items, m.kcal);
+        this.entries.update((list) => [...list.filter((e) => e.meal_type !== saved.meal_type), saved]);
+      }
+      this.celebrateRepeat(todo.length);
+    } catch (e) {
+      this.notify.error(e);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  private celebrateRepeat(n: number) {
+    this.notify.success(n === 1 ? 'Copiamos 1 comida de ayer' : `Copiamos ${n} comidas de ayer`);
+  }
+
+  refresh(ev: Event) {
+    return finishRefresh(ev, () => this.load());
   }
 
   shiftDay(delta: number) {
@@ -422,7 +467,7 @@ export class MealLogPage implements OnInit {
       this.favName = '';
       this.showFavForm.set(false);
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -431,7 +476,7 @@ export class MealLogPage implements OnInit {
       await this.favoriteService.remove(id);
       this.favorites.update((list) => list.filter((f) => f.id !== id));
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -496,7 +541,7 @@ export class MealLogPage implements OnInit {
       this.close();
       if (!wasComplete && this.entries().length >= MEAL_ORDER.length) this.celebrate();
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     } finally {
       this.saving.set(false);
     }
@@ -512,7 +557,7 @@ export class MealLogPage implements OnInit {
       this.close();
       this.undoToast(`Borraste ${this.mealLabels[existing.meal_type].toLowerCase()}`, () => void this.restore(existing));
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -523,7 +568,7 @@ export class MealLogPage implements OnInit {
       if (saved.date === this.date()) this.entries.update((list) => [...list.filter((e) => e.meal_type !== saved.meal_type), saved]);
       this.history.update((h) => [{ date: saved.date, meal_type: saved.meal_type, items: saved.items }, ...h]);
     } catch (e) {
-      this.showError(e);
+      this.notify.error(e);
     }
   }
 
@@ -538,8 +583,4 @@ export class MealLogPage implements OnInit {
   }
 
 
-  private async showError(e: unknown) {
-    const message = e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Error';
-    (await this.toast.create({ message, duration: 3000, color: 'danger' })).present();
-  }
 }
