@@ -7,7 +7,7 @@
     <ion-card-header><ion-card-title>Sesión de hoy</ion-card-title></ion-card-header>
     <ion-card-content>
       <ion-item>
-        <ion-select label="Ejercicio" labelPlacement="stacked" placeholder="Elegí uno" interface="action-sheet"
+        <ion-select label="Ejercicio" labelPlacement="stacked" placeholder="Elegí uno" interface="action-sheet" cancelText="Cancelar"
           [value]="exerciseId()" (ionChange)="selectExercise($event.detail.value)">
           @for (e of exercises(); track e.id) {
             <ion-select-option [value]="e.id">{{ e.name }}</ion-select-option>

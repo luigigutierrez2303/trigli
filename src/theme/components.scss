@@ -103,7 +103,14 @@ ion-button:not([fill='clear']):not([fill='outline']):not([color]) {
   --background: var(--ion-color-primary); --background-activated: var(--ion-color-primary-shade); --background-hover: var(--ion-color-primary-tint);
   --color: var(--ion-color-primary-contrast); --opacity: 1;
 }
-ion-button[disabled]:not([fill='clear']):not([fill='outline']) { opacity: 0.45; }
+/* Deshabilitado: gris neutro con texto legible, en vez del lima desteñido. */
+ion-button[disabled]:not([fill='clear']):not([fill='outline']):not([color]) {
+  --background: var(--trigli-bar-off); --color: var(--ion-color-medium); opacity: 1;
+}
+ion-button[disabled]:not([fill='clear']):not([fill='outline'])[color] { opacity: 0.45; }
+/* Outline sin color propio: el lima no se lee sobre fondo claro, así que usa el verde del texto primario. */
+ion-button[fill='outline']:not([color]) { --color: var(--trigli-primary-text); --border-color: var(--trigli-primary-text); --border-width: 1.5px; }
+ion-button[fill='outline'][disabled]:not([color]) { opacity: 0.5; }
 
 /* Desktop (≥ 1024px): el rail lateral trae la navegación y el "Salir", así que las páginas ocultan su toolbar. */
 @media (min-width: 1024px) {
@@ -139,3 +146,11 @@ ion-input[fill='outline'], ion-select[fill='outline'], ion-textarea[fill='outlin
   &:focus-within { border-color: var(--trigli-primary-text); }
 }
 ion-input[fill='outline'] .label-text-wrapper, ion-textarea[fill='outline'] .label-text-wrapper { margin-bottom: 4px; }
+
+/* Hojas de selección y alertas: el lima de marca no se lee sobre el fondo claro del overlay.
+   Ionic fija estas variables con clases propias del componente, así que se sube la especificidad. */
+html body ion-action-sheet[class] { --button-color: var(--ion-text-color); --button-color-selected: var(--trigli-primary-text); }
+html body ion-action-sheet[class] .action-sheet-button { font-weight: 500; }
+html body ion-action-sheet[class] .action-sheet-selected, html body ion-action-sheet[class] .action-sheet-cancel { font-weight: 700; }
+html body ion-alert[class] .alert-button { color: var(--trigli-primary-text); }
+html body ion-alert[class] .alert-button.alert-button-role-destructive { color: var(--trigli-bad-text); }

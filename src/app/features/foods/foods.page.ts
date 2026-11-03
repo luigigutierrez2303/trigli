@@ -85,7 +85,7 @@ const emptyDraft = (): FoodDraft => ({ name: '', cat: 'Platos y comidas', portio
           <div class="form">
             <ion-input label="Nombre" labelPlacement="stacked" placeholder="Ej. Arepa de queso" [value]="draft().name"
               [disabled]="!isNew()" (ionInput)="set('name', $event)" />
-            <ion-select label="Categoría" labelPlacement="stacked" [value]="draft().cat" (ionChange)="set('cat', $event)">
+            <ion-select label="Categoría" labelPlacement="stacked" cancelText="Cancelar" okText="Aceptar" [value]="draft().cat" (ionChange)="set('cat', $event)">
               @for (c of categories; track c) { <ion-select-option [value]="c">{{ c }}</ion-select-option> }
             </ion-select>
             <ion-input label="Porción" labelPlacement="stacked" placeholder="1 unidad, 1 plato…" [value]="draft().portion"
@@ -98,7 +98,7 @@ const emptyDraft = (): FoodDraft => ({ name: '', cat: 'Platos y comidas', portio
               <ion-input label="Gramos (opc.)" labelPlacement="stacked" inputmode="numeric" placeholder="150" [value]="draft().grams"
                 (ionInput)="set('grams', $event)" />
             </div>
-            <ion-select label="Marca de calidad" labelPlacement="stacked" [value]="draft().flag" (ionChange)="set('flag', $event)">
+            <ion-select label="Marca de calidad" labelPlacement="stacked" cancelText="Cancelar" okText="Aceptar" [value]="draft().flag" (ionChange)="set('flag', $event)">
               <ion-select-option value="">Ninguna</ion-select-option>
               @for (d of flags; track d.key) { <ion-select-option [value]="d.key">{{ d.label }}</ion-select-option> }
             </ion-select>

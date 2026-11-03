@@ -31,7 +31,11 @@ export async function sha256Hex(s: string): Promise<string> {
       </ion-card-content>
     </ion-card>
   `,
-  styles: `.token { display: block; word-break: break-all; padding: 10px; border-radius: 8px; background: var(--ion-color-light); margin-bottom: 8px; user-select: all; }`,
+  styles: `
+    .fine { margin: 6px 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
+    @media (min-width: 1024px) { ion-card { max-width: 640px; } }
+    .token { display: block; word-break: break-all; padding: 10px; border-radius: 8px; background: var(--ion-color-light); margin-bottom: 8px; user-select: all; }
+  `,
 })
 export class HealthLinkComponent {
   private readonly db = inject(Supabase).client;

@@ -93,7 +93,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
               (ionInput)="goalRaw.set($any($event.target).value ?? '')" />
           </div>
 
-          <ion-select fill="outline" label="Actividad diaria" labelPlacement="stacked" [value]="level()"
+          <ion-select fill="outline" label="Actividad diaria" labelPlacement="stacked" cancelText="Cancelar" okText="Aceptar" [value]="level()"
             (ionChange)="level.set($any($event).detail.value)">
             @for (l of levels; track l.key) { <ion-select-option [value]="l.key">{{ l.label }}</ion-select-option> }
           </ion-select>
