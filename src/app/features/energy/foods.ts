@@ -305,7 +305,8 @@ export const FOODS: Food[] = [
   f('Frituras y snacks', 'Papas fritas de bolsa', 'un puñado (30 g)', 160, 2, 'snacks'),
   f('Frituras y snacks', 'Palitos salados', 'un puñado (30 g)', 120, 3, 'snacks'),
   f('Frituras y snacks', 'Nachos', 'un puñado (30 g)', 150, 2, 'snacks'),
-  f('Frituras y snacks', 'Pochoclo', '2 tazas', 60, 2, 'snacks'),
+  f('Frituras y snacks', 'Pochoclo casero', '2 tazas', 60, 2, 'popcornHome'),
+  f('Frituras y snacks', 'Pochoclo de microondas o con manteca', '2 tazas', 120, 3, 'snacks'),
   f('Frituras y snacks', 'Bastones de mozzarella', '3 unidades', 300, 12, 'fastFood'),
   f('Frituras y snacks', 'Nuggets de pollo', '4 unidades', 220, 12, 'fastFood'),
 
@@ -416,7 +417,7 @@ export const FOODS: Food[] = [
   f('Platos y comidas', 'Perro caliente venezolano', '1 unidad', 520, 14, 'choripan'),
   f('Platos y comidas', 'Hamburguesa venezolana', '1 unidad', 720, 32, 'fastFood'),
   f('Frituras y snacks', 'Tostones con queso', '4 unidades', 360, 8, 'fries'),
-  f('Frituras y snacks', 'Cotufas', '2 tazas', 60, 2, 'snacks'),
+  f('Frituras y snacks', 'Cotufas', '2 tazas', 60, 2, 'popcornHome'),
   f('Frituras y snacks', 'Platanitos (chips de plátano)', 'un puñado (30 g)', 150, 1, 'snacks'),
   f('Frituras y snacks', 'Pelotica de plátano', '1 unidad', 190, 3, 'fries'),
   f('Bebidas', 'Papelón con limón', '1 vaso (250 ml)', 110, 0, 'sugar'),

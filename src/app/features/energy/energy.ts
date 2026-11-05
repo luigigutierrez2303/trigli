@@ -89,6 +89,7 @@ export const CARDIO_ACTIVITIES: Activity[] = [
   { key: 'rope', label: 'Soga', met: 11.0 },
   { key: 'dance', label: 'Baile', met: 5.0 },
   { key: 'soccer', label: 'Fútbol', met: 7.0 },
+  { key: 'functional', label: 'Funcional / abdominales', met: 3.5 },
 ];
 
 /** Fuerza con mancuernas y descansos entre series. */

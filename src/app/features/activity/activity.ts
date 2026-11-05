@@ -49,16 +49,20 @@ export interface BurnRow {
   type: string;
   kcal: number | null;
   source: string;
+  activity?: string | null;
 }
+
+/** Tipos de cardio que el teléfono no registra como entreno: siempre suman, aunque haya total de Salud. */
+const NOT_IN_HEALTH = new Set(['functional']);
 
 /**
  * Kcal quemadas en un día. Si hay un total de Salud, el cardio cargado a mano no suma
- * (esas kcal ya están en el total); la fuerza sí, porque el teléfono no la mide.
+ * (esas kcal ya están en el total); la fuerza y el funcional sí, porque el teléfono no los mide.
  */
 export function burnedKcal(rows: BurnRow[]): number {
   const hasHealth = rows.some((r) => r.type === 'cardio' && r.source === 'health');
   return rows.reduce((sum, r) => {
-    if (hasHealth && r.type === 'cardio' && r.source !== 'health') return sum;
+    if (hasHealth && r.type === 'cardio' && r.source !== 'health' && !NOT_IN_HEALTH.has(r.activity ?? '')) return sum;
     return sum + (r.kcal ?? 0);
   }, 0);
 }

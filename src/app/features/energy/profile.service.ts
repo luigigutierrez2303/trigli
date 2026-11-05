@@ -59,7 +59,7 @@ export class ProfileService {
   async energyBetween(from: string, to: string): Promise<WeekEnergyDay[]> {
     const [meals, workouts] = await Promise.all([
       this.db.from('meal_log').select('date, kcal, items').gte('date', from).lte('date', to),
-      this.db.from('workout').select('date, kcal, type, source').gte('date', from).lte('date', to),
+      this.db.from('workout').select('date, kcal, type, source, activity').gte('date', from).lte('date', to),
     ]);
     if (meals.error) throw meals.error;
     if (workouts.error) throw workouts.error;
@@ -77,7 +77,7 @@ export class ProfileService {
     const byDay = new Map<string, BurnRow[]>();
     for (const w of workouts.data) {
       const list = byDay.get(w.date as string) ?? [];
-      list.push({ type: w.type as string, kcal: w.kcal as number | null, source: w.source as string });
+      list.push({ type: w.type as string, kcal: w.kcal as number | null, source: w.source as string, activity: w.activity as string | null });
       byDay.set(w.date as string, list);
     }
     for (const [date, rows] of byDay) day(date).burned = burnedKcal(rows);

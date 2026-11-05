@@ -52,6 +52,8 @@ describe('activity', () => {
     expect(burnedKcal(rows)).toBe(245);
     expect(burnedKcal(rows.slice(1))).toBe(350);
     expect(burnedKcal([])).toBe(0);
+    const withFunctional = [...rows, { type: 'cardio', kcal: 80, source: 'manual', activity: 'functional' }];
+    expect(burnedKcal(withFunctional)).toBe(325);
   });
 
   it('top combos orders by repetitions, then recency, and skips Salud rows', () => {

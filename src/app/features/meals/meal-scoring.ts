@@ -71,7 +71,8 @@ export const FLAG_DEFS: readonly FlagDef[] = [
   food('bakedEmpanada', 'Empanada al horno', '', -1),
   food('fries', 'Papas fritas', '', -2),
   food('snacks', 'Snacks de bolsa', 'Papas, palitos, maní frito', -2),
-  food('fastFood', 'Hamburguesa / comida rápida', '', -3),
+  food('popcornHome', 'Pochoclo casero', 'Maíz pisingallo, poco aceite, sin azúcar ni manteca', 0),
+  food('fastFood','Hamburguesa / comida rápida', '', -3),
   food('choripan', 'Choripán / pancho', '', -3),
   // Carnes, pescados y huevo
   food('grill', 'Asado / achuras', 'Costillar, vacío, chinchulines, morcilla', -2),
