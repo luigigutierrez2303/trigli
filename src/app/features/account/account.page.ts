@@ -142,6 +142,14 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
       </ion-card>
 
       <ion-card>
+        <ion-card-header><ion-card-title>Ayuda</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <p class="fine">Repasá cómo funciona la app y revisá tus datos desde el principio.</p>
+          <ion-button expand="block" fill="outline" routerLink="/bienvenida">Ver tutorial</ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
         <ion-card-header><ion-card-title>Cambiar contraseña</ion-card-title></ion-card-header>
         <ion-card-content>
           <ion-list lines="none">

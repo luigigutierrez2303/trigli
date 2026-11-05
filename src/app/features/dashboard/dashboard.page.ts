@@ -10,6 +10,7 @@ import { ProfileService } from '../energy/profile.service';
 import { NotifyService } from '../../core/notify';
 import { toIsoDate } from '../../core/date';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
+import { FirstStepsComponent } from '../onboarding/first-steps.component';
 import { RemindersComponent } from '../reminders/reminders.component';
 import { HabitsCardComponent } from '../habits/habits-card.component';
 import { EnergyProgressComponent } from '../energy/energy-progress.component';
@@ -28,7 +29,7 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   selector: 'app-dashboard',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent, HabitsCardComponent, RemindersComponent,
+    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent, HabitsCardComponent, RemindersComponent, FirstStepsComponent,
     IonRefresher, IonRefresherContent, IonSkeletonText,
   ],
   templateUrl: './dashboard.page.html',

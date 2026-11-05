@@ -1,11 +1,17 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { onboardingGuard } from './features/onboarding/onboarding.guard';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage) },
   {
-    path: '',
+    path: 'bienvenida',
     canActivate: [authGuard],
+    loadComponent: () => import('./features/onboarding/onboarding.page').then((m) => m.OnboardingPage),
+  },
+  {
+    path: '',
+    canActivate: [authGuard, onboardingGuard],
     loadComponent: () => import('./features/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
       {

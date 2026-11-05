@@ -1,6 +1,7 @@
 <ion-content class="ion-padding wide">
   <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content /></ion-refresher>
   <h1 class="mobile-only mobile-title">Resumen</h1>
+  <app-first-steps />
   <app-reminders class="reminders" />
   <section class="energy-grid" aria-label="Balance de calorías">
     <app-energy-today />

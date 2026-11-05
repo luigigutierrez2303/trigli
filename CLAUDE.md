@@ -35,6 +35,7 @@ Hecho (detalle en `docs/asesor/estado-actual.md`):
 - Análisis de comidas con IA (texto y foto): Edge Function `analizar-comida` con Gemini (secret `GEMINI_API_KEY`, límite diario `AI_DAILY_LIMIT`), cliente en `meal-ai.service.ts`.
 - Hábitos que mueven los TG (`features/habits/`): tarjeta semanal en Resumen (pescado graso, fibra, días con alcohol y con azúcar, más una sugerencia) y, en Laboratorio, promedios semanales entre cada par de análisis (aeróbico, score, alcohol, pescado, peso). Las listas de marcas de cada factor están en `habits.ts`.
 - Fuerza muestra el día del plan (empuje / tracción / piernas, rota según la última sesión; `strength/training-plan.ts`). Comidas tiene el contador de agua (`features/water/`, tabla `water_log`, migración `20261103000000_water.sql` a aplicar a mano).
+- Primeros pasos (`features/onboarding/`): asistente `/bienvenida` de 5 pasos (datos, meta, TG opcional, cómo se usa) que `onboardingGuard` muestra a quien no tiene perfil (se saltea con la marca `trigli.onboarding.skipped` en localStorage; se repite desde Mi cuenta → Ayuda), y tarjeta "Primeros pasos" en Resumen (`first-steps.component.ts`).
 - La PWA busca y aplica versiones nuevas al volver a la app (`core/app-update.ts`).
 - Tabs: Resumen, Comidas, Actividad, Fuerza, Lab, Cuenta. Marca "Descenso" (verde bosque #0F3D3E + lima #C8F169).
 
