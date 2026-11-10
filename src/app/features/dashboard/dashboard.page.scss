@@ -132,39 +132,6 @@
   color: var(--ion-color-success-contrast);
 }
 
-.tg-strip {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  padding: 20px 24px;
-  background: var(--ion-card-background);
-  border: 1px solid var(--ion-border-color);
-  border-radius: var(--trigli-radius-md);
-}
-.tg-info { flex: 0 0 260px; }
-.tg-info p { margin: 6px 0 0; font-size: 14px; }
-.tg-title { font-size: 15px; font-weight: 500; }
-.tg-value {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 4px;
-  .big { font-size: 36px; }
-  small { font-size: 14px; color: var(--ion-color-medium); }
-}
-.tg-badge {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  background: var(--level);
-  color: var(--ion-color-success-contrast);
-  &[data-level='high'], &[data-level='very-high'] { color: #fff; }
-}
-.tg-chart { flex: 1; min-width: 0; }
-.tg-ref { font-size: 12px; color: var(--ion-color-medium); text-align: right; }
-
 /* Tarjetas de balance: una columna en celular; en pantallas anchas se reparten en fila. */
 .energy-grid {
   display: grid;
@@ -173,7 +140,9 @@
   margin-bottom: 16px;
 }
 @media (min-width: 1024px) {
-  .energy-grid { padding: 32px 40px 0; margin-bottom: 0; }
+  .energy-grid { padding: 16px 40px 0; margin-bottom: 0; }
+  /* La tarjeta de TG va arriba de todo, con el mismo margen que el resto del Resumen de escritorio. */
+  .tg-focus { margin: 32px 40px 0; }
 }
 @media (max-width: 599px) {
   .energy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

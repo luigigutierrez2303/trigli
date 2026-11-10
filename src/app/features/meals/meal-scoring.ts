@@ -140,6 +140,39 @@ export function scoreMeal(flags: MealFlags): number {
   return Math.max(MIN, Math.min(MAX, BASE + delta));
 }
 
+/** Score de comida al que conviene apuntar (en verde desde 7). */
+export const MEAL_SCORE_GOAL = 7;
+
+export interface ScoreReason {
+  key: MealFlag;
+  label: string;
+  weight: number;
+}
+
+export interface ScoreBreakdown {
+  base: number;
+  /** Lo que suma, de lo que más suma a lo que menos. */
+  plus: ScoreReason[];
+  /** Lo que resta, de lo que más resta a lo que menos. */
+  minus: ScoreReason[];
+  score: number;
+  /** Si la suma se pasó de 10 o bajó de 0 y quedó en el tope. */
+  clamped: 'max' | 'min' | null;
+}
+
+/** Por qué una comida tiene su score: base 6, lo que suma y lo que resta (cada marca cuenta una vez). */
+export function explainMeal(flags: MealFlags): ScoreBreakdown {
+  const reasons = ALL_FLAG_DEFS.filter((f) => flags[f.key] && f.weight !== 0).map(({ key, label, weight }) => ({ key, label, weight }));
+  const raw = BASE + reasons.reduce((acc, r) => acc + r.weight, 0);
+  return {
+    base: BASE,
+    plus: reasons.filter((r) => r.weight > 0).sort((a, b) => b.weight - a.weight),
+    minus: reasons.filter((r) => r.weight < 0).sort((a, b) => a.weight - b.weight),
+    score: scoreMeal(flags),
+    clamped: raw > MAX ? 'max' : raw < MIN ? 'min' : null,
+  };
+}
+
 /** Una comida sin alimentos, marcas ni notas no dice nada: no se guarda (y si existía, se borra). */
 export function isEmptyMeal(flags: MealFlags, itemCount: number, notes: string | null): boolean {
   return itemCount === 0 && !notes?.trim() && !Object.values(flags).some(Boolean);

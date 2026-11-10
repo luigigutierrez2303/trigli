@@ -10,7 +10,7 @@ import {
   IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, addCircleOutline, flame, refreshOutline } from 'ionicons/icons';
+import { chevronBack, chevronDown, chevronForward, chevronUp, addCircleOutline, flame, refreshOutline } from 'ionicons/icons';
 import { WaterCardComponent } from '../water/water-card.component';
 import { finishRefresh } from '../../core/refresh';
 import { NotifyService } from '../../core/notify';
@@ -20,6 +20,7 @@ import { parseDecimal } from '../activity/activity';
 import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, itemsProtein, mergeItems, MealItem, proteinGoal } from '../energy/energy';
 import { flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
 import { FoodIconComponent } from '../energy/food-icon.component';
+import { ScoreWhyComponent } from './score-why.component';
 import { FoodsService } from '../energy/foods.service';
 import { ProposedItem } from '../energy/meal-analysis';
 import { MealAiError, MealAiService } from './meal-ai.service';
@@ -27,7 +28,7 @@ import { frequentItems, HistoryMeal, QTY_CHOICES, streakDays, suggestProtein } f
 import { SpeechService } from './speech';
 import { ProfileService } from '../energy/profile.service';
 import {
-  ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MealFlags, MealType, scoreDay, scoreMeal,
+  ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MEAL_SCORE_GOAL, MealFlags, MealType, scoreDay, scoreMeal,
 } from './meal-scoring';
 import { FavoriteMeal, FavoriteService } from './favorite.service';
 import { MealLog, MealService } from './meal.service';
@@ -39,7 +40,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
-    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent, FoodIconComponent,
+    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent, FoodIconComponent, ScoreWhyComponent,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -251,6 +252,10 @@ export class MealLogPage implements OnInit {
   readonly derivedFlags = computed<MealFlags>(() => flagsOfItems(this.draftItems(), this.foodsService.catalog()));
   readonly effectiveFlags = computed<MealFlags>(() => ({ ...this.draftFlags(), ...this.derivedFlags() }));
   readonly draftScore = computed(() => scoreMeal(this.effectiveFlags()));
+  /** Desglose del score ("¿por qué?"): base, lo que suma y lo que resta. */
+  readonly why = computed(() => explainMeal(this.effectiveFlags()));
+  readonly showWhy = signal(false);
+  readonly mealGoal = MEAL_SCORE_GOAL;
   readonly saving = signal(false);
 
   readonly dateLabel = computed(() =>
@@ -264,7 +269,7 @@ export class MealLogPage implements OnInit {
       this.profiles.changes();
       untracked(() => void this.loadEnergy());
     });
-    addIcons({ chevronBack, chevronForward, addCircleOutline, flame, refreshOutline });
+    addIcons({ chevronBack, chevronDown, chevronForward, chevronUp, addCircleOutline, flame, refreshOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD&comida=dinner abre el editor de esa comida.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(async (params) => {
       const fecha = params.get('fecha');

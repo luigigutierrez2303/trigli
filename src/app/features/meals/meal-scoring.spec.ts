@@ -1,4 +1,4 @@
-import { ALL_FLAG_DEFS, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, scoreDay, scoreMeal } from './meal-scoring';
+import { ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, scoreDay, scoreMeal } from './meal-scoring';
 
 describe('meal scoring', () => {
   it('neutral meal scores the base', () => {
@@ -74,5 +74,30 @@ describe('isEmptyMeal', () => {
     expect(isEmptyMeal({}, 1, null)).toBe(false);
     expect(isEmptyMeal({ salad: true }, 0, null)).toBe(false);
     expect(isEmptyMeal({}, 0, 'cena liviana')).toBe(false);
+  });
+});
+
+describe('explainMeal', () => {
+  it('sin marcas solo queda la base', () => {
+    expect(explainMeal({})).toEqual({ base: 6, plus: [], minus: [], score: 6, clamped: null });
+  });
+
+  it('separa lo que suma y lo que resta, de mayor a menor peso', () => {
+    const b = explainMeal({ beer: true, whiteBread: true, water: true });
+    expect(b.minus.map((r) => r.key)).toEqual(['beer', 'whiteBread']);
+    expect(b.plus).toEqual([{ key: 'water', label: 'Agua / soda', weight: 1 }]);
+    expect(b.score).toBe(scoreMeal({ beer: true, whiteBread: true, water: true }));
+    expect(b.clamped).toBeNull();
+  });
+
+  it('avisa cuando la suma queda en el tope', () => {
+    expect(explainMeal({ beer: true, spirits: true }).clamped).toBe('min');
+    const good = Object.fromEntries(FLAG_DEFS.filter((f) => f.weight > 0).map((f) => [f.key, true]));
+    expect(explainMeal(good).clamped).toBe('max');
+  });
+
+  it('las marcas de peso 0 no aparecen', () => {
+    expect(explainMeal({ popcornHome: true }).plus).toEqual([]);
+    expect(explainMeal({ popcornHome: true }).minus).toEqual([]);
   });
 });

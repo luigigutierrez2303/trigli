@@ -92,10 +92,15 @@
           <ion-title>{{ editing() ? mealLabels[editing()!] : '' }}</ion-title>
         </ion-toolbar>
         <ion-toolbar class="score-bar">
-          <div class="draft-score" [attr.data-level]="levelForMeal(draftScore())">
+          <button type="button" class="draft-score" [attr.data-level]="levelForMeal(draftScore())"
+            [attr.aria-expanded]="showWhy()" aria-controls="score-why" (click)="showWhy.set(!showWhy())">
             <span>{{ draftScore() }}</span><small>/10</small>
             <span class="draft-kcal">{{ draftKcal() }} kcal</span>
-          </div>
+            <span class="why-link">¿Por qué? <ion-icon [name]="showWhy() ? 'chevron-up' : 'chevron-down'" aria-hidden="true" /></span>
+          </button>
+          @if (showWhy()) {
+            <app-score-why id="score-why" aria-live="polite" [why]="why()" [goal]="mealGoal" />
+          }
         </ion-toolbar>
         <ion-toolbar>
           <ion-segment [value]="tab()" (ionChange)="tab.set($any($event).detail.value)">

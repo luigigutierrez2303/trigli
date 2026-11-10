@@ -3,6 +3,10 @@
   <h1 class="mobile-only mobile-title">Resumen</h1>
   <app-first-steps />
   <app-reminders class="reminders" />
+  @if (data(); as d) {
+    <app-tg-focus class="tg-focus" [series]="d.tgSeries" [monday]="monday()" [meals]="d.meals" [cardioMin]="summary().cardioMin"
+      [avgScore]="summary().avgScore" [weightChange]="weightChange()" [weekLabel]="weekLabel()" />
+  }
   <section class="energy-grid" aria-label="Balance de calorías">
     <app-energy-today />
     <app-energy-progress />
@@ -43,7 +47,7 @@
         </ion-card-content>
       </ion-card>
 
-      <ion-card>
+      <ion-card class="span-2">
         <ion-card-header><ion-card-title>Ejercicio</ion-card-title></ion-card-header>
         <ion-card-content>
           <div class="metric">{{ cardio().minutes }}<small> / 150 min de aeróbico</small></div>
@@ -52,32 +56,7 @@
         </ion-card-content>
       </ion-card>
 
-      <ion-card>
-        <ion-card-header><ion-card-title>Cuerpo y laboratorio</ion-card-title></ion-card-header>
-        <ion-card-content>
-          <p>
-            Peso:
-            @if (weightChange() !== null) {
-              <ion-badge [attr.data-level]="weightChange()! <= 0 ? 'good' : 'warn'">
-                {{ weightChange()! > 0 ? '+' : '' }}{{ weightChange() }} kg en la semana
-              </ion-badge>
-            } @else {
-              <span class="muted">necesitás dos mediciones en la semana</span>
-            }
-          </p>
-          <p>
-            Último TG:
-            @if (data()?.latestTg; as tg) {
-              <strong>{{ tg.tg }} mg/dL</strong> <ion-badge [attr.data-level]="classifyTg(tg.tg)">{{ levelLabels[classifyTg(tg.tg)] }}</ion-badge>
-            } @else {
-              <span class="muted">sin análisis cargados</span>
-            }
-          </p>
-        </ion-card-content>
-      </ion-card>
     </div>
-
-    @if (data()) { <app-habits-card [monday]="monday()" [meals]="data()!.meals" [cardioMin]="summary().cardioMin" /> }
 
     <div class="week-rows" role="table" aria-label="Semana por día">
       <div class="mrow head" role="row">
@@ -221,28 +200,6 @@
           }
         </div>
       </div>
-    </div>
-
-    @if (data()) { <div class="habits-desktop"><app-habits-card [monday]="monday()" [meals]="data()!.meals" [cardioMin]="summary().cardioMin" /></div> }
-
-    <div class="tg-strip">
-      <div class="tg-info">
-        <div class="tg-title">Triglicéridos</div>
-        @if (data()?.latestTg; as tg) {
-          <div class="tg-value">
-            <span class="big">{{ tg.tg }}</span><small>mg/dL</small>
-            <span class="tg-badge" [attr.data-level]="classifyTg(tg.tg)">{{ levelLabels[classifyTg(tg.tg)] }}</span>
-          </div>
-          @if (tgChange() !== null) {
-            <p class="muted">{{ signed(tgChange()!) }}% desde el primer análisis ({{ firstTgDate() }})</p>
-          }
-        } @else {
-          <p class="muted">Sin análisis cargados</p>
-        }
-      </div>
-      <app-line-chart class="tg-chart" [points]="tgPoints()" [refs]="tgRefs" [width]="960" [height]="120"
-        ariaLabel="Triglicéridos en el tiempo" />
-      <div class="tg-ref"><b>150</b><br />referencia</div>
     </div>
   </div>
 </ion-content>

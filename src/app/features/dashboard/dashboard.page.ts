@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonProgressBar, IonRefresher, IonRefresherContent, IonSkeletonText,
+  IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonIcon, IonProgressBar, IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addCircleOutline, chevronBack, chevronForward } from 'ionicons/icons';
@@ -12,12 +12,10 @@ import { toIsoDate } from '../../core/date';
 import { cardioProgress, weekEnd, weekStart } from '../activity/activity';
 import { FirstStepsComponent } from '../onboarding/first-steps.component';
 import { RemindersComponent } from '../reminders/reminders.component';
-import { HabitsCardComponent } from '../habits/habits-card.component';
+import { TgFocusComponent } from '../habits/tg-focus.component';
 import { EnergyProgressComponent } from '../energy/energy-progress.component';
 import { WeightChartComponent } from '../energy/weight-chart.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
-import { classifyTg, percentChange, TG_LEVEL_LABELS } from '../labs/labs';
-import { LineChartComponent } from '../labs/line-chart.component';
 import { MEAL_LABELS, MEAL_ORDER, MealType } from '../meals/meal-scoring';
 import { dailyBars, GridDay, summarizeWeek, weekGrid, weekWeightChange } from './dashboard';
 import { DashboardService, WeekData } from './dashboard.service';
@@ -29,7 +27,7 @@ const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   selector: 'app-dashboard',
   imports: [
     IonButton, IonIcon, IonContent, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge, IonProgressBar, LineChartComponent, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent, HabitsCardComponent, RemindersComponent, FirstStepsComponent,
+    IonCardTitle, IonCardContent, IonProgressBar, RouterLink, EnergyTodayComponent, EnergyProgressComponent, WeightChartComponent, TgFocusComponent, RemindersComponent, FirstStepsComponent,
     IonRefresher, IonRefresherContent, IonSkeletonText,
   ],
   templateUrl: './dashboard.page.html',
@@ -43,9 +41,6 @@ export class DashboardPage implements OnInit {
   readonly dayLetters = DAY_LETTERS;
   readonly mealOrder = MEAL_ORDER;
   readonly mealLabels = MEAL_LABELS;
-  readonly tgRefs = [{ value: 150, label: '' }];
-  readonly levelLabels = TG_LEVEL_LABELS;
-  readonly classifyTg = classifyTg;
 
   readonly monday = signal(weekStart(toIsoDate(new Date())));
   readonly data = signal<WeekData | null>(null);
@@ -73,14 +68,6 @@ export class DashboardPage implements OnInit {
     }),
   );
   readonly weightWeekLevel = computed(() => ((this.weightChange() ?? 0) <= 0 ? 'good' : 'warn'));
-  readonly tgPoints = computed(() => (this.data()?.tgSeries ?? []).map((r) => ({ label: r.date, value: r.tg })));
-  readonly tgChange = computed(() => percentChange((this.data()?.tgSeries ?? []).map((r) => r.tg)));
-  readonly firstTgDate = computed(() => {
-    const iso = this.data()?.tgSeries[0]?.date;
-    if (!iso) return null;
-    const d = new Date(iso + 'T12:00:00');
-    return `${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }).replace('.', '')} ${d.getFullYear()}`;
-  });
 
   constructor() {
     addIcons({ addCircleOutline, chevronBack, chevronForward });

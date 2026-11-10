@@ -39,13 +39,20 @@
 }
 
 .draft-score {
+  display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer;
   text-align: center;
+  font: inherit;
   font-weight: 700;
   color: var(--level-text);
 
   span { font-size: 1.75rem; }
   small { font-size: 0.9375rem; color: var(--ion-color-medium); }
+  .why-link {
+    display: inline-flex; align-items: center; gap: 2px; margin-left: 10px; vertical-align: 4px;
+    font-size: 0.8125rem; font-weight: 600; color: var(--trigli-primary-text);
+  }
 }
+
 
 .score-bar { --min-height: 0; --padding-top: 0; --padding-bottom: 0; }
 
@@ -229,6 +236,8 @@ ion-modal.meal-modal {
 .proposal small { color: var(--ion-color-medium); }
 
 ion-item app-food-icon.emo { margin-inline-end: 12px; }
+/* En celular el ancho es para los botones de porción: el ícono se oculta en las filas del borrador. */
+@media (max-width: 479px) { ion-item app-food-icon.emo { display: none; } .qty-chips { gap: 6px; } }
 .grow { flex: 1; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
 .chip {
@@ -240,7 +249,7 @@ ion-item app-food-icon.emo { margin-inline-end: 12px; }
 /* Cada botón de porción llena el ancho en partes iguales y mide 44 px de alto: cómodo para el pulgar. */
 .qty-chips { display: flex; gap: 8px; margin-top: 8px; padding-bottom: 4px; }
 .qchip {
-  flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 6px; border: 1px solid var(--ion-border-color); border-radius: 12px;
+  flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 2px; white-space: nowrap; border: 1px solid var(--ion-border-color); border-radius: 12px;
   background: transparent; color: var(--ion-text-color); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   &:active { transform: scale(0.96); }
