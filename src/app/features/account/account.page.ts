@@ -185,7 +185,7 @@ async function toAvatarJpeg(file: File): Promise<Blob> {
     .goal ion-card-content { padding-top: 16px; }
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
     ion-select { margin-top: 4px; }
-    ion-segment-button small { opacity: 0.75; font-size: 11px; }
+    ion-segment-button small { opacity: 0.75; font-size: 12px; }
     .fine { margin: 6px 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
     .plan { margin: 20px 0 4px; padding: 16px; border-radius: var(--trigli-radius-lg); background: var(--trigli-primary-soft); }
     .plan-main { display: flex; align-items: center; gap: 14px; line-height: 1.25; }

@@ -44,7 +44,7 @@ import { DayEnergy, ProfileService } from './profile.service';
   styles: `
     :host { display: contents; }
     @media (max-width: 599px) { .tile { grid-column: 1 / -1; } }
-    .tile { margin: 0; height: 100%; border-top: 4px solid var(--kcal-color, var(--ion-color-medium)); }
+    .tile { margin: 0; height: 100%; }
     .tile[data-kcal='ok'] { --kcal-color: var(--trigli-ok-text); }
     .tile[data-kcal='low'], .tile[data-kcal='close'] { --kcal-color: var(--trigli-warn-text); }
     .tile[data-kcal='over'] { --kcal-color: var(--trigli-bad-text); }
@@ -56,7 +56,7 @@ import { DayEnergy, ProfileService } from './profile.service';
     .fill { stroke: var(--kcal-color, var(--ion-color-primary)); stroke-linecap: round; }
     .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
     .ring-text b { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .ring-text small { font-size: 0.6875rem; color: var(--ion-color-medium); }
+    .ring-text small { font-size: 0.75rem; color: var(--ion-color-medium); }
     .state { font-size: 1.125rem; font-weight: 700; color: var(--kcal-color, var(--ion-text-color)); }
     .sub { margin: 4px 0 0; color: var(--ion-color-medium); line-height: 1.4; }
     a { color: var(--trigli-primary-text); font-weight: 600; }

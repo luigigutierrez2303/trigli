@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, signal, untracked, viewChild } from '@angular/core';
 import { IonCard, IonCardContent } from '@ionic/angular';
 import { toIsoDate } from '../../core/date';
 import { projectGoal, smoothWeights, WeightPoint, weightTrend } from './energy';
@@ -8,12 +8,15 @@ const HISTORY_DAYS = 90;
 /** Cuánto se dibuja de la proyección (entre 30 y 120 días, según el historial); la fecha de llegada puede ser más lejana y va en el texto. */
 const MIN_DRAWN_DAYS = 30;
 const MAX_DRAWN_DAYS = 120;
-/** En celular el SVG se dibuja a su tamaño real (360 de ancho) para que textos y trazos no queden diminutos. */
-const NARROW = typeof window !== 'undefined' && window.innerWidth < 600;
-const W = NARROW ? 360 : 800;
-const H = NARROW ? 280 : 260;
-const PAD = NARROW ? { left: 34, right: 12, top: 14, bottom: 26 } : { left: 48, right: 20, top: 16, bottom: 30 };
-const MIN_LABEL_GAP = NARROW ? 64 : 90;
+/**
+ * El SVG se dibuja al ancho real de la tarjeta (lo mide un ResizeObserver) con alto fijo,
+ * así textos y trazos tienen siempre su tamaño en píxeles y el gráfico no se estira en pantallas anchas.
+ */
+const NARROW_BELOW = 600;
+const height = (w: number) => (w < NARROW_BELOW ? 240 : 280);
+const padding = (w: number) =>
+  w < NARROW_BELOW ? { left: 34, right: 12, top: 14, bottom: 26 } : { left: 48, right: 20, top: 16, bottom: 30 };
+const labelGap = (w: number) => (w < NARROW_BELOW ? 64 : 90);
 
 const DAY_MS = 86_400_000;
 const dayOf = (iso: string) => Date.parse(iso + 'T12:00:00') / DAY_MS;
@@ -47,14 +50,15 @@ const longDate = (iso: string) =>
               @if (projection()) { <li><i class="k proj"></i>Proyección</li> }
             </ul>
           </div>
-          <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" aria-label="Evolución del peso, tendencia y meta">
+          <div #box class="box">
+          <svg [attr.viewBox]="'0 0 ' + w() + ' ' + h()" [attr.width]="w()" [attr.height]="h()" role="img" aria-label="Evolución del peso, tendencia y meta">
             @for (t of yTicks(); track t.kg) {
-              <line [attr.x1]="pad.left" [attr.x2]="w - pad.right" [attr.y1]="t.y" [attr.y2]="t.y" class="grid" />
-              <text [attr.x]="pad.left - 8" [attr.y]="t.y + 4" class="tick" text-anchor="end">{{ t.kg }}</text>
+              <line [attr.x1]="pad().left" [attr.x2]="w() - pad().right" [attr.y1]="t.y" [attr.y2]="t.y" class="grid" />
+              <text [attr.x]="pad().left - 8" [attr.y]="t.y + 4" class="tick" text-anchor="end">{{ t.kg }}</text>
             }
             @if (goalY(); as gy) {
-              <line [attr.x1]="pad.left" [attr.x2]="w - pad.right" [attr.y1]="gy" [attr.y2]="gy" class="goal" />
-              <text [attr.x]="pad.left + 6" [attr.y]="gy - 6" class="goal-label">Meta {{ goal() }} kg</text>
+              <line [attr.x1]="pad().left" [attr.x2]="w() - pad().right" [attr.y1]="gy" [attr.y2]="gy" class="goal" />
+              <text [attr.x]="pad().left + 6" [attr.y]="gy - 6" class="goal-label">Meta {{ goal() }} kg</text>
             }
             @if (projLine(); as pl) { <path [attr.d]="pl" class="proj" /> }
             <path [attr.d]="trendPath()" class="trend" />
@@ -62,9 +66,10 @@ const longDate = (iso: string) =>
               <circle [attr.cx]="d.x" [attr.cy]="d.y" r="3.5" class="raw"><title>{{ d.date }}: {{ d.kg }} kg</title></circle>
             }
             @for (x of xLabels(); track x.date) {
-              <text [attr.x]="x.x" [attr.y]="h - 8" class="tick" [attr.text-anchor]="x.anchor">{{ x.label }}</text>
+              <text [attr.x]="x.x" [attr.y]="h() - 8" class="tick" [attr.text-anchor]="x.anchor">{{ x.label }}</text>
             }
           </svg>
+          </div>
         </ion-card-content>
       </ion-card>
     }
@@ -80,7 +85,8 @@ const longDate = (iso: string) =>
     .k.trend { width: 16px; height: 3px; border-radius: 2px; background: var(--trigli-primary-text); }
     .k.goal { width: 16px; border-top: 2px dashed var(--ion-color-medium); }
     .k.proj { width: 16px; border-top: 2px dotted var(--trigli-primary-text); }
-    svg { width: 100%; height: auto; display: block; }
+    .box { width: 100%; }
+    svg { display: block; max-width: 100%; height: auto; }
     .grid { stroke: var(--ion-border-color); stroke-width: 1; }
     .tick { fill: var(--ion-color-medium); font-size: 12px; }
     path.trend { fill: none; stroke: var(--trigli-primary-text); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -93,9 +99,10 @@ const longDate = (iso: string) =>
 export class WeightChartComponent {
   private readonly profiles = inject(ProfileService);
 
-  readonly w = W;
-  readonly h = H;
-  readonly pad = PAD;
+  private readonly box = viewChild<ElementRef<HTMLElement>>('box');
+  readonly w = signal(typeof window !== 'undefined' && window.innerWidth < NARROW_BELOW ? 320 : 800);
+  readonly h = computed(() => height(this.w()));
+  readonly pad = computed(() => padding(this.w()));
 
   readonly loaded = signal(false);
   readonly points = signal<WeightPoint[]>([]);
@@ -171,11 +178,13 @@ export class WeightChartComponent {
 
   private x(iso: string) {
     const { t0, t1 } = this.domain();
-    return PAD.left + ((dayOf(iso) - t0) / (t1 - t0)) * (W - PAD.left - PAD.right);
+    const pad = this.pad();
+    return pad.left + ((dayOf(iso) - t0) / (t1 - t0)) * (this.w() - pad.left - pad.right);
   }
   private y(kg: number) {
     const { lo, hi } = this.domain();
-    return PAD.top + (1 - (kg - lo) / (hi - lo)) * (H - PAD.top - PAD.bottom);
+    const pad = this.pad();
+    return pad.top + (1 - (kg - lo) / (hi - lo)) * (this.h() - pad.top - pad.bottom);
   }
 
   readonly rawDots = computed(() => this.points().map((p) => ({ date: p.date, kg: p.kg, x: this.x(p.date), y: this.y(p.kg) })));
@@ -206,13 +215,23 @@ export class WeightChartComponent {
     // La del medio (última fecha medida) se descarta si queda pegada a la primera o a la última.
     if (labels.length === 3) {
       const [first, mid, last] = labels;
-      const apart = Math.abs(mid.x - first.x) >= MIN_LABEL_GAP && Math.abs(last.x - mid.x) >= MIN_LABEL_GAP;
+      const apart = Math.abs(mid.x - first.x) >= labelGap(this.w()) && Math.abs(last.x - mid.x) >= labelGap(this.w());
       return apart ? labels : [first, last];
     }
     return labels;
   });
 
   constructor() {
+    effect((onCleanup) => {
+      const el = this.box()?.nativeElement;
+      if (!el || typeof ResizeObserver === 'undefined') return;
+      const ro = new ResizeObserver(([entry]) => {
+        const width = Math.round(entry.contentRect.width);
+        if (width > 0) this.w.set(width);
+      });
+      ro.observe(el);
+      onCleanup(() => ro.disconnect());
+    });
     effect(() => {
       this.profiles.changes();
       untracked(() => void this.load());

@@ -234,7 +234,7 @@
             <span class="tg-badge" [attr.data-level]="classifyTg(tg.tg)">{{ levelLabels[classifyTg(tg.tg)] }}</span>
           </div>
           @if (tgChange() !== null) {
-            <p class="muted">{{ signed(tgChange()!) }}% desde la primera medición · {{ firstTgDate() }}</p>
+            <p class="muted">{{ signed(tgChange()!) }}% desde el primer análisis ({{ firstTgDate() }})</p>
           }
         } @else {
           <p class="muted">Sin análisis cargados</p>

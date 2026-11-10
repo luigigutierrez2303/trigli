@@ -10,7 +10,7 @@ import {
   IonRefresher, IonRefresherContent, IonSkeletonText,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, addCircleOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, addCircleOutline, flame, refreshOutline } from 'ionicons/icons';
 import { WaterCardComponent } from '../water/water-card.component';
 import { finishRefresh } from '../../core/refresh';
 import { NotifyService } from '../../core/notify';
@@ -18,7 +18,8 @@ import { toIsoDate } from '../../core/date';
 import { Supabase } from '../../core/supabase';
 import { parseDecimal } from '../activity/activity';
 import { dailyPlan, dayBalance, DAY_LEVEL_LABELS, itemsKcal, itemsProtein, mergeItems, MealItem, proteinGoal } from '../energy/energy';
-import { emojiOf, flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
+import { flagsOfItems, Food, FOOD_CATEGORIES } from '../energy/foods';
+import { FoodIconComponent } from '../energy/food-icon.component';
 import { FoodsService } from '../energy/foods.service';
 import { ProposedItem } from '../energy/meal-analysis';
 import { MealAiError, MealAiService } from './meal-ai.service';
@@ -38,7 +39,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
-    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent,
+    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent, FoodIconComponent,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -125,8 +126,9 @@ export class MealLogPage implements OnInit {
     const inDraft = new Set(this.draftItems().map((i) => i.name));
     return frequentItems(this.history(), type, 10).filter((i) => !inDraft.has(i.name)).slice(0, 8);
   });
-  emoji(name: string): string {
-    return emojiOf(name, this.foodsService.catalog().find((f) => f.name === name)?.cat);
+  /** Categoría del alimento en el catálogo, para elegir su ícono. */
+  catOf(name: string): string | undefined {
+    return this.foodsService.catalog().find((f) => f.name === name)?.cat;
   }
 
   // Resumen fijo del editor: cuánto queda del día y de proteína con lo que se está cargando
@@ -262,7 +264,7 @@ export class MealLogPage implements OnInit {
       this.profiles.changes();
       untracked(() => void this.loadEnergy());
     });
-    addIcons({ chevronBack, chevronForward, addCircleOutline });
+    addIcons({ chevronBack, chevronForward, addCircleOutline, flame, refreshOutline });
     // Desde el Resumen: ?fecha=YYYY-MM-DD&comida=dinner abre el editor de esa comida.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(async (params) => {
       const fecha = params.get('fecha');
@@ -575,7 +577,7 @@ export class MealLogPage implements OnInit {
 
   private async celebrate() {
     const n = this.streak();
-    const message = n >= 2 ? `🎉 ¡Día completo! 🔥 ${n} días seguidos` : '🎉 ¡Día completo! Registraste las 4 comidas';
+    const message = n >= 2 ? `¡Día completo! Llevás ${n} días seguidos` : '¡Día completo! Registraste las 4 comidas';
     (await this.toast.create({ message, duration: 3500, color: 'success', position: 'top' })).present();
   }
 

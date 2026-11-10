@@ -75,7 +75,12 @@ export class DashboardPage implements OnInit {
   readonly weightWeekLevel = computed(() => ((this.weightChange() ?? 0) <= 0 ? 'good' : 'warn'));
   readonly tgPoints = computed(() => (this.data()?.tgSeries ?? []).map((r) => ({ label: r.date, value: r.tg })));
   readonly tgChange = computed(() => percentChange((this.data()?.tgSeries ?? []).map((r) => r.tg)));
-  readonly firstTgDate = computed(() => this.data()?.tgSeries[0]?.date ?? null);
+  readonly firstTgDate = computed(() => {
+    const iso = this.data()?.tgSeries[0]?.date;
+    if (!iso) return null;
+    const d = new Date(iso + 'T12:00:00');
+    return `${d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }).replace('.', '')} ${d.getFullYear()}`;
+  });
 
   constructor() {
     addIcons({ addCircleOutline, chevronBack, chevronForward });

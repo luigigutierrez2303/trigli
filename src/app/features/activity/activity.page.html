@@ -135,9 +135,9 @@
         </p>
       }
       <div class="grid">
-        <ion-input fill="outline" label="Peso (kg)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="82,5"
+        <ion-input fill="outline" label="Peso (kg)" labelPlacement="stacked" type="text" inputmode="decimal" [placeholder]="weightHint()"
           [value]="weightRaw()" (ionInput)="weightRaw.set($any($event.target).value ?? '')" />
-        <ion-input fill="outline" label="Cintura (cm)" labelPlacement="stacked" type="text" inputmode="decimal" placeholder="95"
+        <ion-input fill="outline" label="Cintura (cm)" labelPlacement="stacked" type="text" inputmode="decimal" [placeholder]="waistHint()"
           [value]="waistRaw()" (ionInput)="waistRaw.set($any($event.target).value ?? '')" />
       </div>
       @if (!canSaveMetric() && (weightRaw() || waistRaw())) {

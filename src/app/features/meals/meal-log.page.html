@@ -18,7 +18,7 @@
         } @else {
           {{ entries().length }}/4 comidas
           @if (hadAlcohol()) { · con alcohol }
-          @if (streak() >= 2) { · 🔥 {{ streak() }} días seguidos }
+          @if (streak() >= 2) { · <ion-icon name="flame" class="streak-icon" aria-hidden="true" />{{ streak() }} días seguidos }
         }
       </div>
     </ion-card-content>
@@ -45,7 +45,7 @@
 
   @if (repeatable().length) {
     <button type="button" class="repeat repeat-day" [disabled]="saving()" (click)="repeatYesterday()">
-      <span class="repeat-title">↺ Repetir lo de ayer</span>
+      <span class="repeat-title"><ion-icon name="refresh-outline" aria-hidden="true" /> Repetir lo de ayer</span>
       <span class="repeat-sub">{{ repeatable().length }} {{ repeatable().length === 1 ? 'comida' : 'comidas' }} sin cargar hoy</span>
     </button>
   }
@@ -90,9 +90,6 @@
             <ion-button fill="clear" (click)="close()">Cancelar</ion-button>
           </ion-buttons>
           <ion-title>{{ editing() ? mealLabels[editing()!] : '' }}</ion-title>
-          <ion-buttons slot="end">
-            <ion-button fill="solid" (click)="save()" [disabled]="saving()">Guardar</ion-button>
-          </ion-buttons>
         </ion-toolbar>
         <ion-toolbar class="score-bar">
           <div class="draft-score" [attr.data-level]="levelForMeal(draftScore())">
@@ -112,7 +109,7 @@
         @if (tab() === 'kcal') {
           @if (previous() && !draftItems().length) {
             <button type="button" class="repeat" (click)="repeatPrevious()">
-              <span class="repeat-title">↺ Repetir {{ mealLabels[editing()!].toLowerCase() }} anterior</span>
+              <span class="repeat-title"><ion-icon name="refresh-outline" aria-hidden="true" /> Repetir {{ mealLabels[editing()!].toLowerCase() }} anterior</span>
               <span class="repeat-sub">{{ previous()!.kcal }} kcal · {{ previous()!.date }}</span>
             </button>
           }
@@ -121,7 +118,7 @@
             <div class="chips">
               @for (it of frequent(); track it.name) {
                 <button type="button" class="chip" (click)="addFrequent(it)">
-                  <span aria-hidden="true">{{ emoji(it.name) }}</span> {{ it.name }}
+                  <app-food-icon [name]="it.name" [cat]="catOf(it.name)" size="sm" /> {{ it.name }}
                 </button>
               }
             </div>
@@ -148,7 +145,7 @@
             <ion-list lines="full" class="items">
               @for (item of draftItems(); track $index; let i = $index) {
                 <ion-item>
-                  <span slot="start" class="emo" aria-hidden="true">{{ emoji(item.name) }}</span>
+                  <app-food-icon slot="start" class="emo" [name]="item.name" [cat]="catOf(item.name)" />
                   <ion-label>
                     <h3>{{ item.name }}</h3>
                     <p>{{ item.kcal * item.qty | number: '1.0-0' }} kcal</p>
@@ -217,7 +214,7 @@
               <div class="proposals">
                 @for (p of proposals(); track p) {
                   <div class="proposal">
-                    <span class="emo" aria-hidden="true">{{ emoji(p.item.name) }}</span>
+                    <app-food-icon [name]="p.item.name" [cat]="catOf(p.item.name)" />
                     <span class="grow">
                       <b>{{ p.item.name }}</b>
                       <small>
@@ -250,7 +247,7 @@
           <div class="food-list">
             @for (f of visibleKcalFoods(); track f.name + f.kcal) {
               <button type="button" class="food" (click)="addFood(f)">
-                <span class="emo" aria-hidden="true">{{ emoji(f.name) }}</span>
+                <app-food-icon [name]="f.name" [cat]="f.cat" />
                 <span class="grow"><b>{{ f.name }}</b><small>{{ f.portion }}</small></span>
                 <span class="food-kcal">{{ f.kcal }} kcal</span>
                 @if (isCustom(f)) {
@@ -336,10 +333,13 @@
           <div class="sum-sug">
             <span>Te faltan <b>{{ missingProtein() }} g</b> de proteína:</span>
             @for (f of suggestions(); track f.name) {
-              <button type="button" class="chip" (click)="addFood(f)"><span aria-hidden="true">{{ emoji(f.name) }}</span> {{ f.name }}</button>
+              <button type="button" class="chip" (click)="addFood(f)"><app-food-icon [name]="f.name" [cat]="f.cat" size="sm" /> {{ f.name }}</button>
             }
           </div>
         }
+        <ion-button expand="block" class="save-meal" (click)="save()" [disabled]="saving()">
+          Guardar {{ editing() ? mealLabels[editing()!].toLowerCase() : '' }}
+        </ion-button>
       </ion-footer>
     </ng-template>
   </ion-modal>

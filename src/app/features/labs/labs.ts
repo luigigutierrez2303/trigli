@@ -28,13 +28,24 @@ export interface ChartGeometry {
   max: number;
 }
 
-/** Convierte una serie en coordenadas SVG; el eje Y arranca en 0 salvo que haya valores negativos. */
+/**
+ * Rango del eje Y ajustado a los datos (y a las referencias), con un margen arriba y abajo.
+ * No arranca en 0: así una serie de 411 → 409 o una cintura estable no se ven como una línea pegada al techo.
+ * Si todos los valores son positivos, el piso nunca baja de 0.
+ */
+export function chartDomain(values: number[]): { min: number; max: number } {
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  const span = Math.max(hi - lo, Math.abs(hi) * 0.1, 1);
+  const margin = span * 0.2;
+  return { min: lo >= 0 ? Math.max(0, lo - margin) : lo - margin, max: hi + margin };
+}
+
+/** Convierte una serie en coordenadas SVG con el eje Y de `chartDomain`. */
 export function chartGeometry(
   points: ChartPoint[], width: number, height: number, pad = 16, extraValues: number[] = [],
 ): ChartGeometry {
-  const values = [...points.map((p) => p.value), ...extraValues];
-  const min = Math.min(0, ...values);
-  const max = Math.max(1, ...values);
+  const { min, max } = chartDomain([...points.map((p) => p.value), ...extraValues]);
   const innerW = width - pad * 2;
   const innerH = height - pad * 2;
   const yOf = (v: number) => pad + innerH - ((v - min) / (max - min)) * innerH;

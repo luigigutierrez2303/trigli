@@ -140,7 +140,7 @@ const emptyDraft = (): FoodDraft => ({ name: '', cat: 'Platos y comidas', portio
     .food small { color: var(--ion-color-medium); }
     .food-end { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .food-kcal { font-weight: 600; }
-    .tag { padding: 2px 8px; border-radius: 999px; background: var(--trigli-primary-soft); font-size: 11px; font-weight: 600; }
+    .tag { padding: 2px 8px; border-radius: 999px; background: var(--trigli-primary-soft); font-size: 12px; font-weight: 600; }
     .form { display: flex; flex-direction: column; gap: 16px; }
     .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     @media (min-width: 1024px) { ion-content > * { max-width: 640px; } }

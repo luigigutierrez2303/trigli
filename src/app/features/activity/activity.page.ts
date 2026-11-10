@@ -52,6 +52,15 @@ export class ActivityPage implements OnInit {
   readonly weekKcal = signal<{ now: number; previous: number } | null>(null);
   readonly waistRows = signal<{ date: string; waist_cm: number }[]>([]);
   readonly waistPoints = computed(() => metricPoints(this.waistRows().map((r) => ({ date: r.date, value: r.waist_cm }))));
+  /** Pista del campo: el último valor cargado (con una palabra delante para que no parezca un dato ya escrito). */
+  readonly weightHint = computed(() => {
+    const w = this.lastWeight();
+    return w ? `Último: ${w.toLocaleString('es-AR')}` : 'Ej.: 82,5';
+  });
+  readonly waistHint = computed(() => {
+    const w = this.waistRows().at(-1)?.waist_cm;
+    return w ? `Último: ${w.toLocaleString('es-AR')}` : 'Ej.: 95';
+  });
   readonly kcalCompare = computed(() => {
     const w = this.weekKcal();
     return w ? compareWeeks(w.now, w.previous) : null;

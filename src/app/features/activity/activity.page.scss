@@ -1,12 +1,12 @@
 .week-card {
   margin: 0 0 16px;
   text-align: center;
-  ion-progress-bar { --progress-background: var(--level-text); }
+  ion-progress-bar { --progress-background: var(--trigli-primary-text); }
   --soft: var(--ion-color-step-650, var(--ion-color-medium));
-  &[data-level='good'] { border-top: 4px solid var(--level); }
+  &[data-level='good'] ion-progress-bar { --progress-background: var(--trigli-ok-text); }
 }
 
-.source-badge { margin-left: 8px; vertical-align: middle; font-size: 0.6875rem; --background: var(--trigli-primary-soft); --color: var(--trigli-primary-text); }
+.source-badge { margin-left: 8px; vertical-align: middle; font-size: 0.75rem; --background: var(--trigli-primary-soft); --color: var(--trigli-primary-text); }
 .touch { min-width: 44px; min-height: 44px; }
 
 .week-value {
@@ -56,10 +56,10 @@
   cursor: pointer;
 
   &.sel { background: var(--trigli-primary-soft); border-color: var(--trigli-primary-text); color: var(--trigli-primary-text); }
-  &.future { opacity: 0.35; cursor: default; .bar-wrap { background: transparent; border: 1px dashed var(--ion-border-color); } .goal { display: none; } }
+  &.future { opacity: 0.35; cursor: default; .bar-wrap { opacity: 0.6; } .goal { display: none; } }
   .bar-wrap { position: relative; display: flex; align-items: flex-end; width: 100%; max-width: 28px; height: 56px; border-radius: 8px; background: var(--trigli-bar-off); overflow: hidden; }
   .bar { width: 100%; border-radius: 8px; background: var(--trigli-primary-text); }
-  .min { height: 14px; line-height: 14px; font-size: 0.6875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .min { height: 14px; line-height: 14px; font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
   .goal { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--trigli-primary-text); opacity: 0.6; }
   .letter { font-size: 0.75rem; font-weight: 600; color: var(--ion-text-color); opacity: 0.75; }
   &.sel .letter { color: var(--trigli-primary-text); opacity: 1; }

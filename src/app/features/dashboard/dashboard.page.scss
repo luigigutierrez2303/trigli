@@ -87,7 +87,7 @@
   &.link:not(.future) { cursor: pointer; }
   &.link:not(.future):hover { background: var(--trigli-surface-2); }
   &.link.today:not(.future):hover { filter: brightness(0.96); }
-  small { font-size: 11px; color: var(--ion-color-medium); }
+  small { font-size: 12px; color: var(--ion-color-medium); }
 }
 
 .head .cell { padding: 14px 0; }
@@ -195,7 +195,7 @@
   align-items: stretch;
   border-bottom: 1px solid var(--ion-border-color);
   &.today { background: var(--trigli-primary-soft); }
-  &.head { font-size: 11px; color: var(--ion-color-medium); }
+  &.head { font-size: 12px; color: var(--ion-color-medium); }
   &.head .mcell { min-height: 30px; }
 }
 

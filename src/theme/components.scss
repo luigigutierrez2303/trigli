@@ -41,7 +41,7 @@ ion-badge {
 }
 
 ion-progress-bar {
-  height: 10px; border-radius: 999px; --background: var(--trigli-surface-2); --progress-background: var(--level-text, var(--trigli-ok-text));
+  height: 10px; border-radius: 999px; --background: var(--trigli-surface-2); --progress-background: var(--trigli-primary-text);
 }
 
 ion-modal { --border-radius: var(--trigli-radius-sheet); }
@@ -52,7 +52,7 @@ ion-toast { --border-radius: 16px; font-weight: 600; }
 .metric { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
 .metric small { font-size: 1rem; font-weight: 600; color: var(--ion-color-medium); letter-spacing: 0; }
 .muted { color: var(--ion-color-medium); }
-.eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ion-color-medium); }
+.eyebrow { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0; color: var(--ion-color-medium); }
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 20px 8px;
@@ -110,7 +110,7 @@ ion-button[disabled]:not([fill='clear']):not([fill='outline']):not([color]) {
 ion-button[disabled]:not([fill='clear']):not([fill='outline'])[color] { opacity: 0.45; }
 /* Outline sin color propio: el lima no se lee sobre fondo claro, así que usa el verde del texto primario. */
 ion-button[fill='outline']:not([color]) { --color: var(--trigli-primary-text); --border-color: var(--trigli-primary-text); --border-width: 1.5px; }
-ion-button[fill='outline'][disabled]:not([color]) { opacity: 0.5; }
+ion-button[fill='outline'][disabled]:not([color]) { --color: var(--ion-color-medium); --border-color: var(--trigli-bar-off); opacity: 1; }
 
 /* Desktop (≥ 1024px): el rail lateral trae la navegación y el "Salir", así que las páginas ocultan su toolbar. */
 @media (min-width: 1024px) {

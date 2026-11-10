@@ -65,7 +65,7 @@ const addDays = (iso: string, delta: number) => {
       .big { font-size: 2rem; }
       .msg, .fine { font-size: 0.8125rem; }
     }
-    .tile { margin: 0; height: 100%; border-top: 4px solid var(--status-color, var(--ion-color-medium)); }
+    .tile { margin: 0; height: 100%; }
     .tile[data-status='on_track'] { --status-color: var(--trigli-ok-text); }
     .tile[data-status='stalled'], .tile[data-status='fast'] { --status-color: var(--trigli-warn-text); }
     .tile[data-status='gaining'] { --status-color: var(--trigli-bad-text); }
@@ -75,7 +75,7 @@ const addDays = (iso: string, delta: number) => {
     .rate { margin-top: 6px; font-weight: 700; color: var(--status-color, var(--ion-color-medium)); }
     .msg { margin: 8px 0 0; line-height: 1.4; color: var(--ion-color-medium); }
     .fine { margin: 8px 0 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
-    ion-progress-bar { margin-top: 12px; height: 8px; border-radius: 4px; --progress-background: var(--status-color, var(--ion-color-primary)); }
+    ion-progress-bar { margin-top: 12px; height: 8px; border-radius: 4px; --progress-background: var(--trigli-primary-text); }
   `,
 })
 export class EnergyProgressComponent {

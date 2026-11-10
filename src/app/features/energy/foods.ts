@@ -466,35 +466,52 @@ export function mergeCatalog(base: Food[], mine: UserFood[]): Food[] {
   return [...kept, ...own].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 }
 
-const EMOJI_BY_NAME: [RegExp, string][] = [
-  [/arepa|cachapa|tequen|empanada|\bpan\b|tostada|medialuna|cachito|golfeado/, '🫓'],
-  [/pizza/, '🍕'], [/hamburguesa|pepito|choripan|pancho|perro/, '🍔'], [/papas fritas|tostones|yuca frita/, '🍟'],
-  [/huevo|omelette|perico/, '🥚'], [/queso|mozzarella|provol|ricota|nata/, '🧀'], [/cafe|\bmate\b|\bte\b/, '☕'], [/leche|yogur|chocolatada/, '🥛'],
-  [/cerveza|polar/, '🍺'], [/vino|espumante/, '🍷'], [/fernet|\bgin\b|whisky|\bron\b|tragos/, '🥃'],
-  [/gaseosa|malta|energizante/, '🥤'], [/jugo|licuado|batido|papelon|guarapo|chicha/, '🧃'],
-  [/pollo|pechuga|suprema|muslo|alitas/, '🍗'], [/salmon|trucha|merluza|pescado|atun|sardina|caballa|cazon|lenguado|ceviche/, '🐟'],
-  [/langostino|rabas|pepitona/, '🦐'], [/arroz/, '🍚'], [/fideos|noquis|ravioles|pasticho/, '🍝'],
-  [/palta|aguacate/, '🥑'], [/banana|cambur/, '🍌'], [/manzana/, '🍎'], [/naranja|mandarina/, '🍊'], [/frutilla|arandano/, '🍓'],
-  [/\buvas?\b/, '🍇'], [/sandia|patilla/, '🍉'], [/anana|mango|lechosa|parchita|guayaba/, '🍍'], [/tomate/, '🍅'],
-  [/zanahoria/, '🥕'], [/brocoli/, '🥦'], [/lechuga|ensalada|rucula|espinaca|acelga/, '🥗'], [/\bpapas?\b|batata|yuca|name|ocumo|platano/, '🥔'],
-  [/choclo|cotufas|pochoclo/, '🌽'], [/helado/, '🍨'], [/chocolate|alfajor|brownie/, '🍫'], [/torta|quesillo|tres leches|flan/, '🍰'],
-  [/almendra|nuez|nueces|\bmani\b|castana|caju|semilla/, '🥜'], [/lenteja|garbanzo|poroto|caraota|quinchoncho/, '🫘'],
-  [/asado|bife|lomo|carne|costilla|vacio|entrana|milanesa|chorizo|matambre|cerdo|pernil/, '🥩'],
-];
+/** Familia de un alimento: define el color suave del ícono. */
+export type FoodTone = 'protein' | 'plant' | 'grain' | 'treat' | 'drink' | 'fat' | 'neutral';
 
-const EMOJI_BY_CATEGORY: Record<FoodCategory, string> = {
-  'Bebidas': '🥤', 'Desayuno y panificados': '🥐', 'Lácteos y huevos': '🥛', 'Quesos': '🧀', 'Fiambres y embutidos': '🥓',
-  'Carnes': '🥩', 'Pescados y mariscos': '🐟', 'Verduras': '🥬', 'Frutas': '🍎', 'Legumbres y cereales': '🌾',
-  'Platos y comidas': '🍽️', 'Frituras y snacks': '🍿', 'Dulces y postres': '🍰', 'Grasas, semillas y salsas': '🫒',
+export interface FoodIcon {
+  /** Nombre de un ícono de Ionicons (versión outline). */
+  icon: string;
+  tone: FoodTone;
+}
+
+const ICON_BY_CATEGORY: Record<FoodCategory, FoodIcon> = {
+  'Bebidas': { icon: 'water-outline', tone: 'drink' },
+  'Desayuno y panificados': { icon: 'basket-outline', tone: 'grain' },
+  'Lácteos y huevos': { icon: 'egg-outline', tone: 'protein' },
+  'Quesos': { icon: 'pizza-outline', tone: 'protein' },
+  'Fiambres y embutidos': { icon: 'flame-outline', tone: 'protein' },
+  'Carnes': { icon: 'flame-outline', tone: 'protein' },
+  'Pescados y mariscos': { icon: 'fish-outline', tone: 'protein' },
+  'Verduras': { icon: 'leaf-outline', tone: 'plant' },
+  'Frutas': { icon: 'nutrition-outline', tone: 'plant' },
+  'Legumbres y cereales': { icon: 'ellipse-outline', tone: 'grain' },
+  'Platos y comidas': { icon: 'restaurant-outline', tone: 'neutral' },
+  'Frituras y snacks': { icon: 'fast-food-outline', tone: 'treat' },
+  'Dulces y postres': { icon: 'ice-cream-outline', tone: 'treat' },
+  'Grasas, semillas y salsas': { icon: 'water-outline', tone: 'fat' },
 };
+
+/** Íconos más precisos que el de la categoría para alimentos que se reconocen por el nombre. */
+const ICON_BY_NAME: [RegExp, string][] = [
+  [/salmon|trucha|merluza|pescado|atun|sardina|caballa|cazon|lenguado|ceviche/, 'fish-outline'],
+  [/huevo|omelette|perico/, 'egg-outline'],
+  [/cafe|\bmate\b|\bte\b/, 'cafe-outline'],
+  [/cerveza|polar/, 'beer-outline'],
+  [/vino|espumante|fernet|\bgin\b|whisky|\bron\b|tragos/, 'wine-outline'],
+  [/pizza/, 'pizza-outline'],
+  [/hamburguesa|pepito|choripan|pancho|perro|papas fritas/, 'fast-food-outline'],
+  [/helado/, 'ice-cream-outline'],
+];
 
 const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** Un emoji que ayuda a reconocer el alimento de un vistazo; si no hay uno específico, el de su categoría. */
-export function emojiOf(name: string, cat?: string): string {
+/** Ícono y familia de color de un alimento: el de su nombre si se reconoce, si no el de su categoría. */
+export function foodIconOf(name: string, cat?: string): FoodIcon {
+  const base = ICON_BY_CATEGORY[cat as FoodCategory] ?? { icon: 'restaurant-outline', tone: 'neutral' };
   const n = plain(name);
-  const hit = EMOJI_BY_NAME.find(([re]) => re.test(n));
-  return hit?.[1] ?? EMOJI_BY_CATEGORY[cat as FoodCategory] ?? '🍽️';
+  const hit = ICON_BY_NAME.find(([re]) => re.test(n));
+  return hit ? { icon: hit[1], tone: base.tone } : base;
 }
 
 /** De dónde sale un alimento del catálogo que ve el usuario. */

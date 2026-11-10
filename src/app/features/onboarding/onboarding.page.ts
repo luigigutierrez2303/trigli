@@ -120,7 +120,7 @@ const LAST_STEP = 4;
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
     .grid.one { grid-template-columns: 1fr; }
     ion-select { margin-top: 4px; }
-    ion-segment-button small { opacity: 0.75; font-size: 11px; }
+    ion-segment-button small { opacity: 0.75; font-size: 12px; }
     .fine { margin: 6px 0; font-size: 12px; line-height: 1.4; color: var(--ion-color-medium); }
     .warn { margin: 12px 0; padding: 12px; border-radius: var(--trigli-radius-lg); background: var(--trigli-bad-soft); color: var(--trigli-bad-text); font-size: 14px; line-height: 1.4; }
     .plan { display: flex; align-items: center; gap: 14px; margin: 20px 0 4px; padding: 16px; border-radius: var(--trigli-radius-lg); background: var(--trigli-primary-soft); line-height: 1.25; }

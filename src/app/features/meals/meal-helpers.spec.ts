@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emojiOf, Food } from '../energy/foods';
+import { Food, foodIconOf } from '../energy/foods';
 import { frequentItems, HistoryMeal, streakDays, suggestProtein } from './meal-helpers';
 
 const item = (name: string, kcal = 100) => ({ name, kcal, qty: 1 });
@@ -69,17 +69,20 @@ describe('suggestProtein', () => {
   });
 });
 
-describe('emojiOf', () => {
-  it('reconoce por nombre, con o sin tildes', () => {
-    expect(emojiOf('Arepa con queso')).toBe('🫓');
-    expect(emojiOf('Tequeños')).toBe('🫓');
-    expect(emojiOf('Café con leche')).toBe('☕');
-    expect(emojiOf('Tomate')).toBe('🍅');
-    expect(emojiOf('Mate cebado')).toBe('☕');
+describe('foodIconOf', () => {
+  it('usa el ícono de la categoría con su familia de color', () => {
+    expect(foodIconOf('Acelga', 'Verduras')).toEqual({ icon: 'leaf-outline', tone: 'plant' });
+    expect(foodIconOf('Lentejas', 'Legumbres y cereales')).toEqual({ icon: 'ellipse-outline', tone: 'grain' });
   });
 
-  it('cae a la categoría y a un plato genérico', () => {
-    expect(emojiOf('Cosa rara', 'Frutas')).toBe('🍎');
-    expect(emojiOf('Cosa rara')).toBe('🍽️');
+  it('reconoce por nombre, con o sin tildes, y conserva el color de la categoría', () => {
+    expect(foodIconOf('Café con leche', 'Bebidas')).toEqual({ icon: 'cafe-outline', tone: 'drink' });
+    expect(foodIconOf('Mate cebado', 'Bebidas').icon).toBe('cafe-outline');
+    expect(foodIconOf('Atún al natural', 'Pescados y mariscos').icon).toBe('fish-outline');
+    expect(foodIconOf('Huevo', 'Lácteos y huevos').icon).toBe('egg-outline');
+  });
+
+  it('sin categoría conocida cae a un plato genérico', () => {
+    expect(foodIconOf('Cosa rara')).toEqual({ icon: 'restaurant-outline', tone: 'neutral' });
   });
 });
