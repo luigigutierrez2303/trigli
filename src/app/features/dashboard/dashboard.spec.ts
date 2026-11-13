@@ -1,6 +1,15 @@
-import { dailyBars, summarizeWeek, weekDays, weekGrid, weekWeightChange } from './dashboard';
+import { dailyBars, freeMealWeek, summarizeWeek, weekDays, weekGrid, weekWeightChange } from './dashboard';
 
 describe('dashboard', () => {
+  it('comida libre de la semana: usada, disponible y flags', () => {
+    expect(freeMealWeek([])).toEqual({ used: 0, available: 1, flags: [] });
+    const meals = [
+      { date: '2026-11-13', meal_type: 'dinner' as const, score: 2, flags: { pizza: true, beer: true, soda: true }, is_free_meal: true },
+      { date: '2026-11-12', meal_type: 'lunch' as const, score: 3, flags: { candy: true }, is_free_meal: false },
+    ];
+    expect(freeMealWeek(meals)).toEqual({ used: 1, available: 1, flags: ['alcohol', 'azúcar', 'harinas'] });
+  });
+
   it('week has 7 days starting Monday', () => {
     const days = weekDays('2026-10-26');
     expect(days).toHaveLength(7);

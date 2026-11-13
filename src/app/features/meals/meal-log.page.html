@@ -115,7 +115,7 @@
 
       <ion-content class="ion-padding modal-body">
         <ion-item lines="none" class="free-meal">
-          <ion-toggle [checked]="draftFree()" (ionChange)="draftFree.set($any($event).detail.checked)">Comida libre</ion-toggle>
+          <ion-toggle [checked]="draftFree()" [disabled]="!freeReady()" (ionChange)="draftFree.set($any($event).detail.checked)">Comida libre</ion-toggle>
         </ion-item>
         @if (freeQuotaUsed()) {
           <p class="muted free-note" role="status">Ya usaste tu comida libre esta semana, esta cuenta normal</p>

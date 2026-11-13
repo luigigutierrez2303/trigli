@@ -34,6 +34,19 @@ describe('habits', () => {
     expect(weekSuggestion(h, 150, 150)).toContain('1 comida con pescado');
   });
 
+  it('periodStats: la comida libre no entra en el score pero sí en alcohol', () => {
+    const s = periodStats('2026-10-05', '2026-10-11', {
+      meals: [
+        { date: '2026-10-05', score: 8, flags: {} },
+        { date: '2026-10-10', score: 1, flags: { beer: true }, is_free_meal: true },
+      ],
+      workouts: [],
+      metrics: [],
+    });
+    expect(s.avgScore).toBe(80);
+    expect(s.alcoholDaysPerWeek).toBe(1);
+  });
+
   it('periodStats promedia por semana entre dos análisis', () => {
     const s = periodStats('2026-10-05', '2026-10-18', {
       meals: [

@@ -261,6 +261,8 @@ export class MealLogPage implements OnInit {
   /** Comida libre: lo que pidió el usuario y las libres de la semana de `date()` (para el cupo). */
   readonly draftFree = signal(false);
   private readonly weekFree = signal<FreeMealRef[]>([]);
+  /** El cupo de la semana ya se consultó: hasta entonces el toggle queda deshabilitado. */
+  readonly freeReady = signal(false);
   /** Otras comidas libres de la misma semana (sin contar la que se está editando). */
   readonly otherFreeInWeek = computed(() => {
     const type = this.editing();
@@ -379,7 +381,11 @@ export class MealLogPage implements OnInit {
     this.draftFree.set(existing?.is_free_meal ?? false);
     const monday = weekStart(this.date());
     this.weekFree.set([]);
-    this.meals.freeBetween(monday, weekEnd(this.date())).then((f) => this.weekFree.set(f)).catch(() => undefined);
+    this.freeReady.set(false);
+    this.meals.freeBetween(monday, weekEnd(this.date()))
+      .then((f) => this.weekFree.set(f))
+      .catch(() => undefined)
+      .finally(() => this.freeReady.set(true));
     this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
     this.query.set('');
     this.foodQuery.set('');
