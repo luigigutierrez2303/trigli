@@ -20,7 +20,7 @@ export class DashboardService {
   async week(from: string, to: string): Promise<WeekData> {
     const [scores, meals, workouts, metrics, lab] = await Promise.all([
       this.db.from('meal_daily_score').select('date, score').gte('date', from).lte('date', to).order('date'),
-      this.db.from('meal_log').select('date, meal_type, score, flags').gte('date', from).lte('date', to),
+      this.db.from('meal_log').select('date, meal_type, score, flags, is_free_meal').gte('date', from).lte('date', to),
       this.db.from('workout').select('date, type, duration_min').gte('date', from).lte('date', to),
       this.db.from('body_metric').select('date, weight_kg').not('weight_kg', 'is', null).gte('date', from).lte('date', to).order('date'),
       this.db.from('lab_result').select('date, tg').not('tg', 'is', null).order('date'),

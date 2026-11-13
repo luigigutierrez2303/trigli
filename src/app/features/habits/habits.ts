@@ -13,6 +13,9 @@ export const SUGAR_FLAGS: readonly string[] = [
   'soda', 'juice', 'energy', 'iceCream', 'alfajor', 'dulceLeche', 'cake', 'candy', 'pastries', 'cookies', 'sugar', 'sweets',
 ];
 
+/** Harinas refinadas. */
+export const REFINED_FLAGS: readonly string[] = ['whiteBread', 'pasta', 'pizza', 'whiteRice', 'cookies', 'pastries', 'refinedCarbs'];
+
 export const FISH_WEEKLY_TARGET = 2;
 /** Un día "con fibra" tiene al menos dos comidas con alguna marca de fibra. */
 export const FIBER_MEALS_PER_DAY = 2;
@@ -83,7 +86,7 @@ export function weekSuggestion(h: WeekHabits, cardioMin: number, goalMin: number
 }
 
 export interface PeriodData {
-  meals: readonly (HabitMeal & { score: number })[];
+  meals: readonly (HabitMeal & { score: number; is_free_meal?: boolean })[];
   workouts: readonly { date: string; type: 'cardio' | 'strength'; duration_min: number }[];
   metrics: readonly { date: string; weight_kg: number }[];
 }
@@ -105,13 +108,15 @@ export function periodStats(from: string, to: string, data: PeriodData): PeriodS
   const weeks = days / 7;
   const inRange = (d: string) => d >= from && d <= to;
   const meals = data.meals.filter((m) => inRange(m.date));
+  const scored = meals.filter((m) => !m.is_free_meal);
   const byDay = (pred: (f: MealFlags) => boolean) => new Set(meals.filter((m) => pred(m.flags)).map((m) => m.date)).size;
   const cardio = data.workouts.filter((w) => inRange(w.date) && w.type === 'cardio').reduce((s, w) => s + w.duration_min, 0);
   const weights = data.metrics.filter((m) => inRange(m.date)).sort((a, b) => a.date.localeCompare(b.date));
   return {
     weeks: round1(weeks),
     cardioMinPerWeek: Math.round(cardio / weeks),
-    avgScore: meals.length ? Math.round((meals.reduce((s, m) => s + m.score, 0) / meals.length) * 10) : null,
+    // Las comidas libres no entran en el promedio del score, pero sus marcas cuentan en alcohol y pescado.
+    avgScore: scored.length ? Math.round((scored.reduce((s, m) => s + m.score, 0) / scored.length) * 10) : null,
     alcoholDaysPerWeek: round1(byDay(hasAlcohol) / weeks),
     fishDaysPerWeek: round1(byDay((f) => anyFlag(f, FISH_FLAGS)) / weeks),
     weightChange: weights.length >= 2 ? round1(weights.at(-1)!.weight_kg - weights[0].weight_kg) : null,

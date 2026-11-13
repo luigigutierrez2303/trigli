@@ -9,7 +9,7 @@ export class HabitsService {
   /** Comidas, entrenos y peso entre dos fechas (inclusive), para comparar períodos entre análisis. */
   async between(from: string, to: string): Promise<PeriodData> {
     const [meals, workouts, metrics] = await Promise.all([
-      this.db.from('meal_log').select('date, score, flags').gte('date', from).lte('date', to).limit(5000),
+      this.db.from('meal_log').select('date, score, flags, is_free_meal').gte('date', from).lte('date', to).limit(5000),
       this.db.from('workout').select('date, type, duration_min').gte('date', from).lte('date', to).limit(5000),
       this.db.from('body_metric').select('date, weight_kg').not('weight_kg', 'is', null).gte('date', from).lte('date', to),
     ]);

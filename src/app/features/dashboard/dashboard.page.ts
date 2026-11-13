@@ -17,7 +17,7 @@ import { EnergyProgressComponent } from '../energy/energy-progress.component';
 import { WeightChartComponent } from '../energy/weight-chart.component';
 import { EnergyTodayComponent } from '../energy/energy-today.component';
 import { MEAL_LABELS, MEAL_ORDER, MealType } from '../meals/meal-scoring';
-import { dailyBars, GridDay, summarizeWeek, weekGrid, weekWeightChange } from './dashboard';
+import { dailyBars, freeMealWeek, GridDay, summarizeWeek, weekGrid, weekWeightChange } from './dashboard';
 import { DashboardService, WeekData } from './dashboard.service';
 
 const DAY_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
@@ -53,6 +53,7 @@ export class DashboardPage implements OnInit {
   readonly summary = computed(() => summarizeWeek(this.data()?.scores ?? [], this.data()?.workouts ?? []));
   readonly cardio = computed(() => cardioProgress(this.summary().cardioMin));
   readonly weightChange = computed(() => weekWeightChange(this.data()?.weights ?? []));
+  readonly freeMeal = computed(() => freeMealWeek(this.data()?.meals ?? []));
   readonly bars = computed(() => dailyBars(this.monday(), this.data()?.scores ?? []));
 
   /** "Semana del 26 oct al 1 nov", para el encabezado de escritorio. */

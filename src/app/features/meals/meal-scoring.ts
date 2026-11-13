@@ -185,7 +185,25 @@ export function scoreDay(mealScores: readonly number[]): number | null {
   return Math.round(avg * 10);
 }
 
-export type ScoreLevel = 'good' | 'warn' | 'bad';
+export interface ScoredMeal {
+  score: number;
+  is_free_meal?: boolean;
+}
+
+/** Score del día sin las comidas libres. null si no hay comidas o todas son libres (el día no se calcula). */
+export function scoreDayMeals(meals: readonly ScoredMeal[]): number | null {
+  return scoreDay(meals.filter((m) => !m.is_free_meal).map((m) => m.score));
+}
+
+/** Cupo semanal de comidas libres (v1: una por semana, de lunes a domingo). */
+export const FREE_MEALS_PER_WEEK = 1;
+
+/** Una comida solo queda como libre si no hay otra comida libre en la misma semana. */
+export function resolveFreeMeal(wantsFree: boolean, othersFreeInWeek: number): boolean {
+  return wantsFree && othersFreeInWeek < FREE_MEALS_PER_WEEK;
+}
+
+export type ScoreLevel ='good' | 'warn' | 'bad';
 
 export function levelForDay(score: number): ScoreLevel {
   if (score >= 70) return 'good';

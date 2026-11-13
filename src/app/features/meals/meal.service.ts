@@ -15,9 +15,15 @@ export interface MealLog {
   notes: string | null;
   kcal: number | null;
   items: MealItem[];
+  is_free_meal: boolean;
 }
 
-const COLS = 'id, date, meal_type, flags, score, notes, kcal, items';
+export interface FreeMealRef {
+  date: string;
+  meal_type: MealType;
+}
+
+const COLS = 'id, date, meal_type, flags, score, notes, kcal, items, is_free_meal';
 
 @Injectable({ providedIn: 'root' })
 export class MealService {
@@ -61,13 +67,27 @@ export class MealService {
     return data as MealLog | null;
   }
 
+  /** Comidas libres entre dos fechas (inclusive), para el cupo semanal. */
+  async freeBetween(from: string, to: string): Promise<FreeMealRef[]> {
+    const { data, error } = await this.db
+      .from('meal_log')
+      .select('date, meal_type')
+      .eq('is_free_meal', true)
+      .gte('date', from)
+      .lte('date', to);
+    if (error) throw error;
+    return data as FreeMealRef[];
+  }
+
   /** Una entrada por (día, comida): upsert sobre la unique constraint. */
-  async save(date: string, mealType: MealType, flags: MealFlags, notes: string | null, items: MealItem[], kcal: number | null): Promise<MealLog> {
+  async save(
+    date: string, mealType: MealType, flags: MealFlags, notes: string | null, items: MealItem[], kcal: number | null, isFree = false,
+  ): Promise<MealLog> {
     const clean = Object.fromEntries(Object.entries(flags).filter(([, v]) => v)) as MealFlags;
     const { data, error } = await this.db
       .from('meal_log')
       .upsert(
-        { date, meal_type: mealType, flags: clean, score: scoreMeal(clean), notes: notes || null, items, kcal },
+        { date, meal_type: mealType, flags: clean, score: scoreMeal(clean), notes: notes || null, items, kcal, is_free_meal: isFree },
         { onConflict: 'user_id,date,meal_type' },
       )
       .select(COLS)

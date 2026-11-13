@@ -1,4 +1,4 @@
-import { ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, scoreDay, scoreMeal } from './meal-scoring';
+import { ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, resolveFreeMeal, scoreDay, scoreDayMeals, scoreMeal } from './meal-scoring';
 
 describe('meal scoring', () => {
   it('neutral meal scores the base', () => {
@@ -55,6 +55,18 @@ describe('meal scoring', () => {
   it('day score averages meals * 10', () => {
     expect(scoreDay([8, 6, 4])).toBe(60);
     expect(scoreDay([])).toBeNull();
+  });
+
+  it('las comidas libres no entran en el score del día', () => {
+    expect(scoreDayMeals([{ score: 8 }, { score: 6 }, { score: 1, is_free_meal: true }])).toBe(70);
+    expect(scoreDayMeals([{ score: 2, is_free_meal: true }])).toBeNull();
+    expect(scoreDayMeals([])).toBeNull();
+  });
+
+  it('solo una comida libre por semana', () => {
+    expect(resolveFreeMeal(true, 0)).toBe(true);
+    expect(resolveFreeMeal(true, 1)).toBe(false);
+    expect(resolveFreeMeal(false, 0)).toBe(false);
   });
 
   it('levels', () => {

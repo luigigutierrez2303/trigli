@@ -36,6 +36,7 @@
         <ion-card-content>
           <div class="metric">{{ summary().avgScore ?? '—' }}<small> score promedio</small></div>
           <p class="muted">{{ summary().daysLogged }}/7 días registrados</p>
+          <p class="muted free-line">Comida libre: {{ freeMeal().used }} / {{ freeMeal().available }} usada@if (freeMeal().flags.length) { · con {{ freeMeal().flags.join(', ') }} }</p>
           <div class="bars">
             @for (b of bars(); track b.date; let i = $index) {
               <div class="bar-col">
@@ -151,6 +152,7 @@
               [attr.aria-label]="mealLabels[m] + ' ' + d.date">
               @if (meal) {
                 <span class="meal-score" [attr.data-level]="meal.level">{{ meal.score }}</span>
+                @if (meal.isFree) { <small>libre</small> }
                 @if (meal.alcohol) { <small>alcohol</small> }
               } @else if (d.isToday) {
                 <ion-icon name="add-circle-outline" class="add" />
@@ -201,5 +203,6 @@
         </div>
       </div>
     </div>
+    <p class="muted free-line">Comida libre: {{ freeMeal().used }} / {{ freeMeal().available }} usada@if (freeMeal().flags.length) { · con {{ freeMeal().flags.join(', ') }} }</p>
   </div>
 </ion-content>

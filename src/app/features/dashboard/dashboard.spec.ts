@@ -64,8 +64,8 @@ describe('dashboard', () => {
         ],
       });
       const tue = grid[1];
-      expect(tue.meals.lunch).toEqual({ score: 8, level: 'good', alcohol: false });
-      expect(tue.meals.dinner).toEqual({ score: 2, level: 'bad', alcohol: true });
+      expect(tue.meals.lunch).toEqual({ score: 8, level: 'good', alcohol: false, isFree: false });
+      expect(tue.meals.dinner).toEqual({ score: 2, level: 'bad', alcohol: true, isFree: false });
       expect(tue.meals.breakfast).toBeNull();
       expect(tue.dayScore).toBe(50);
       expect(tue.dayLevel).toBe('warn');

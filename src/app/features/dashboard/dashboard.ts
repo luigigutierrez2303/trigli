@@ -1,5 +1,6 @@
 import { toIsoDate } from '../../core/date';
-import { hasAlcohol, levelForDay, levelForMeal, MEAL_ORDER, MealFlags, MealType, ScoreLevel, scoreDay } from '../meals/meal-scoring';
+import { hasAlcohol, levelForDay, levelForMeal, MEAL_ORDER, MealFlags, MealType, ScoreLevel, scoreDayMeals, FREE_MEALS_PER_WEEK } from '../meals/meal-scoring';
+import { REFINED_FLAGS, SUGAR_FLAGS } from '../habits/habits';
 
 export interface DailyScore {
   date: string;
@@ -58,6 +59,26 @@ export interface WeekMeal {
   meal_type: MealType;
   score: number;
   flags: MealFlags;
+  is_free_meal?: boolean;
+}
+
+export interface FreeMealWeek {
+  used: number;
+  available: number;
+  /** Qué tuvo la comida libre de la semana, para analizarlo después. */
+  flags: string[];
+}
+
+/** Comida libre de la semana: usada / disponible y los flags de alcohol, azúcar y harinas de esa comida. */
+export function freeMealWeek(meals: readonly WeekMeal[]): FreeMealWeek {
+  const free = meals.filter((m) => m.is_free_meal);
+  const has = (keys: readonly string[]) => free.some((m) => keys.some((k) => m.flags[k]));
+  const flags = [
+    ...(free.some((m) => hasAlcohol(m.flags)) ? ['alcohol'] : []),
+    ...(has(SUGAR_FLAGS) ? ['azúcar'] : []),
+    ...(has(REFINED_FLAGS) ? ['harinas'] : []),
+  ];
+  return { used: Math.min(free.length, FREE_MEALS_PER_WEEK), available: FREE_MEALS_PER_WEEK, flags };
 }
 
 export interface DatedWorkout extends WeekWorkout {
@@ -73,6 +94,7 @@ export interface GridMeal {
   score: number;
   level: ScoreLevel;
   alcohol: boolean;
+  isFree: boolean;
 }
 
 export interface GridDay {
@@ -100,11 +122,11 @@ export function weekGrid(
 
   return weekDays(monday).map((date) => {
     const dayMeals = data.meals.filter((m) => m.date === date);
-    const dayScore = scoreDay(dayMeals.map((m) => m.score));
+    const dayScore = scoreDayMeals(dayMeals);
     const meals = Object.fromEntries(
       MEAL_ORDER.map((type) => {
         const m = dayMeals.find((x) => x.meal_type === type);
-        return [type, m ? { score: m.score, level: levelForMeal(m.score), alcohol: hasAlcohol(m.flags) } : null];
+        return [type, m ? { score: m.score, level: levelForMeal(m.score), alcohol: hasAlcohol(m.flags), isFree: !!m.is_free_meal } : null];
       }),
     ) as Record<MealType, GridMeal | null>;
 

@@ -26,6 +26,11 @@ describe('frequentItems', () => {
 });
 
 describe('streakDays', () => {
+  it('un día con solo comida libre no corta la racha', () => {
+    // los días se cuentan por tener comida registrada, sin mirar el score ni si es libre
+    expect(streakDays(['2026-11-10', '2026-11-11', '2026-11-12'], '2026-11-12')).toBe(3);
+  });
+
   it('cuenta los días seguidos hasta hoy', () => {
     expect(streakDays(['2026-10-31', '2026-11-01', '2026-11-02'], '2026-11-02')).toBe(3);
   });

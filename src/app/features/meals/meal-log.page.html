@@ -13,7 +13,9 @@
       <div class="score-label">Score del día</div>
       <div class="score-value">{{ dayScore() ?? '—' }}</div>
       <div class="score-sub">
-        @if (dayScore() === null) {
+        @if (onlyFreeMeals()) {
+          Comida libre: hoy no suma ni resta al score
+        } @else if (dayScore() === null) {
           Registrá tu primera comida
         } @else {
           {{ entries().length }}/4 comidas
@@ -72,6 +74,7 @@
           }
         </ion-label>
         @if (entry) {
+          @if (entry.is_free_meal) { <ion-badge slot="end" class="free-badge" color="medium">Libre</ion-badge> }
           <ion-badge slot="end" class="meal-score" [attr.data-level]="levelForMeal(entry.score)">
             {{ entry.score }}
           </ion-badge>
@@ -111,6 +114,14 @@
       </ion-header>
 
       <ion-content class="ion-padding modal-body">
+        <ion-item lines="none" class="free-meal">
+          <ion-toggle [checked]="draftFree()" (ionChange)="draftFree.set($any($event).detail.checked)">Comida libre</ion-toggle>
+        </ion-item>
+        @if (freeQuotaUsed()) {
+          <p class="muted free-note" role="status">Ya usaste tu comida libre esta semana, esta cuenta normal</p>
+        } @else if (draftFree()) {
+          <p class="muted free-note" role="status">No cuenta en el score del día. Los alimentos quedan registrados.</p>
+        }
         @if (tab() === 'kcal') {
           @if (previous() && !draftItems().length) {
             <button type="button" class="repeat" (click)="repeatPrevious()">

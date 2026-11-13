@@ -7,7 +7,7 @@ import {
   IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonFooter, IonHeader,
   IonIcon, IonItem, IonLabel, IonInput, IonList, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTextarea, IonTitle, IonToolbar,
   ToastController,
-  IonRefresher, IonRefresherContent, IonSkeletonText,
+  IonRefresher, IonRefresherContent, IonSkeletonText, IonToggle,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronDown, chevronForward, chevronUp, addCircleOutline, flame, refreshOutline } from 'ionicons/icons';
@@ -28,10 +28,11 @@ import { frequentItems, HistoryMeal, QTY_CHOICES, streakDays, suggestProtein } f
 import { SpeechService } from './speech';
 import { ProfileService } from '../energy/profile.service';
 import {
-  ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MEAL_SCORE_GOAL, MealFlags, MealType, scoreDay, scoreMeal,
+  ALL_FLAG_DEFS, explainMeal, FLAG_DEFS, hasAlcohol, isEmptyMeal, levelForDay, levelForMeal, MEAL_LABELS, MEAL_ORDER, MEAL_SCORE_GOAL, MealFlags, MealType, resolveFreeMeal, scoreDayMeals, scoreMeal,
 } from './meal-scoring';
+import { weekEnd, weekStart } from '../activity/activity';
 import { FavoriteMeal, FavoriteService } from './favorite.service';
-import { MealLog, MealService } from './meal.service';
+import { FreeMealRef, MealLog, MealService } from './meal.service';
 
 const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -40,7 +41,7 @@ const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
   imports: [
     DecimalPipe, FormsModule, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, IonCard,
     IonCardContent, IonFooter, IonList, IonItem, IonLabel, IonBadge, IonModal, IonSearchbar, IonTextarea, IonInput,
-    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, WaterCardComponent, FoodIconComponent, ScoreWhyComponent,
+    IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent, IonSkeletonText, IonToggle, WaterCardComponent, FoodIconComponent, ScoreWhyComponent,
   ],
   templateUrl: './meal-log.page.html',
   styleUrl: './meal-log.page.scss',
@@ -82,7 +83,9 @@ export class MealLogPage implements OnInit {
 
   readonly isToday = computed(() => this.date() === toIsoDate(new Date()));
   readonly byType = computed(() => new Map(this.entries().map((e) => [e.meal_type, e])));
-  readonly dayScore = computed(() => scoreDay(this.entries().map((e) => e.score)));
+  readonly dayScore = computed(() => scoreDayMeals(this.entries()));
+  /** Hay comidas cargadas pero todas son libres: el día no se calcula. */
+  readonly onlyFreeMeals = computed(() => this.entries().length > 0 && this.dayScore() === null);
   readonly dayLevel = computed(() => {
     const s = this.dayScore();
     return s === null ? null : levelForDay(s);
@@ -255,6 +258,17 @@ export class MealLogPage implements OnInit {
   /** Desglose del score ("¿por qué?"): base, lo que suma y lo que resta. */
   readonly why = computed(() => explainMeal(this.effectiveFlags()));
   readonly showWhy = signal(false);
+  /** Comida libre: lo que pidió el usuario y las libres de la semana de `date()` (para el cupo). */
+  readonly draftFree = signal(false);
+  private readonly weekFree = signal<FreeMealRef[]>([]);
+  /** Otras comidas libres de la misma semana (sin contar la que se está editando). */
+  readonly otherFreeInWeek = computed(() => {
+    const type = this.editing();
+    return this.weekFree().filter((f) => !(f.date === this.date() && f.meal_type === type)).length;
+  });
+  /** Pidió comida libre pero el cupo de la semana ya está usado: esta cuenta normal. */
+  readonly freeQuotaUsed = computed(() => this.draftFree() && !resolveFreeMeal(true, this.otherFreeInWeek()));
+  readonly isFreeMeal = computed(() => resolveFreeMeal(this.draftFree(), this.otherFreeInWeek()));
   readonly mealGoal = MEAL_SCORE_GOAL;
   readonly saving = signal(false);
 
@@ -362,6 +376,10 @@ export class MealLogPage implements OnInit {
     const fromItems = flagsOfItems(existing?.items ?? [], this.foodsService.catalog(), true);
     this.draftFlags.set(Object.fromEntries(Object.entries(existing?.flags ?? {}).filter(([k]) => !fromItems[k])));
     this.draftNotes = existing?.notes ?? '';
+    this.draftFree.set(existing?.is_free_meal ?? false);
+    const monday = weekStart(this.date());
+    this.weekFree.set([]);
+    this.meals.freeBetween(monday, weekEnd(this.date())).then((f) => this.weekFree.set(f)).catch(() => undefined);
     this.draftItems.set((existing?.items ?? []).map((i) => ({ ...i })));
     this.query.set('');
     this.foodQuery.set('');
@@ -542,6 +560,7 @@ export class MealLogPage implements OnInit {
     try {
       const saved = await this.meals.save(
         this.date(), type, this.effectiveFlags(), this.draftNotes, this.draftItems(), this.draftItems().length ? this.draftKcal() : null,
+        this.isFreeMeal(),
       );
       const wasComplete = this.entries().length >= MEAL_ORDER.length;
       this.entries.update((list) => [...list.filter((e) => e.meal_type !== type), saved]);
@@ -572,7 +591,7 @@ export class MealLogPage implements OnInit {
   /** Vuelve a guardar una comida borrada. */
   private async restore(meal: MealLog) {
     try {
-      const saved = await this.meals.save(meal.date, meal.meal_type, meal.flags, meal.notes, meal.items, meal.kcal);
+      const saved = await this.meals.save(meal.date, meal.meal_type, meal.flags, meal.notes, meal.items, meal.kcal, meal.is_free_meal);
       if (saved.date === this.date()) this.entries.update((list) => [...list.filter((e) => e.meal_type !== saved.meal_type), saved]);
       this.history.update((h) => [{ date: saved.date, meal_type: saved.meal_type, items: saved.items }, ...h]);
     } catch (e) {
